@@ -17,7 +17,7 @@
     *pos = 0;\
 }
 
-typedef enum{
+typedef enum{   // strings for Keywords
     sInit, sLiteral, sID, sInt, sFinish, sProlog
 } tState;
 
@@ -128,12 +128,12 @@ int ReadToken(FILE *f, tToken *token)
             
         switch (state) {
             case sInit:
-                if(isAlpha(ch))
+                if(isAlpha(ch))     // TODO
                 {
                     state = sID;
                     SAVECHAR;
                 }
-                else if (isDigit(ch))
+                else if (isDigit(ch))   // TODO
                 {
                     state = sInt;
                     SAVECHAR;
@@ -155,11 +155,110 @@ int ReadToken(FILE *f, tToken *token)
                         case '*':
                             state = sFinish;
                             token->type = tMul;
+                        case '(':
+                            state = sFinish;
+                            token->type = tLPar;
+                        case ')':
+                            state = sFinish;
+                            token->type = tRPar;
+                        case '{':
+                            state = sFinish;
+                            token->type = tLCurl;
+                        case '}':
+                            state = sFinish;
+                            token->type = tRCurl;
+                        case ':':
+                            state = sFinish;
+                            token->type = tColon;
+                        case ';':
+                            state = sFinish;
+                            token->type = tSemicolon;
+                        case ',':
+                            state = sFinish;
+                            token->type = tComma;
+                        case '?':
+                            state = sFinish;
+                            token->type = tQuestion;
+                        case '$':
+                            state = sFinish;
+                            token->type = tDollar;
+                        case '=':   // Kontrola prirazeni
+                            ch = fgetc(f);
+                            if(ch == '=')   // Kontrola rovnosti
+                            {
+                                ch = fgetc(f);
+                                if (ch == '=')  // Kontrola identicnosti
+                                {
+                                    state = sFinish;
+                                    token->type = tIdentical;
+                                }
+                                else
+                                {
+                                    ungetc(ch, f);
+                                    state = sFinish;
+                                    token->type = tEquals;
+                                }
+                            }
+                            else
+                            {
+                                ungetc(ch, f);
+                                state = sFinish;
+                                token->type = tAssign;
+                            }
+                        case '!':
+                            ch = fgetc(f);
+                            if(ch == '=')
+                            {
+                                ch = fgetc(f);
+                                if(ch == '=')
+                                {
+                                    state = sFinish;
+                                    token->type = tNotEq;
+                                }
+                                else
+                                {
+                                    ungetc(ch, f);
+                                    state = sFinish;
+                                    token->type = tNeg;
+                                }
+                            }
+                            else
+                            {
+                                ungetc(ch, f);
+                                state = sFinish;
+                                token->type = tExclamation;
+                            }
+                        case '<':
+                            ch = fgetc(f);
+                            if(ch == '=')
+                            {
+                                state = sFinish;
+                                token->type = tLessEq;
+                            }
+                            else
+                            {
+                                ungetc(ch, f);
+                                state = sFinish;
+                                token->type = tLess;
+                            }
+                        case '>':
+                            ch = fgetc(f);
+                            if(ch == '=')
+                            {
+                                state = sFinish;
+                                token->type = tMoreEq;
+                            }
+                            else
+                            {
+                                ungetc(ch, f);
+                                state = sFinish;
+                                token->type = tMore;
+                            }
                         case '/':
                             SAVECHAR;
                             ch = fgetc(f);
                             SAVECHAR;
-                            if(ch == '/')
+                            if(ch == '/')   // Single line comment
                             {
                                 while (!feof(f) && (ch != '\n'))
                                 {
@@ -177,7 +276,7 @@ int ReadToken(FILE *f, tToken *token)
                                 printf("COMMENT: %s\n", token->data);
                                 pos = token->data;
                             }
-                            else if(ch == '*')
+                            else if(ch == '*')  // Start of block comment
                             {
                                 while (!feof(f))
                                 {
@@ -199,6 +298,13 @@ int ReadToken(FILE *f, tToken *token)
                                         }
                                     }
                                 }
+                                if(feof(f))
+                                {
+                                    printf("EOF IN MULTILINE COMMENT\n");
+                                    state = sFinish;
+                                    token->type = tInvalid;
+                                    return 0;
+                                }
                             }
                             else
                             {
@@ -211,7 +317,7 @@ int ReadToken(FILE *f, tToken *token)
                     }
                 }
                 break;
-            case sLiteral:
+            case sLiteral:      // TODO
                 if(ch == '\"')
                     state = sFinish;
                 else if((ch < 32) && (ch >= 0))

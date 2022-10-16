@@ -10,7 +10,11 @@
 
 typedef enum{
     tInvalid,
-    tPlus, tMinus, tMul, tDiv
+    tPlus, tMinus, tMul, tDiv, tLPar, tRPar, tLCurl, tRCurl, tColon, tSemicolon, tComma,
+    tQuestion, tDollar,
+    tAssign, tEquals, tIdentical,
+    tExclamation, tNeg, tNotEq,
+    tLess, tLessEq, tMore, tMoreEq
 } tTokenType;
 
 typedef struct{
