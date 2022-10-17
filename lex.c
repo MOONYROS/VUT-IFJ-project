@@ -18,7 +18,8 @@
 }
 
 typedef enum{   // strings for Keywords
-    sInit, sLiteral, sID, sInt, sFinish, sProlog
+    sInit, sLiteral, sID, sInt, sFinish, sProlog,
+    sFloat, sIexp, sReal, sRexp, sReal2, sRexpS, sInt2, sIexpS
 } tState;
 
 #define KEYWORDS 5
@@ -26,24 +27,24 @@ char *keyword[] = {"if", "while", "for", "int", "float"}; // TODO
 
 int isKeyword(char *str)
 {
-    for(int i = 0; i < KEYWORDS; i++)
-        if(strcmp(str, keyword[i]) == 0)
+    for (int i = 0; i < KEYWORDS; i++)
+        if (strcmp(str, keyword[i]) == 0)
             return 1;
     return 0;
 }
 
 int isAlpha(char ch)
 {
-    if((ch >= 'A') && (ch <= 'Z'))
+    if ((ch >= 'A') && (ch <= 'Z'))
         return 1;
-    if((ch >= 'a') && (ch <= 'z'))
+    if ((ch >= 'a') && (ch <= 'z'))
         return 1;
     return 0;
 }
 
 int isDigit(char ch)
 {
-    if((ch >= '0') && (ch <= '9'))
+    if ((ch >= '0') && (ch <= '9'))
         return 1;
     return 0;
 }
@@ -73,20 +74,20 @@ int SkipProlog(FILE *f)
     {
         SAVECHAR;
         ch = fgetc(f);
-        if(feof(f))
+        if (feof(f))
             return 0;
-        if(isWhiteChar(ch))
+        if (isWhiteChar(ch))
             return 0;
     }
     SAVECHAR;
-    if(strcmp(line, "<?php") != 0)
+    if (strcmp(line, "<?php") != 0)
         return 0;
     ch = fgetc(f);
     while (!feof(f) && isWhiteChar(ch))
     {
         ch = fgetc(f);
     }
-    if(feof(f))
+    if (feof(f))
         return 0;
     pos = &line[0];
     for (int i = 0; i < 23; i++)
@@ -95,11 +96,11 @@ int SkipProlog(FILE *f)
         ch = fgetc(f);
         if(feof(f))
             return 0;
-        if(isWhiteChar(ch))
+        if (isWhiteChar(ch))
             return 0;
     }
     SAVECHAR;
-    if(strcmp(line, "declare(strict_types=1);") != 0)
+    if (strcmp(line, "declare(strict_types=1);") != 0)
         return 0;
     ch = fgetc(f);
     while (!feof(f) && isWhiteChar(ch))
@@ -120,15 +121,15 @@ int ReadToken(FILE *f, tToken *token)
     
     tState state = sInit;
     
-    while(state != sFinish)
+    while (state != sFinish)
     {
         ch = fgetc(f);
-        if(feof(f))
+        if (feof(f))
             return 0;   // Osetrit potencialne nactena data pred EOF
             
         switch (state) {
             case sInit:
-                if(isAlpha(ch))     // TODO
+                if (isAlpha(ch))     // TODO
                 {
                     state = sID;
                     SAVECHAR;
@@ -184,7 +185,7 @@ int ReadToken(FILE *f, tToken *token)
                             token->type = tDollar;
                         case '=':   // Kontrola prirazeni
                             ch = fgetc(f);
-                            if(ch == '=')   // Kontrola rovnosti
+                            if (ch == '=')   // Kontrola rovnosti
                             {
                                 ch = fgetc(f);
                                 if (ch == '=')  // Kontrola identicnosti
@@ -210,7 +211,7 @@ int ReadToken(FILE *f, tToken *token)
                             if(ch == '=')
                             {
                                 ch = fgetc(f);
-                                if(ch == '=')
+                                if (ch == '=')
                                 {
                                     state = sFinish;
                                     token->type = tNotEq;
@@ -230,7 +231,7 @@ int ReadToken(FILE *f, tToken *token)
                             }
                         case '<':
                             ch = fgetc(f);
-                            if(ch == '=')
+                            if (ch == '=')
                             {
                                 state = sFinish;
                                 token->type = tLessEq;
@@ -243,7 +244,7 @@ int ReadToken(FILE *f, tToken *token)
                             }
                         case '>':
                             ch = fgetc(f);
-                            if(ch == '=')
+                            if (ch == '=')
                             {
                                 state = sFinish;
                                 token->type = tMoreEq;
@@ -258,7 +259,7 @@ int ReadToken(FILE *f, tToken *token)
                             SAVECHAR;
                             ch = fgetc(f);
                             SAVECHAR;
-                            if(ch == '/')   // Single line comment
+                            if (ch == '/')   // Single line comment
                             {
                                 while (!feof(f) && (ch != '\n'))
                                 {
@@ -266,7 +267,7 @@ int ReadToken(FILE *f, tToken *token)
                                     if(ch != '\n')
                                         SAVECHAR;
                                 }
-                                if(feof(f))
+                                if (feof(f))
                                 {
                                     printf("EOF COMMENT: %s\n", token->data);
                                     state = sFinish;
@@ -276,7 +277,7 @@ int ReadToken(FILE *f, tToken *token)
                                 printf("COMMENT: %s\n", token->data);
                                 pos = token->data;
                             }
-                            else if(ch == '*')  // Start of block comment
+                            else if (ch == '*')  // Start of block comment
                             {
                                 while (!feof(f))
                                 {
@@ -286,19 +287,19 @@ int ReadToken(FILE *f, tToken *token)
                                         ch = fgetc(f);
                                         if(feof(f))
                                         {
-                                            printf("EOF IN MULTILINE COMMENT\n");
+                                            printf ("EOF IN MULTILINE COMMENT\n");
                                             state = sFinish;
                                             token->type = tInvalid;
                                             return 0;
                                         }
-                                        else if(ch == '/')
+                                        else if (ch == '/')
                                         {
                                             printf("MULTILINE COMMENT\n");
                                             break;
                                         }
                                     }
                                 }
-                                if(feof(f))
+                                if (feof(f))
                                 {
                                     printf("EOF IN MULTILINE COMMENT\n");
                                     state = sFinish;
@@ -318,9 +319,9 @@ int ReadToken(FILE *f, tToken *token)
                 }
                 break;
             case sLiteral:      // TODO
-                if(ch == '\"')
+                if (ch == '\"')
                     state = sFinish;
-                else if((ch < 32) && (ch >= 0))
+                else if ((ch < 32) && (ch >= 0))
                 {
                     state = sFinish;
                     token->type = tInvalid;
@@ -332,15 +333,148 @@ int ReadToken(FILE *f, tToken *token)
                 break;
             case sID:
                 SAVECHAR;
-                if(isKeyword(token->data))
+                if (isKeyword(token->data))
                     state = sFinish;
-                else if(!isAlpha(ch) && !isDigit(ch) && (ch != '_'))
+                else if (!isAlpha(ch) && !isDigit(ch) && (ch != '_'))
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
                 break;
             case sInt:
+                // if (isDigit(ch))    // jestlize je znak cislo, ulozime ho
+                //     SAVECHAR
+                while (isDigit(ch))
+                {
+                    SAVECHAR;
+                    fgetc(f);
+                }
+                if (ch == '.') // jetlize prijde tecka, ulozime ji a presouvame se do sFloat
+                {
+                    SAVECHAR;
+                    state = sFloat;
+                }
+                else if ((ch == 'e') || (ch == 'E'))    // jestlize prijde e nebo E, jdeme do sIexp
+                {
+                    SAVECHAR;
+                    state = sIexp;
+                }
+                else    // Pokud ani jedna z podminek nevyhovuje, vracime znak zpatky a cislo (int) je nacteno
+                {
+                    ungetc(ch, f);
+                    state = sFinish;
+                    token->type = tInt;
+                }
+                break;
+            case sFloat:    // Co kdyz prijde jenom 234.? je to 234.0 nebo tInvalid?
+                if (isDigit(ch))
+                {
+                    SAVECHAR;
+                    state = sReal;
+                }
+                else    // Zatim za teckou ocekavam cislo, takze pokud neprijde, hazim tInvalid
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
+                }
+                break;
+            case sReal: // Za teckou prislo cislo, takze ted urcite mame realne cislo
+                //if (isDigit(ch))
+                //    SAVECHAR
+                while (isDigit(ch)) // Za tecku prislo dalsi cislo, to ulozime
+                {
+                    SAVECHAR;
+                    fgetc(f);
+                }
+                if ((ch == 'e') || (ch == 'E')) // Realne exponencialni
+                {
+                    SAVECHAR;
+                    state = sRexp;
+                }
+                else    // Za cislem za desetinnou teckou prisel neocekavany znak, tak ho vratime zpatky a ulozime nastavime stav sFinish
+                {
+                    ungetc(ch, f);
+                    state = sFinish;
+                    token->type = tReal;
+                }
+                break;
+            case sRexp:
+                if (isDigit(ch))    // Prislo cislo, takze rovnou presouvame do sReal2
+                {
+                    SAVECHAR;
+                    state = sReal2;
+                }
+                else if ((ch == '+') || (ch == '-'))    // prislo + nebo -, takze se presouvame do sRexpS
+                {
+                    SAVECHAR;
+                    state = sRexpS;
+                }
+                else    // ocekavali jsme cislo nebo znak, ani jeden neprisel, takze konec a stav je tInvalid
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
+                }
+                break;
+            case sRexpS:
+                if(isDigit(ch)) // Prislo cislo, takze se presouvame do stavu sReal2
+                {
+                    SAVECHAR;
+                    state = sReal2;
+                }
+                else    // Ocekavali jsme cislo, ktere neprislo, takze stav je tInvalid
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
+                }
+                break;
+            case sReal2:    // jedno cislo nam uz prislo, takze cele cislo je urcite validni
+                while (isDigit(ch)) // dokud prichazeji cisla, ukladame je
+                {
+                    SAVECHAR;
+                    ch = fgetc(f);
+                }
+                ungetc(ch, f);  // prislo nam neco jineho nez cislo, takze se o znak vratime a dame se do stavu sFinish a typ tokenu je tReal2
+                state = sFinish;
+                token->type = tReal2;
+                break;
+            case sIexp:    // Prislo e nebo E
+                if (isDigit(ch))    // Prislo cislo, takze se presouvame do stavu sInt2
+                {
+                    SAVECHAR;
+                    state = sInt2;
+                }
+                else if ((ch == '+') || (ch == '-'))    // Prislo + nebo -, takze se presouvame do sIexpS
+                {
+                    SAVECHAR;
+                    state = sIexpS;
+                }
+                else    // ocekavali jsme cislo nebo znamenko, jinak tInvalid
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
+                }
+                break;
+            case sIexpS:    // Prislo znamenko
+                if (isDigit(ch))    // Prislo cislo
+                {
+                    SAVECHAR;
+                    state = sInt2;
+                }
+                else    // ocekavali jsme cislo, konec, stav tInvalid
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
+                }
+                break;
+            case sInt2:
+                while (isDigit(ch)) // dokud prichazeji cisla, ukladame je
+                {
+                    SAVECHAR;
+                    fgetc(f);
+                }
+                ch = ungetc(ch, f); // neprislo cislo, tento znak vratime a jsme v koncovem stavu
+                state = sFinish;
+                token->type = tInt2;
                 break;
             default:
                 printf("NEOSETRENY STAV: Sem bychom se nikdy nemeli dostat.\n");

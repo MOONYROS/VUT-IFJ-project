@@ -14,7 +14,8 @@ typedef enum{
     tQuestion, tDollar,
     tAssign, tEquals, tIdentical,
     tExclamation, tNeg, tNotEq,
-    tLess, tLessEq, tMore, tMoreEq
+    tLess, tLessEq, tMore, tMoreEq,
+    tInt, tReal, tReal2, tInt2
 } tTokenType;
 
 typedef struct{
