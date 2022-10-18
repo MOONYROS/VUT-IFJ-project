@@ -148,42 +148,55 @@ int ReadToken(FILE *f, tToken *token)
                             break;
                         case '\"':
                             state = sLiteral;
+                            break;
                         case '+':
                             state = sFinish;
                             token->type = tPlus;
+                            break;
                         case '-':
                             state = sFinish;
                             token->type = tMinus;
+                            break;
                         case '*':
                             state = sFinish;
                             token->type = tMul;
+                            break;
                         case '(':
                             state = sFinish;
                             token->type = tLPar;
+                            break;
                         case ')':
                             state = sFinish;
                             token->type = tRPar;
+                            break;
                         case '{':
                             state = sFinish;
                             token->type = tLCurl;
+                            break;
                         case '}':
                             state = sFinish;
                             token->type = tRCurl;
+                            break;
                         case ':':
                             state = sFinish;
                             token->type = tColon;
+                            break;
                         case ';':
                             state = sFinish;
                             token->type = tSemicolon;
+                            break;
                         case ',':
                             state = sFinish;
                             token->type = tComma;
+                            break;
                         case '?':
                             state = sFinish;
                             token->type = tQuestion;
+                            break;
                         case '$':
                             state = sFinish;
                             token->type = tDollar;
+                            break;
                         case '=':   // Kontrola prirazeni
                             ch = fgetc(f);
                             if (ch == '=')   // Kontrola rovnosti
@@ -231,6 +244,7 @@ int ReadToken(FILE *f, tToken *token)
                                 state = sFinish;
                                 token->type = tExclamation;
                             }
+                            break;
                         case '<':
                             ch = fgetc(f);
                             if (ch == '=')
@@ -244,6 +258,7 @@ int ReadToken(FILE *f, tToken *token)
                                 state = sFinish;
                                 token->type = tLess;
                             }
+                            break;
                         case '>':
                             ch = fgetc(f);
                             if (ch == '=')
@@ -257,6 +272,7 @@ int ReadToken(FILE *f, tToken *token)
                                 state = sFinish;
                                 token->type = tMore;
                             }
+                            break;
                         case '/':
                             SAVECHAR;
                             ch = fgetc(f);
@@ -320,17 +336,22 @@ int ReadToken(FILE *f, tToken *token)
                     }
                 }
                 break;
+            /* SPATNE NASTAVENE PODMINKY A PROBIHA SPATNE VYHODNOCOVANI ZNAKU */
             case sLiteral:  // prisla nam uvozovka
                 if (ch == '\"') // prisla dalsi uvozovka - ukoncujeme retezec
                 {
                     state = sFinish;
                     token->type = tLiteral;
                 }
-                else if ((ch < 32) && (ch >= 0))    // pokud prijde jiny znak z ASCII tabulky, nez z intervalu <32; 255>, jdeme do tInvalid
+                else if ((ch >= 32) && (ch <= 255))
                 {
-                    state = sFinish;
-                    token->type = tInvalid;
+                    SAVECHAR;
                 }
+                //else if ((ch < 32) && (ch >= 0))    // pokud prijde jiny znak z ASCII tabulky, nez z intervalu <32; 255>, jdeme do tInvalid
+                //{
+                //    state = sFinish;
+                //    token->type = tInvalid;
+                //}
                 else if (ch == '\\')    // pokud prisel backslash, presouvame se do sEsc
                 {
                     SAVECHAR;
