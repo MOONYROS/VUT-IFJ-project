@@ -19,7 +19,8 @@
 
 typedef enum{   // strings for Keywords
     sInit, sLiteral, sID, sInt, sFinish, sProlog,
-    sFloat, sIexp, sReal, sRexp, sReal2, sRexpS, sInt2, sIexpS
+    sFloat, sIexp, sReal, sRexp, sReal2, sRexpS, sInt2, sIexpS,
+    sEsc, sOcta1, sOcta2, sHexa1, sHexa2, sPercent
 } tState;
 
 #define KEYWORDS 5
@@ -206,6 +207,7 @@ int ReadToken(FILE *f, tToken *token)
                                 state = sFinish;
                                 token->type = tAssign;
                             }
+                            break;
                         case '!':
                             ch = fgetc(f);
                             if(ch == '=')
@@ -318,17 +320,112 @@ int ReadToken(FILE *f, tToken *token)
                     }
                 }
                 break;
-            case sLiteral:      // TODO
-                if (ch == '\"')
+            case sLiteral:  // prisla nam uvozovka
+                if (ch == '\"') // prisla dalsi uvozovka - ukoncujeme retezec
+                {
                     state = sFinish;
-                else if ((ch < 32) && (ch >= 0))
+                    token->type = tLiteral;
+                }
+                else if ((ch < 32) && (ch >= 0))    // pokud prijde jiny znak z ASCII tabulky, nez z intervalu <32; 255>, jdeme do tInvalid
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
-                else
+                else if (ch == '\\')    // pokud prisel backslash, presouvame se do sEsc
                 {
                     SAVECHAR;
+                    state = sEsc;
+                }
+                else if (ch == '%')
+                {
+                    SAVECHAR;
+                    state = sPercent;
+                }
+                else    // jakykoliv jiny znak (napriklad EOF) je nepripustny
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
+                }
+                break;
+            case sEsc:
+                if ((ch >= 48) && (ch <= 55))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o oktalove cislo
+                {
+                    SAVECHAR;
+                    state = sOcta1;
+                }
+                else if (ch == 'x') // prislo x, takze se bude jednat o hexadecimalni cislo
+                {
+                    SAVECHAR;
+                    state = sHexa1;
+                }
+                else if ((ch == '"') || (ch == 'n') || (ch == 't') || (ch == '$') || (ch == '\\') || (ch == '%'))   // prisel jeden z techto znaku
+                {
+                    SAVECHAR;
+                    state = sLiteral;
+                }
+                else    // do escape sekvece prisel neplatny znak
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
+                }
+                break;
+            case sOcta1:
+                if ((ch >= 48) && (ch <= 55))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o KOMPLETNI oktalove cislo
+                {
+                    SAVECHAR;
+                    state = sOcta2;
+                }
+                else    // cokoliv jine je tInvalid
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
+                }
+            case sOcta2:
+                if ((ch >= 48) && (ch <= 55))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o KOMPLETNI oktalove cislo, vracime se zpet do retezce
+                {
+                    SAVECHAR;
+                    state = sLiteral;
+                }
+                else    // cokoliv jine je tInvalid
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
+                }
+                break;
+            case sHexa1:
+                if(((ch >= 48) && (ch <= 57)) || ((ch >= 65) && (ch <= 70)))    // prvni cislo musi byt bud 0-9 (prvni podminka) nebo A-F (druha podminka)
+                {
+                    SAVECHAR;
+                    state = sHexa2;
+                }
+                else    // cokoliv jine je tInvalid
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
+                }
+                break;
+            case sHexa2:
+                if(((ch >= 48) && (ch <= 57)) || ((ch >= 65) && (ch <= 70)))    // druhe cislo musi byt bud 0-9 (prvni podminka) nebo A-F (druha podminka)
+                {
+                    SAVECHAR;
+                    state = sLiteral;
+                }
+                else    // cokoliv jine je tInvalid
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
+                }
+                break;
+            case sPercent:
+                if ((ch == 'a') || (ch == 'd'))
+                {
+                    SAVECHAR;
+                    state = sLiteral;
+                }
+                else
+                {
+                    state = sFinish;
+                    token->type = tInvalid;
                 }
                 break;
             case sID:
@@ -347,7 +444,7 @@ int ReadToken(FILE *f, tToken *token)
                 while (isDigit(ch))
                 {
                     SAVECHAR;
-                    fgetc(f);
+                    ch = fgetc(f);
                 }
                 if (ch == '.') // jetlize prijde tecka, ulozime ji a presouvame se do sFloat
                 {
@@ -364,6 +461,7 @@ int ReadToken(FILE *f, tToken *token)
                     ungetc(ch, f);
                     state = sFinish;
                     token->type = tInt;
+                    printf("PRVNI CISLO\n");
                 }
                 break;
             case sFloat:    // Co kdyz prijde jenom 234.? je to 234.0 nebo tInvalid?
@@ -396,6 +494,7 @@ int ReadToken(FILE *f, tToken *token)
                     ungetc(ch, f);
                     state = sFinish;
                     token->type = tReal;
+                    printf("DRUHE CISLO\n");
                 }
                 break;
             case sRexp:
@@ -475,6 +574,7 @@ int ReadToken(FILE *f, tToken *token)
                 ch = ungetc(ch, f); // neprislo cislo, tento znak vratime a jsme v koncovem stavu
                 state = sFinish;
                 token->type = tInt2;
+                printf("TRETI CISLO\n");
                 break;
             default:
                 printf("NEOSETRENY STAV: Sem bychom se nikdy nemeli dostat.\n");
