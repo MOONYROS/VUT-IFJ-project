@@ -9,7 +9,7 @@
 #define token_h
 
 typedef enum{
-    tInvalid,
+    tInvalid, tIdentifier, tKeyword,
     tPlus, tMinus, tMul, tDiv, tLPar, tRPar, tLCurl, tRCurl, tColon, tSemicolon, tComma,
     tQuestion, tDollar,
     tAssign, tEquals, tIdentical,

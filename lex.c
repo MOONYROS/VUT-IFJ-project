@@ -343,7 +343,7 @@ int ReadToken(FILE *f, tToken *token)
                     state = sFinish;
                     token->type = tLiteral;
                 }
-                else if ((ch >= 32) && (ch <= 255))
+                else if (ch >= 32) // (ch <= 255) je vzdycky TRUE, takze neni treba zapisovat
                 {
                     SAVECHAR;
                 }
@@ -450,13 +450,20 @@ int ReadToken(FILE *f, tToken *token)
                 }
                 break;
             case sID:
-                SAVECHAR;
-                if (isKeyword(token->data))
-                    state = sFinish;
-                else if (!isAlpha(ch) && !isDigit(ch) && (ch != '_'))
+                if (isKeyword(token->data)) // pokud je retezec mezi klicovymi vyrazy, koncime a je to tKeyword
                 {
                     state = sFinish;
-                    token->type = tInvalid;
+                    token->type = tKeyword;
+                }
+                else if (isAlpha(ch) || isDigit(ch) || (ch == '_')) // jestlize prisel alphanumericky znak nebo _, nacitame dal znaky
+                {
+                    SAVECHAR;
+                }
+                else    // pokud prislo neco jineho, ch vratime a jsme ve stavu tIdentifier
+                {
+                    ungetc(ch, f);
+                    state = sFinish;
+                    token->type = tIdentifier;
                 }
                 break;
             case sInt:
