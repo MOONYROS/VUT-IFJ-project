@@ -12,8 +12,8 @@ typedef enum{
     tInvalid, tIdentifier, tKeyword,
     tPlus, tMinus, tMul, tDiv, tLPar, tRPar, tLCurl, tRCurl, tColon, tSemicolon, tComma,
     tQuestion, tDollar,
-    tAssign, tEquals, tIdentical,
-    tExclamation, tNeg, tNotEq,
+    tAssign, tIdentical,
+    tExclamation, tNotIdentical,
     tLess, tLessEq, tMore, tMoreEq,
     tInt, tReal, tReal2, tInt2,
     tLiteral

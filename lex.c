@@ -130,7 +130,7 @@ int ReadToken(FILE *f, tToken *token)
             
         switch (state) {
             case sInit:
-                if (isAlpha(ch))     // TODO
+                if (isAlpha(ch) || (ch == '_'))     // Pokud prisel alpha znak nebo podtrzitko
                 {
                     state = sID;
                     SAVECHAR;
@@ -207,11 +207,10 @@ int ReadToken(FILE *f, tToken *token)
                                     state = sFinish;
                                     token->type = tIdentical;
                                 }
-                                else
+                                else    // pokud prisly pouze 2 symboly =, jdeme do tInvalid, protoze to nas jazyk nepodporuje
                                 {
-                                    ungetc(ch, f);
                                     state = sFinish;
-                                    token->type = tEquals;
+                                    token->type = tInvalid;
                                 }
                             }
                             else
@@ -229,13 +228,12 @@ int ReadToken(FILE *f, tToken *token)
                                 if (ch == '=')
                                 {
                                     state = sFinish;
-                                    token->type = tNotEq;
+                                    token->type = tNotIdentical;
                                 }
-                                else
+                                else    // pokud prisly pouze 2 symboly (!=), jdeme do tInvalid, protoze to nas jazyk nepodporuje
                                 {
-                                    ungetc(ch, f);
                                     state = sFinish;
-                                    token->type = tNeg;
+                                    token->type = tInvalid;
                                 }
                             }
                             else
