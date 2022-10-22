@@ -1,0 +1,80 @@
+<if_statement> ::= 1   if <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl> else <tLCurl> <statements> <tRCurl>
+                   10  |if <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl>
+                   12  |if <tLPar> <condition> <tRPar> <statement>
+                   11  |if <tLPar> <condition> <tRPar> <tLCurl> <statement> <tRCurl>
+		       2   |if <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl> else <tLCurl> <statement> <tRCurl>
+		       5   |if <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl> else <statement>
+		       9   |if <tLPar> <condition> <tRPar> <statement> else <statement>
+		       8   |if <tLPar> <condition> <tRPar> <statement> else <tLCurl> <statement> <tRCurl>
+		       6   |if <tLPar> <condition> <tRPar> <statement> else <tLCurl> <statements> <tRCurl>
+		       7   |if <tLPar> <condition> <tRPar> <tLCurl> <statement> <tRCurl> else <statement>
+		       4   |if <tLPar> <condition> <tRPar> <tLCurl> <statement> <tRCurl> else <tLCurl> <statement> <tRCurl>
+		       3   |if <tLPar> <condition> <tRPar> <tLCurl> <statement> <tRCurl> else <tLCurl> <statements> <tRCurl>
+
+	1			2			3		4			5			6				7			8				9				10				11				12
+
+if(cond){     | if(cond){      | if(cond)       | if(cond) {    | if(cond){     | if(cond){         | if(cond) statement;   | if(cond)statement;| if(cond) statement;   | if(cond) {statement;} | if (cond) {statement;}| if (cond) {statement;}
+    statements|     statements |    statement;  |   statement;  |   statements  |   statements      | else statement;       | else {statement;} | else {statements}     | else statement;       | else {statement;}     | else {statements}
+} else{       | }              |                | }             | } else {      | } else statement; |                       |                   |                       |                       |                       |
+    statements|                |                |               |   statement;  |                   |                       |                   |                       |                       |                       |
+}             |                |                |               | }             |                   |                       |                   |                       |                       |                       |
+
+while(cond){statement;}  
+while(cond){statements}  
+while(cond)statement;    
+
+<while_statement> ::= while <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl>
+			   |while <tLPar> <condition> <tRPar> <tLCurl> <statement> <tRCurl>
+                     |while <tLPar> <condition> <tRPar> <statement>
+
+<functionDeclaration> ::=  <tFunction> <tFunctionName> <tLPar> <variables> <tRPar> <tColon> <type> <tRCurl> <statements> <tLCurl>
+		   		  |<tFunction> <tFunctionName> <tLPar> <variables> <tRPar> <tColon> <type> <tRCurl> <statement> <tLCurl>
+		   		  |<tFunction> <tFunctionName> <tLPar> <variable> <tRPar> <tColon> <type> <tRCurl> <statements> <tLCurl>
+		   		  |<tFunction> <tFunctionName> <tLPar> <variable> <tRPar> <tColon> <type> <tRCurl> <statement> <tLCurl>
+		   		  |<tFunction> <tFunctionName> <tLPar> <tRPar> <tColon> <type> <tRCurl> <statements> <tLCurl>
+	  		   	  |<tFunction> <tFunctionName> <tLPar> <tRPar> <tColon> <type> <tRCurl> <statement> <tLCurl>
+
+<functionCall> ::= <tFunctionName> <tLPar> <variables> <tRPar>		// TODO dodelat volani funkci (cisla + promenna / prommenne + cisla atd...)
+			|<tFunctionName> <tLPar> <variable> <tRPar>
+			|<tFunctionName> <tLPar> <variables> <tRPar>
+			|<tFunctionName> <tLPar> <variable> <tRPar>
+
+<statements> ::=  <statement> <statements>
+                 |<statement> <statement>
+
+<statement> ::= <variable> <tAssignment> <variable> <sign> <variable> <tSemicolon>		// TODO muze byt vice scitani/odcitani/... za sebou
+		   |<variable> <tAssignment> <variable> <sign> <number> <tSemicolon>
+		   |<variable> <tAssignment> <number> <sign> <variable> <tSemicolon>
+		   |<variable> <tAssignment> <number> <sign> <number>  <tSemicolon>
+		   |<variable> <tAssignment> <variable> <tSemicolon>
+		   |<variable> <tAssignment> <number> <tSemicolon>
+		   |<variable> <tAssignment> <tLiteral> <tSemicolon>
+		   |<variable> <tSemicolon>
+
+<variables> ::= <variables> <tComma> <variable> | <variable> <tComma> <variable>
+
+<variable> ::= <type> <tID> | <tID>
+
+<type> ::= 	 <tNullTypeInt> | <tNullTypeFloat> | <tNullTypeString>
+		|<tTypeInt> | <tTypeFloat> | <tTypeString>
+
+<numbers> ::= <numbers> <tComma> <number> | <number> <tComma> <number>
+
+<number> ::= <tInt> | <tReal> | <tReal2> | <tInt2>
+
+<sign> ::= <tPlus> | <tMinus> | <tMul> | <tDiv>
+
+<condition> ::=  <expression> <relational_operations> <expression>
+                |<expression>
+
+<expression> ::=  <expression> <sign> <expression>
+                 |<expression> <sign> <term>
+                 |<term>
+
+<term> ::=  <term> <sign> <factor>
+           |<factor>
+           
+<factor> ::=  <factor> <sign> <factor>
+             |<indentifier>
+             |<constant>
+             |<factor>
