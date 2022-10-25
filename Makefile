@@ -1,13 +1,22 @@
-EXEC := main#Pozdeji se vytvori sofistikovanejsi nazev
-SRCS := $(EXEC).c lex.c#Zde pridavejte zdrojaky chlapi
-HEAD := lex.h token.h#Tady headery
+EXEC := gigachad_compiler
+
+#Zde pridavejte zdrojaky chlapi
+SRCS := main.c lex.c
+OBJS := main.o lex.o
+
 CC := gcc
-CFLAGS := -std=c99 -Wall -Werror -Wextra -Wpedantic
+CFLAGS := -std=c99 -Wall -Wextra -Wpedantic -c
+
+.PHONY: all clean
 
 all: $(EXEC)
 
-$(EXEC): $(EXEC).o
+$(EXEC): $(OBJS)
+	$(CC) $^ -o $@
 
-$(EXEC).o: $(SRCS)
-	$(CC) $(CFLAGS) $^ -o $@
+$(OBJS): $(SRCS)
+	$(CC) $(CFLAGS) $^
 	
+clean:
+	rm -vf *.o
+	rm -f gigachad_compiler
