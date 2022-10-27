@@ -1,14 +1,8 @@
-<if_statement> ::= 1    if <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl> else <tLCurl> <statements> <tRCurl>
-                   2   |if <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl> else <statement>
-                   3   |if <tLPar> <condition> <tRPar> <statement> else <tLCurl> <statements> <tRCurl>
-                   4   |if <tLPar> <condition> <tRPar> <statement> else <statement>
-                   5   |if <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl>
-                   6   |if <tLPar> <condition> <tRPar> <statement>
+<if_statement> ::= if <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl> else <tLCurl> <statements> <tRCurl>
 		           
 <while_statement> ::= while <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl>
-                     |while <tLPar> <condition> <tRPar> <statement>
 
-<functionDeclaration> ::=  <tFunction> <tFunctionName> <tLPar> <arguments> <tRPar> <tColon> <type> <tRCurl> <statements> <tLCurl>
+<functionDeclaration> ::= <tFunction> <tFunctionName> <tLPar> <arguments> <tRPar> <tColon> <type> <tRCurl> <statements> <tLCurl>
 
 <arguments> ::=  EPS
                 |<variable> <variables>
@@ -39,6 +33,7 @@
 
 <expression> ::= |<term> <tPlus> <expression>
                  |<term> <tMinus> <expression>
+			 |<term> <tConcat> <expression>		// MOHL BY BYT TAKY TERM
                  |<term>
                  |EPS
 
@@ -46,6 +41,7 @@
            |<term> <tDiv> <term>
            |<const>
            |<variable>
+		|<tLiteral>	// DAT SI POZOR NA LITERAL
 
 <variables> ::=  EPS
                 |<tComma> <variable> <variables>
@@ -54,8 +50,9 @@
            
 <const> ::= <tInt> | <tReal> | <tReal2> | <tInt2>
 
-<type> ::= 	 <tNullTypeInt> | <tNullTypeFloat> | <tNullTypeString>
-		    |<tTypeInt> | <tTypeFloat> | <tTypeString>
+<type> ::=  <tNullTypeInt> | <tNullTypeFloat> | <tNullTypeString>
+	     |<tTypeInt> | <tTypeFloat> | <tTypeString>
+		|<tVoid>
             
 <relational_operators> ::=  <tLess> | <tLessEq> | <tMore>
-                            |<tMoreEq> | <tIdentical> | <tNotIdentical> 
+                            |<tMoreEq> | <tIdentical> | <tNotIdentical>

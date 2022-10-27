@@ -12,6 +12,19 @@
 #include "token.h"
 #include "lex.h"
 
+char *tokName[] = {
+    "tTypeInt", "tTypeFloat", "tTypeString", "tNullTypeInt", "tNullTypeFloat", "tNullTypeString",
+    "tIf", "tElse", "tWhile", "tFunction", "tReturn", "tVoid", "tNull",
+    "tInvalid", "tIdentifier", "tKeyword", "tFuncName", "tType", "tNullType",
+    "tPlus", "tMinus", "tConcat","tMul", "tDiv", "tLPar", "tRPar", "tLCurl", "tRCurl", "tColon", "tSemicolon", "tComma",
+    "tQuestion", "tDollar",
+    "tAssign", "tIdentical",
+    "tExclamation", "tNotIdentical",
+    "tLess", "tLessEq", "tMore", "tMoreEq",
+    "tInt", "tReal", "tReal2", "tInt2",
+    "tLiteral", "tEpilog"
+};
+
 int main(int argc, const char * argv[]) {
     // insert code here...
     printf("Gigachad compiler\n");
@@ -37,7 +50,7 @@ int main(int argc, const char * argv[]) {
                 if(token.type == tInvalid)
                     printf("INVALID: <<%s>>\n",token.data);
                 else
-                    printf("TOKEN: <<%s>>\n",token.data);
+                    printf("TOKEN %s: <<%s>>\n",tokName[token.type], token.data);
             }
         }
     }

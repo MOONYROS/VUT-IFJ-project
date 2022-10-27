@@ -18,22 +18,37 @@
 }
 
 typedef enum{   // strings for Keywords
-    sInit, sLiteral, sID, sInt, sFinish, sProlog,
+    sInit, sLiteral, sFunctionName, sNullType, sInt, sFinish, sProlog,
     sFloat, sIexp, sReal, sRexp, sReal2, sRexpS, sInt2, sIexpS,
-    sEsc, sOcta1, sOcta2, sHexa1, sHexa2, sPercent
+    sEsc, sOcta1, sOcta2, sHexa1, sHexa2, sPercent, sDollar
 } tState;
 
-#define KEYWORDS 5
-char *keyword[] = {"if", "while", "for", "int", "float"}; // TODO
+#define KEYWORDS 10
+char *keyword[] = {"if", "else", "while", "function", "return", "null", "int", "float", "string", "void"}; // seznam vsech keywordu a typu naseho jazyka
+tTokenType keywordToken[] = {tIf, tElse, tWhile, tFunction, tReturn, tNull, tTypeInt, tTypeFloat, tTypeString, tVoid};
 
+#define NULLTYPES 3
+char *nullType[] = {"int", "float", "string"};
+tTokenType nullTypeToken[] = {tNullTypeInt, tNullTypeFloat, tNullTypeString};
+
+// porovna, jestli je retezec stejny s nekterym z klicovych slov
 int isKeyword(char *str)
 {
     for (int i = 0; i < KEYWORDS; i++)
         if (strcmp(str, keyword[i]) == 0)
-            return 1;
+            return i+1;
     return 0;
 }
 
+int isNullType(char *str)
+{
+    for (int i = 0; i < NULLTYPES; i++)
+        if (strcmp(str, nullType[i]) == 0)
+            return i+1;
+    return 0;
+}
+
+// kotroluje, jestli je znak alpha znakem
 int isAlpha(char ch)
 {
     if ((ch >= 'A') && (ch <= 'Z'))
@@ -43,6 +58,7 @@ int isAlpha(char ch)
     return 0;
 }
 
+// kotroluje, jestli je znak cislem
 int isDigit(char ch)
 {
     if ((ch >= '0') && (ch <= '9'))
@@ -50,6 +66,7 @@ int isDigit(char ch)
     return 0;
 }
 
+// kotroluje, jestli je znak bilym znakem
 int isWhiteChar(char ch)
 {
     switch (ch) {
@@ -132,7 +149,7 @@ int ReadToken(FILE *f, tToken *token)
             case sInit:
                 if (isAlpha(ch) || (ch == '_'))     // Pokud prisel alpha znak nebo podtrzitko
                 {
-                    state = sID;
+                    state = sFunctionName;
                     SAVECHAR;
                 }
                 else if (isDigit(ch))   // TODO
@@ -156,6 +173,10 @@ int ReadToken(FILE *f, tToken *token)
                         case '-':
                             state = sFinish;
                             token->type = tMinus;
+                            break;
+                        case '.':
+                            state = sFinish;
+                            token->type = tConcat;
                             break;
                         case '*':
                             state = sFinish;
@@ -190,12 +211,32 @@ int ReadToken(FILE *f, tToken *token)
                             token->type = tComma;
                             break;
                         case '?':
-                            state = sFinish;
-                            token->type = tQuestion;
+                            ch = fgetc(f);
+                            if (ch == '>')   // Kontrola rovnosti
+                            {
+                                while (!feof(f))
+                                {
+                                    ch = fgetc(f);
+                                    if(isWhiteChar(ch) == 0)
+                                    {
+                                        ungetc(ch, f);
+                                        state = sFinish;
+                                        token->type = tInvalid;
+                                        strcpy(token->data, "Character after epilog!");
+                                        return 1;
+                                    }
+                                }
+                                state = sFinish;
+                                token->type = tEpilog;
+                            }
+                            else
+                            {
+                                ungetc(ch, f);
+                                state = sNullType;
+                            }
                             break;
                         case '$':
-                            state = sFinish;
-                            token->type = tDollar;
+                            state = sDollar;
                             break;
                         case '=':   // Kontrola prirazeni
                             ch = fgetc(f);
@@ -288,7 +329,7 @@ int ReadToken(FILE *f, tToken *token)
                                     printf("EOF COMMENT: %s\n", token->data);
                                     state = sFinish;
                                     token->type = tInvalid;
-                                    return 0;
+                                    return 1;
                                 }
                                 printf("COMMENT: %s\n", token->data);
                                 pos = token->data;
@@ -306,11 +347,13 @@ int ReadToken(FILE *f, tToken *token)
                                             printf ("EOF IN MULTILINE COMMENT\n");
                                             state = sFinish;
                                             token->type = tInvalid;
-                                            return 0;
+                                            return 1;
                                         }
                                         else if (ch == '/')
                                         {
                                             printf("MULTILINE COMMENT\n");
+                                            pos = token->data;
+                                            *pos = '\0';
                                             break;
                                         }
                                     }
@@ -320,7 +363,7 @@ int ReadToken(FILE *f, tToken *token)
                                     printf("EOF IN MULTILINE COMMENT\n");
                                     state = sFinish;
                                     token->type = tInvalid;
-                                    return 0;
+                                    return 1;
                                 }
                             }
                             else
@@ -447,22 +490,35 @@ int ReadToken(FILE *f, tToken *token)
                     token->type = tInvalid;
                 }
                 break;
-            case sID:
-                if (isKeyword(token->data)) // pokud je retezec mezi klicovymi vyrazy, koncime a je to tKeyword
-                {
-                    state = sFinish;
-                    token->type = tKeyword;
-                }
-                else if (isAlpha(ch) || isDigit(ch) || (ch == '_')) // jestlize prisel alphanumericky znak nebo _, nacitame dal znaky
+            case sFunctionName:
+                while ((isAlpha(ch)) || (isDigit(ch)) || (ch == '_'))
                 {
                     SAVECHAR;
+                    ch = fgetc(f);
                 }
-                else    // pokud prislo neco jineho, ch vratime a jsme ve stavu tIdentifier
+                ungetc(ch, f);
+                int i = isKeyword(token->data);
+                if(i > 0)
+                    token->type = keywordToken[i-1];
+                else
+                    token->type = tFuncName;
+    
+                state = sFinish;
+                break;
+            case sNullType:
+                while (isAlpha(ch))
                 {
-                    ungetc(ch, f);
-                    state = sFinish;
-                    token->type = tIdentifier;
+                    SAVECHAR;
+                    ch = fgetc(f);
                 }
+                ungetc(ch, f);
+                int j = isNullType(token->data);
+                if(j > 0)
+                    token->type = nullTypeToken[j-1];
+                else
+                    token->type = tInvalid;
+    
+                state = sFinish;
                 break;
             case sInt:
                 // if (isDigit(ch))    // jestlize je znak cislo, ulozime ho
@@ -595,12 +651,22 @@ int ReadToken(FILE *f, tToken *token)
                 while (isDigit(ch)) // dokud prichazeji cisla, ukladame je
                 {
                     SAVECHAR;
-                    fgetc(f);
+                    ch = fgetc(f);
                 }
                 ch = ungetc(ch, f); // neprislo cislo, tento znak vratime a jsme v koncovem stavu
                 state = sFinish;
                 token->type = tInt2;
                 printf("TRETI CISLO\n");
+                break;
+            case sDollar:
+                while ((isAlpha(ch)) || (isDigit(ch)) || (ch == '_'))
+                {
+                    SAVECHAR;
+                    ch = fgetc(f);
+                }
+                ungetc(ch, f);
+                state = sFinish;
+                token->type = tIdentifier;
                 break;
             default:
                 printf("NEOSETRENY STAV: Sem bychom se nikdy nemeli dostat.\n");
