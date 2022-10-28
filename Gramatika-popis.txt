@@ -1,6 +1,6 @@
-<if_statement> ::= if <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl> else <tLCurl> <statements> <tRCurl>
+<if_statement> ::= <tIf> <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl> <tElse> <tLCurl> <statements> <tRCurl>
 		           
-<while_statement> ::= while <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl>
+<while_statement> ::= <tWhile> <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl>
 
 <functionDeclaration> ::= <tFunction> <tFunctionName> <tLPar> <arguments> <tRPar> <tColon> <type> <tRCurl> <statements> <tLCurl>
 
@@ -33,15 +33,17 @@
 
 <expression> ::= |<term> <tPlus> <expression>
                  |<term> <tMinus> <expression>
-			 |<term> <tConcat> <expression>		// MOHL BY BYT TAKY TERM
+			   |<term> <tConcat> <expression>		// MOHL BY BYT TAKY TERM
                  |<term>
                  |EPS
 
-<term> ::=  <term> <tMul> <term>
-           |<term> <tDiv> <term>
+<term> ::=  <const> <tMul> <term>
+           |<variable> <tMul> <term>
+           |<const> <tDiv> <term>
+           |<variable> <tDiv> <term>
            |<const>
            |<variable>
-		|<tLiteral>	// DAT SI POZOR NA LITERAL
+		  |<tLiteral>	// DAT SI POZOR NA LITERAL
 
 <variables> ::=  EPS
                 |<tComma> <variable> <variables>

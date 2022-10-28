@@ -15,15 +15,14 @@
 char *tokName[] = {
     "tTypeInt", "tTypeFloat", "tTypeString", "tNullTypeInt", "tNullTypeFloat", "tNullTypeString",
     "tIf", "tElse", "tWhile", "tFunction", "tReturn", "tVoid", "tNull",
-    "tInvalid", "tIdentifier", "tKeyword", "tFuncName", "tType", "tNullType",
+    "tInvalid", "tIdentifier", "tFuncName", "tType", "tNullType",
     "tPlus", "tMinus", "tConcat","tMul", "tDiv", "tLPar", "tRPar", "tLCurl", "tRCurl", "tColon", "tSemicolon", "tComma",
-    "tQuestion", "tDollar",
     "tAssign", "tIdentical",
     "tExclamation", "tNotIdentical",
     "tLess", "tLessEq", "tMore", "tMoreEq",
     "tInt", "tReal", "tReal2", "tInt2",
     "tLiteral", "tEpilog"
-};
+}; // "tKeyword",
 
 int main(int argc, const char * argv[]) {
     // insert code here...

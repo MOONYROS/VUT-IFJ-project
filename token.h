@@ -11,9 +11,8 @@
 typedef enum{
     tTypeInt, tTypeFloat, tTypeString, tNullTypeInt, tNullTypeFloat, tNullTypeString,
     tIf, tElse, tWhile, tFunction, tReturn, tVoid, tNull,
-    tInvalid, tIdentifier, tKeyword, tFuncName, tType, tNullType,
+    tInvalid, tIdentifier, tFuncName, tType, tNullType,
     tPlus, tMinus, tConcat, tMul, tDiv, tLPar, tRPar, tLCurl, tRCurl, tColon, tSemicolon, tComma,
-    tQuestion, tDollar,
     tAssign, tIdentical,
     tExclamation, tNotIdentical,
     tLess, tLessEq, tMore, tMoreEq,
@@ -22,7 +21,7 @@ typedef enum{
     tEpilog
 } tTokenType;
 
-
+// tKeyword,
 
 
 typedef struct{
