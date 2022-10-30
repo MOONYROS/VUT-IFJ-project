@@ -2,12 +2,12 @@
 		           
 <while_statement> ::= <tWhile> <tLPar> <condition> <tRPar> <tLCurl> <statements> <tRCurl>
 
-<functionDeclaration> ::= <tFunction> <tFunctionName> <tLPar> <arguments> <tRPar> <tColon> <type> <tRCurl> <statements> <tLCurl>
+<functionDeclaration> ::= <tFunction> <tFuncName> <tLPar> <arguments> <tRPar> <tColon> <type> <tRCurl> <statements> <tLCurl>
 
 <arguments> ::=  EPS
                 |<variable> <variables>
 
-<functionCall> ::= <tFunctionName> <tLPar> <parameters> <tRPar>
+<functionCall> ::= <tFuncName> <tLPar> <parameters> <tRPar>
                   
 <parameters> ::= EPS
                 |<parameter> <parameters2>
@@ -31,9 +31,9 @@
 <condition> ::=  <expression> <relational_operators> <expression>
                 |<expression>
 
-<expression> ::= |<term> <tPlus> <expression>
+<expression> ::= <term> <tPlus> <expression>
                  |<term> <tMinus> <expression>
-			   |<term> <tConcat> <expression>		// MOHL BY BYT TAKY TERM
+		 |<term> <tConcat> <expression>		// MOHL BY BYT TAKY TERM
                  |<term>
                  |EPS
 
@@ -48,7 +48,7 @@
 <variables> ::=  EPS
                 |<tComma> <variable> <variables>
 
-<variable> ::= <type> <tID> | <tID>
+<variable> ::= <type> <tIdentifier> | <tIdentifier>
            
 <const> ::= <tInt> | <tReal> | <tReal2> | <tInt2>
 
