@@ -27,13 +27,15 @@
                 |<if_statement>
                 |<while_statement>
                 |<function_call> <tSemicolon>
+                |<variable> <tAssign> <expression>
+                |<tReturn>
 
 <condition> ::=  <expression> <relational_operators> <expression>
                 |<expression>
 
-<expression> ::= <term> <tPlus> <expression>
+<expression> ::=  <term> <tPlus> <expression>
                  |<term> <tMinus> <expression>
-		 |<term> <tConcat> <expression>		// MOHL BY BYT TAKY TERM
+	           	 |<term> <tConcat> <expression>		// MOHL BY BYT TAKY TERM
                  |<term>
                  |EPS
 
@@ -43,18 +45,18 @@
            |<variable> <tDiv> <term>
            |<const>
            |<variable>
-		  |<tLiteral>	// DAT SI POZOR NA LITERAL
+		   |<tLiteral>	// DAT SI POZOR NA LITERAL
 
 <variables> ::=  EPS
                 |<tComma> <variable> <variables>
 
 <variable> ::= <type> <tIdentifier> | <tIdentifier>
            
-<const> ::= <tInt> | <tReal> | <tReal2> | <tInt2>
+<const> ::= <tInt> | <tReal> | <tReal2> | <tInt2> | <tNull>
 
 <type> ::=  <tNullTypeInt> | <tNullTypeFloat> | <tNullTypeString>
 	     |<tTypeInt> | <tTypeFloat> | <tTypeString>
-		|<tVoid>
+	     |<tVoid>
             
 <relational_operators> ::=  <tLess> | <tLessEq> | <tMore>
                             |<tMoreEq> | <tIdentical> | <tNotIdentical>
