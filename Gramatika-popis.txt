@@ -23,13 +23,15 @@
 <statements> ::=  EPS
                  |<statement> <statements>
 
-<statement> ::=  <expression> <tSemicolon>
+<statement> ::=  <expression> <statement2> <tSemicolon>
                 |<if_statement>
                 |<while_statement>
                 |<functionCall> <tSemicolon>
-                |<variable> <tAssign> <expression>
                 |<tReturn>
 
+<statement2> ::= <tAssign> <expression>
+		    |EPS
+		    
 <condition> ::=  <expression> <condition2>
 
 <condition2> ::=  EPS
