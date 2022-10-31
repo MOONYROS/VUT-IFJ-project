@@ -15,9 +15,7 @@
 <parameters2> ::= EPS
                  |<tComma> <parameter> <parameters2>
                  
-<parameter> ::= <tLiteral>
-               |<variable>
-               |<const>
+<parameter> ::= <term>
                |EPS
 
 <statements> ::=  EPS
@@ -27,7 +25,7 @@
                 |<if_statement>
                 |<while_statement>
                 |<functionCall> <tSemicolon>
-                |<tReturn>
+                |<tReturn> <expression> <tSemiColon>
 
 <statement2> ::= <tAssign> <expression>
 		    |EPS
