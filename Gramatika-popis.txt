@@ -30,22 +30,29 @@
                 |<variable> <tAssign> <expression>
                 |<tReturn>
 
-<condition> ::=  <expression> <relational_operators> <expression>
-                |<expression>
+<condition> ::=  <expression> <condition2>
 
-<expression> ::=  <term> <tPlus> <expression>
-                 |<term> <tMinus> <expression>
-	           	 |<term> <tConcat> <expression>		// MOHL BY BYT TAKY TERM
-                 |<term>
+<condition2> ::=  EPS
+                 |<relational_operators> <expression>
+
+<expression> ::=  <term> <expression2>
                  |EPS
+                 
+<expression2> ::=  <tPlus> <expression>
+                  |<tMinus> <expression>
+                  |<tConcat> <expression>
+                  |EPS
 
-<term> ::=  <const> <tMul> <term>
-           |<variable> <tMul> <term>
-           |<const> <tDiv> <term>
-           |<variable> <tDiv> <term>
-           |<const>
-           |<variable>
+<term> ::=  <const> <term2>
+           |<variable> <term2>
 		   |<tLiteral>	// DAT SI POZOR NA LITERAL
+           
+<term2> ::=  <tMul> <term3>
+            |<tDiv> <term3>
+            |EPS
+             
+<term3> ::= <variable>
+           |<const>
 
 <variables> ::=  EPS
                 |<tComma> <variable> <variables>
