@@ -1,59 +1,59 @@
-if_statement -> tIf tLPar condition tRPar tLCurl statements tRCurl tElse tLCurl statements tRCurl
-while_statement -> tWhile tLPar condition tRPar tLCurl statements tRCurl
-functionDeclaration -> tFunction tFuncName tLPar arguments tRPar tColon type tRCurl statements tLCurl
-arguments -> variable variables
-arguments -> EPS
-functionCall -> tFuncName tLPar parameters tRPar
-parameters -> parameter parameters2
-parameters -> EPS
-parameters2 -> tComma parameter parameters2
-parameters2 -> EPS
-parameter -> factor
-statements -> statement statements
-statements -> EPS
-statement -> expression statement2 tSemicolon
-statement -> if_statement
-statement -> while_statement
-statement -> functionCall tSemicolon
-statement -> tReturn expression tSemicolon
-statement2 -> tAssign expression
-statement2 -> EPS
-condition -> expression condition2
-condition2 -> relational_operators expression
-condition2 -> EPS
-expression -> term expression2
-expression -> EPS
-expression2 -> tPlus expression
-expression2 -> tMinus expression
-expression2 -> EPS
-term -> const term2
-term -> variable term2
-term2 -> tMul factor
-term2 -> tConcat factor
-term2 -> tDiv factor
-term2 -> EPS
-factor -> variable
-factor -> const
-variables -> tComma variable variables
-variables -> EPS
-variable -> type tIdentifier
-variable -> tIdentifier
-const -> tInt
-const -> tReal
-const -> tReal2
-const -> tInt2
-const -> tNull
-const -> tLiteral
-type -> tNullTypeInt
-type -> tNullTypeFloat
-type -> tNullTypeString
-type -> tTypeInt
-type -> tTypeFloat
-type -> tTypeString
-type -> tVoid
-relational_operators -> tLess
-relational_operators -> tLessEq
-relational_operators -> tMore
-relational_operators -> tMoreEq
-relational_operators -> tIdentical
-relational_operators -> tNotIdentical
+1)  if_statement -> tIf tLPar condition tRPar tLCurl statements tRCurl tElse tLCurl statements tRCurl
+2)  while_statement -> tWhile tLPar condition tRPar tLCurl statements tRCurl
+3)  functionDeclaration -> tFunction tFuncName tLPar arguments tRPar tColon type tRCurl statements tLCurl
+4)  arguments -> variable variables
+5)  arguments -> EPS
+6)  functionCall -> tFuncName tLPar parameters tRPar
+7)  parameters -> parameter parameters2
+8)  parameters -> EPS
+9)  parameters2 -> tComma parameter parameters2
+10) parameters2 -> EPS
+11) parameter -> factor
+12) statements -> statement statements
+13) statements -> EPS
+14) statement -> expression statement2 tSemicolon
+15) statement -> if_statement
+16) statement -> while_statement
+17) statement -> functionCall tSemicolon
+18) statement -> tReturn expression tSemicolon
+19) statement2 -> tAssign expression
+20) statement2 -> EPS
+21) condition -> expression condition2
+22) condition2 -> relational_operators expression
+23) condition2 -> EPS
+24) expression -> term expression2
+25) expression -> EPS
+26) expression2 -> tPlus expression
+27) expression2 -> tMinus expression
+28) expression2 -> EPS
+29) term -> const term2
+30) term -> variable term2
+31) term2 -> tMul factor
+32) term2 -> tConcat factor
+33) term2 -> tDiv factor
+34) term2 -> EPS
+35) factor -> variable
+36) factor -> const
+37) variables -> tComma variable variables
+38) variables -> EPS
+39) variable -> type tIdentifier
+40) variable -> tIdentifier
+41) const -> tInt
+42) const -> tReal
+43) const -> tReal2
+44) const -> tInt2
+45) const -> tNull
+46) const -> tLiteral
+47) type -> tNullTypeInt
+48) type -> tNullTypeFloat
+49) type -> tNullTypeString
+50) type -> tTypeInt
+51) type -> tTypeFloat
+52) type -> tTypeString
+53) type -> tVoid
+54) relational_operators -> tLess
+55) relational_operators -> tLessEq
+56) relational_operators -> tMore
+57) relational_operators -> tMoreEq
+58) relational_operators -> tIdentical
+59) relational_operators -> tNotIdentical
