@@ -143,7 +143,10 @@ int ReadToken(FILE *f, tToken *token)
     {
         ch = fgetc(f);
         if (feof(f))
+        {
+            token->type = tEpilog;
             return 0;   // Osetrit potencialne nactena data pred EOF
+        }
             
         switch (state) {
             case sInit:
@@ -217,7 +220,7 @@ int ReadToken(FILE *f, tToken *token)
                                 while (!feof(f))
                                 {
                                     ch = fgetc(f);
-                                    if(isWhiteChar(ch) == 0)
+                                    if(isWhiteChar(ch) == 0 && !feof(f))
                                     {
                                         ungetc(ch, f);
                                         state = sFinish;
@@ -228,6 +231,7 @@ int ReadToken(FILE *f, tToken *token)
                                 }
                                 state = sFinish;
                                 token->type = tEpilog;
+                                return 0;
                             }
                             else
                             {
@@ -442,6 +446,7 @@ int ReadToken(FILE *f, tToken *token)
                     state = sFinish;
                     token->type = tInvalid;
                 }
+                break;
             case sOcta2:
                 if ((ch >= 48) && (ch <= 55))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o KOMPLETNI oktalove cislo, vracime se zpet do retezce
                 {

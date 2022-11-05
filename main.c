@@ -11,18 +11,9 @@
 
 #include "token.h"
 #include "lex.h"
+#include "parser.h"
 
-char *tokName[] = {
-    "tTypeInt", "tTypeFloat", "tTypeString", "tNullTypeInt", "tNullTypeFloat", "tNullTypeString",
-    "tIf", "tElse", "tWhile", "tFunction", "tReturn", "tVoid", "tNull",
-    "tInvalid", "tIdentifier", "tFuncName", "tType", "tNullType",
-    "tPlus", "tMinus", "tConcat","tMul", "tDiv", "tLPar", "tRPar", "tLCurl", "tRCurl", "tColon", "tSemicolon", "tComma",
-    "tAssign", "tIdentical",
-    "tExclamation", "tNotIdentical",
-    "tLess", "tLessEq", "tMore", "tMoreEq",
-    "tInt", "tReal", "tReal2", "tInt2",
-    "tLiteral", "tEpilog"
-}; // "tKeyword",
+
 
 int main(int argc, const char * argv[]) {
     // insert code here...
@@ -37,22 +28,12 @@ int main(int argc, const char * argv[]) {
     }
     else
     {
-        if (SkipProlog(inf))
-            printf("PROLOG OK\n");
-        else
-            printf("INVALID PROLOG\n");
-        if(!feof(inf))
-        {
-            tToken token;
-            while (ReadToken(inf, &token))
-            {
-                if(token.type == tInvalid)
-                    printf("INVALID: <<%s>>\n",token.data);
-                else
-                    printf("TOKEN %s: <<%s>>\n",tokName[token.type], token.data);
-            }
-        }
+        tParseTree tree;
+        if(parse(inf, &tree) == 0)
+            printf("PARSING FAILED\n");
     }
+    
+    
     
     fclose(inf);
     
