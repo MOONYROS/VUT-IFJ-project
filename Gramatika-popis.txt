@@ -43,10 +43,11 @@
 
 <term> ::=  <const> <term2>
            |<variable> <term2>
+	   |<factor> <term2> // potencialne jenom tohle
            
-<term2> ::=  <tMul> <factor>
-            |<tDiv> <factor>
-            |<tConcat> <factor>
+<term2> ::=  <tMul> <term> // <factor>
+            |<tDiv> <term> // <factor>
+            |<tConcat> <term> //<factor>
             |EPS
              
 <factor> ::= <variable>
