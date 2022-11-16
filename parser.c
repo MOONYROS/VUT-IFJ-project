@@ -46,9 +46,9 @@ char *rule[SYNTAXRULES][RULEITEMS] = {
     {"expression2",             "EPS", ""},
     {"term",                    "const", "term2", ""},
     {"term",                    "variable", "term2", ""},
-    {"term2",                   "tMul", "factor", ""},
-    {"term2",                   "tConcat", "factor", ""},
-    {"term2",                   "tDiv", "factor", ""},
+    {"term2",                   "tMul", "term", ""},      // misto factor term
+    {"term2",                   "tConcat", "term", ""},   // misto factor term
+    {"term2",                   "tDiv", "term", ""},      // misto factor term
     {"term2",                   "EPS", ""},
     {"factor",                  "variable", ""},
     {"factor",                  "const", ""},
