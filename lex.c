@@ -171,46 +171,57 @@ int ReadToken(FILE *f, tToken *token)
                             break;
                         case '+':
                             state = sFinish;
+                            strcpy(token->data, "+");
                             token->type = tPlus;
                             break;
                         case '-':
                             state = sFinish;
+                            strcpy(token->data, "-");
                             token->type = tMinus;
                             break;
                         case '.':
                             state = sFinish;
+                            strcpy(token->data, ".");
                             token->type = tConcat;
                             break;
                         case '*':
                             state = sFinish;
+                            strcpy(token->data, "*");
                             token->type = tMul;
                             break;
                         case '(':
                             state = sFinish;
+                            strcpy(token->data, "(");
                             token->type = tLPar;
                             break;
                         case ')':
                             state = sFinish;
+                            strcpy(token->data, ")");
                             token->type = tRPar;
                             break;
                         case '{':
                             state = sFinish;
+                            strcpy(token->data, "{");
                             token->type = tLCurl;
                             break;
                         case '}':
                             state = sFinish;
+                            strcpy(token->data, "}");
                             token->type = tRCurl;
                             break;
                         case ':':
                             state = sFinish;
+                            strcpy(token->data, ":");
                             token->type = tColon;
                             break;
                         case ';':
                             state = sFinish;
+                            strcpy(token->data, ";");
                             token->type = tSemicolon;
                             break;
                         case ',':
                             state = sFinish;
+                            strcpy(token->data, ",");
                             token->type = tComma;
                             break;
                         case '?':
@@ -250,6 +261,7 @@ int ReadToken(FILE *f, tToken *token)
                                 if (ch == '=')  // Kontrola identicnosti
                                 {
                                     state = sFinish;
+                                    strcpy(token->data, "==");
                                     token->type = tIdentical;
                                 }
                                 else    // pokud prisly pouze 2 symboly =, jdeme do tInvalid, protoze to nas jazyk nepodporuje
@@ -262,6 +274,7 @@ int ReadToken(FILE *f, tToken *token)
                             {
                                 ungetc(ch, f);
                                 state = sFinish;
+                                strcpy(token->data, "=");
                                 token->type = tAssign;
                             }
                             break;
@@ -273,6 +286,7 @@ int ReadToken(FILE *f, tToken *token)
                                 if (ch == '=')
                                 {
                                     state = sFinish;
+                                    strcpy(token->data, "!=");
                                     token->type = tNotIdentical;
                                 }
                                 else    // pokud prisly pouze 2 symboly (!=), jdeme do tInvalid, protoze to nas jazyk nepodporuje
@@ -285,6 +299,7 @@ int ReadToken(FILE *f, tToken *token)
                             {
                                 ungetc(ch, f);
                                 state = sFinish;
+                                strcpy(token->data, "!");
                                 token->type = tExclamation;
                             }
                             break;
@@ -293,12 +308,14 @@ int ReadToken(FILE *f, tToken *token)
                             if (ch == '=')
                             {
                                 state = sFinish;
+                                strcpy(token->data, "<=");
                                 token->type = tLessEq;
                             }
                             else
                             {
                                 ungetc(ch, f);
                                 state = sFinish;
+                                strcpy(token->data, "<");
                                 token->type = tLess;
                             }
                             break;
@@ -307,12 +324,14 @@ int ReadToken(FILE *f, tToken *token)
                             if (ch == '=')
                             {
                                 state = sFinish;
+                                strcpy(token->data, ">=");
                                 token->type = tMoreEq;
                             }
                             else
                             {
                                 ungetc(ch, f);
                                 state = sFinish;
+                                strcpy(token->data, ">");
                                 token->type = tMore;
                             }
                             break;

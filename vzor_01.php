@@ -1,8 +1,7 @@
 <?php
 declare(strict_types=1);
-// PHP code goes here
-a=b+c
-/* scitame b s c
-do acka
-	*/
+$b=1;
+$c=2;
+$a=$b*$c*$b*$c;
+print($a);
 ?>

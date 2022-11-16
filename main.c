@@ -13,14 +13,31 @@
 #include "lex.h"
 #include "parser.h"
 
+tParseTree* otocParseTree(tParseTree* tree)
+{
+	tParseTree* tree2 = NULL;
+	while (tree != NULL)
+	{
+		if (tree->is_nonterminal)
+		{
+			tree->nonterm.tree = otocParseTree(tree->nonterm.tree);
+		}
+		tParseTree* tmpptr = tree->next;
+		tree->next = tree2;
+		tree2 = tree;
+
+		tree = tmpptr;
+	}
+	return tree2;
+}
 
 
 int main(int argc, const char * argv[]) {
     // insert code here...
     printf("Gigachad compiler\n");
-    
+
     FILE *inf;
-    
+
     inf = fopen("vzor_01.php", "r");
     if(inf == NULL){
         printf("nemuzu otevrit soubor\n");
@@ -28,14 +45,16 @@ int main(int argc, const char * argv[]) {
     }
     else
     {
-        tParseTree tree;
+        tParseTree *tree;
         if(parse(inf, &tree) == 0)
             printf("PARSING FAILED\n");
+        else
+            printf("PARSING FINISHED OK\n");
+        fclose(inf);
+        printf("Parse tree:\n");
+		tree = otocParseTree(tree);
+        printParseTree(tree, 0);
     }
-    
-    
-    
-    fclose(inf);
-    
+
     return 0;
 }

@@ -16,9 +16,13 @@
 16) statement -> while_statement
 17) statement -> functionCall tSemicolon
 18) statement -> tReturn expression tSemicolon
-19) statement2 -> tAssign expression
+	--) statement2 -> tAssign expression
+	++) statement2 -> tAssign statement3
+	++) statement3 -> expression
+	++) statement3 -> functionCall
 20) statement2 -> EPS
 21) condition -> expression condition2
+	++) condition -> functionCall condition2
 22) condition2 -> relational_operators expression
 23) condition2 -> EPS
 24) expression -> term expression2

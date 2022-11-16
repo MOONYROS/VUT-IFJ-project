@@ -9,82 +9,33 @@
 #define parser_h
 
 #include <stdio.h>
+#include "token.h"
 
-//const char *moje[] = {
-//  "ja"
-//};
+#define SYNTAXRULES 62
+#define RULEITEMS   13
 
-static const char *rule[62][13] = {
-    {"if_statement",            "tIf", "tLPar", "condition", "tRPar", "tLCurl", "statements", "tRCurl", "tElse", "tLCurl", "statements", "tRCurl", ""},
-    {"while_statement",         "tWhile", "tLPar", "condition", "tRPar", "tLCurl", "statements", "tRCurl", ""},
-    {"functionDeclaration",     "tFunction", "tFuncName", "tLPar", "arguments", "tRPar", "tColon", "type", "tRCurl", "statements", "tLCurl", ""},
-    {"arguments",               "variable", "variables", ""},
-    {"arguments",               "EPS", ""},
-    {"functionCall",            "tFuncName", "tLPar", "parameters", "tRPar", ""},
-    {"parameters",              "parameter", "parameters2", ""},
-    {"parameters",              "EPS", ""},
-    {"parameters2",             "tComma", "parameter", "parameters2", ""},
-    {"parameters2",             "EPS", ""},
-    {"parameter",               "factor", ""},
-    {"statements",              "statement", "statements", ""},
-    {"statementsX",             "EPS", ""},
-    {"statement",               "if_statement", ""},
-    {"statement",               "while_statement", ""},
-    {"statement",               "functionCall", "tSemicolon", ""},
-    {"statement",               "tReturn", "expression", "tSemicolon", ""},
-    {"statement",               "expression", "statement2", "tSemicolon", ""},
-    {"statement2",              "tAssign", "statement3", ""},
-    {"statement2",              "EPS", ""},
-    {"statement3",              "expression", ""},
-    {"statement3",              "functionCall", ""},
-    {"condition",               "functionCall", "condition2", ""},
-    {"condition",               "expression", "condition2", ""},
-    {"condition2",              "relational_operators", "expression", ""},
-    {"condition2",              "EPS", ""},
-    {"expression",              "term", "expression2", ""},
-    {"expression",              "EPS", ""},
-    {"expression2",             "tPlus", "expression", ""},
-    {"expression2",             "tMinus", "expression", ""},
-    {"expression2",             "EPS", ""},
-    {"term",                    "const", "term2", ""},
-    {"term",                    "variable", "term2", ""},
-    {"term2",                   "tMul", "factor", ""},
-    {"term2",                   "tConcat", "factor", ""},
-    {"term2",                   "tDiv", "factor", ""},
-    {"term2",                   "EPS", ""},
-    {"factor",                  "variable", ""},
-    {"factor",                  "const", ""},
-    {"variables",               "tComma", "variable", "variables", ""},
-    {"variables",               "EPS", ""},
-    {"variable",                "type", "tIdentifier", ""},
-    {"variable",                "tIdentifier", ""},
-    {"const",                   "tInt", ""},
-    {"const",                   "tReal", ""},
-    {"const",                   "tReal2", ""},
-    {"const",                   "tInt2", ""},
-    {"const",                   "tNull", ""},
-    {"const",                   "tLiteral", ""},
-    {"type",                    "tNullTypeInt", ""},
-    {"type",                    "tNullTypeFloat", ""},
-    {"type",                    "tNullTypeString", ""},
-    {"type",                    "tTypeInt", ""},
-    {"type",                    "tTypeFloat", ""},
-    {"type",                    "tTypeString", ""},
-    {"type",                    "tVoid", ""},
-    {"relational_operators",    "tLess", ""},
-    {"relational_operators",    "tLessEq", ""},
-    {"relational_operators",    "tMore", ""},
-    {"relational_operators",    "tMoreEq", ""},
-    {"relational_operators",    "tIdentical", ""},
-    {"relational_operators",    "tNotIdentical", ""},
-};
+char *rule[SYNTAXRULES][RULEITEMS];
 
 typedef struct parseTree{
-    char name[1024];
+
     struct parseTree *next;
+	int is_nonterminal;
+	union
+	{
+		struct {
+			tTokenType tType;
+			char *data;
+		} term;
+		struct {
+			struct parseTree *tree;
+			char *name;
+		} nonterm;
+	};
 } tParseTree;
 
-int parse(FILE *f, tParseTree *tree);
+int parse(FILE *f, tParseTree **tree);
+
+void printParseTree(tParseTree* tree, int level);
 
 /*
 // PARSING FUNCTIONS
@@ -118,5 +69,5 @@ int parseLPar(void);
 int parseRCurl(void);
 int parseLCurl(void);
 */
- 
+
 #endif /* parser_h */
