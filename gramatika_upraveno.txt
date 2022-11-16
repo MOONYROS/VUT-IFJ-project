@@ -1,0 +1,68 @@
+%token tTypeInt tTypeFloat tTypeString tNullTypeInt tNullTypeFloat tNullTypeString tIf tElse tWhile tFunction tReturn tVoid tNull tInvalid tIdentifier tFuncName tType tNullType tPlus tMinus tConcat tMul tDiv tLPar tRPar tLCurl tRCurl tColon tSemicolon tComma tAssign tIdentical tNotIdentical tLess tLessEq tMore tMoreEq tInt tReal tReal2 tInt2 tLiteral
+%%
+if_statement : tIf tLPar condition tRPar tLCurl statements tRCurl tElse tLCurl statements tRCurl;
+
+while_statement : tWhile tLPar condition tRPar tLCurl statements tRCurl;
+
+functionDeclaration : tFunction tFuncName tLPar arguments tRPar tColon type tRCurl statements tLCurl;
+
+arguments :  
+                |variable variables;
+
+functionCall : tFuncName tLPar parameters tRPar;
+                  
+parameters : 
+                |parameter parameters2;
+
+parameters2 : 
+                 |tComma parameter parameters2;
+                 
+parameter : factor;
+
+statements :  
+                 |statement statements;
+
+statement :  expression statement2 tSemicolon
+                |if_statement
+                |while_statement
+                |functionCall tSemicolon
+                |tReturn expression tSemicolon;
+
+statement2 : tAssign expression
+		    |;
+		    
+condition :  expression condition2;
+
+condition2 :  
+                 |relational_operators expression;
+
+expression :  term expression2
+                 |;
+                 
+expression2 :  tPlus expression
+                  |tMinus expression
+                  |;
+
+term : factor term2;
+           
+term2 :  tMul term 
+            |tDiv term 
+            |tConcat term 
+            |;
+             
+factor : variable
+           |const;
+
+variables :  
+                |tComma variable variables;
+
+variable : type tIdentifier | tIdentifier;
+           
+const : tInt | tReal | tReal2 | tInt2 | tNull | tLiteral;
+
+type :  tNullTypeInt | tNullTypeFloat | tNullTypeString
+	     |tTypeInt | tTypeFloat | tTypeString
+	     |tVoid;
+            
+relational_operators :  tLess | tLessEq | tMore
+                            |tMoreEq | tIdentical | tNotIdentical;
