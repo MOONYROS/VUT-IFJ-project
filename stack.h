@@ -6,7 +6,9 @@
 #define GEN_STACK_H
 
 #include <stdbool.h>
-#include "generator.c"
+#include "generator.h"
+#include "token.h"
+#include "lex.h"
 
 #define MAX 20
 
