@@ -1,0 +1,41 @@
+//
+// Created by jonys on 17.11.2022.
+//
+
+#include "stack.h"
+
+void stack_init(tStack * stack){
+    stack->top = -1;
+}
+
+void stack_push(tStack * stack, tToken item){
+    if (stack->top == MAX-1){
+        printf("Stack overflow\n");
+    } else{
+        stack->top++;
+        stack->items[stack->top] = item;
+    }
+}
+
+tToken stack_top(tStack *stack){
+    if(stack->top != -1){
+        return stack->items[stack->top];
+    }
+}
+
+tToken stack_pop(tStack *stack){
+    if(stack->top == -1) {
+        printf("Stack underflow");
+    } else{
+        stack->top--;
+        return stack->items[stack->top];
+    }
+}
+
+bool stack_empty(tStack *stack){
+    if(stack->top == -1){
+        return true;
+    } else{
+        return false;
+    }
+}
