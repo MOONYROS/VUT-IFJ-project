@@ -16,11 +16,34 @@ bool is_operator(tToken * token){
     }
 }
 
-int priority(tToken *token){
+int priority(tToken *token, tStack * stack) {
+    int token_prio;
+    int stack_prio;
+
+    if (stack_top(stack).type == tMul || stack_top(stack).type == tDiv){
+        stack_prio = 2;
+    }
+    else if (stack_top(stack).type == tPlus || stack_top(stack).type == tMinus){
+        stack_prio = 1;
+    }
+    else{
+        stack_prio = 0;
+    }
+
     if (token->type == tMul || token->type == tDiv){
-        return 2;
+        token_prio = 2;
     }
     else if (token->type == tPlus || token->type == tMinus){
+        token_prio = 1;
+    }
+    else{
+        token_prio = 0;
+    }
+
+    if (token_prio > stack_prio){
+        return 2;
+    }
+    else if (token_prio == stack_prio){ //pozor na zavorky ty se muzou pushovat na sebe
         return 1;
     }
     else{
@@ -29,24 +52,83 @@ int priority(tToken *token){
 }
 
 void infix_to_postfix(tToken * token){
-    char postfix_exp[20];
-    int i;
+
     tStack *stack;
     stack_init(stack);
 
     while (token) {
-        if (is_operator(token) == true){
-            switch (token->type) {
-                case tLPar:
-                    if (priority(token) > priority(stack_top(stack))){
+        switch (token->type) {
 
-                    }
+            case tLPar:
+                if (priority(token, stack) >= 1) {
                     stack_push(stack, *token);
+                } else {
+                    stack_pop(stack);
+                    if (priority(token, stack) >= 1)
+                        stack_push(stack, *token);
+                    else {
+                        stack_pop(stack);
+                        stack_push(stack, *token);
+                    }
+                }
 
-            }
-        }
-        else if (token->type == tIdentifier){
-            return;
+            case tRPar:
+                while (stack_top(stack).type != tLPar) {
+                    stack_pop(stack);
+                }
+                stack_pop(stack);
+
+            case tMul:
+                if (priority(token, stack) == 2) {
+                    stack_push(stack, *token);
+                } else {
+                    stack_pop(stack);
+                    stack_push(stack, *token);
+                }
+
+            case tDiv:
+                if (priority(token, stack) == 2) {
+                    stack_push(stack, *token);
+                } else {
+                    stack_pop(stack);
+                    stack_push(stack, *token);
+                }
+
+            case tPlus:
+                if (priority(token, stack) == 2) {
+                    stack_push(stack, *token);
+                } else if (priority(token, stack) == 1) {
+                    stack_pop(stack);
+                    stack_push(stack, *token);
+                } else {
+                    stack_pop(stack);
+                    if (priority(token, stack) == 2)
+                        stack_push(stack, *token);
+                    else {
+                        stack_pop(stack);
+                        stack_push(stack, *token);
+                    }
+                }
+
+            case tMinus:
+                if (priority(token, stack) == 2) {
+                    stack_push(stack, *token);
+                } else if (priority(token, stack) == 1) {
+                    stack_pop(stack);
+                    stack_push(stack, *token);
+                } else {
+                    stack_pop(stack);
+                    if (priority(token, stack) == 2)
+                        stack_push(stack, *token);
+                    else {
+                        stack_pop(stack);
+                        stack_push(stack, *token);
+                    }
+                }
+
+            default:
+                continue;
+                
         }
     }
 }
