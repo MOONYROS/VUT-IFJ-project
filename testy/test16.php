@@ -1,6 +1,6 @@
 <?php
-// FUNGUJE
 declare(strict_types=1);
+// FUNGUJE
 $num = 4;
 $num2 = 2;
 function number1(){

@@ -1,6 +1,6 @@
 <?php
-// FUNGUJE
 declare(strict_types=1);
+// FUNGUJE
 $num = 0;
 $num4 = 0;
 while($num < 5){
