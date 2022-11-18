@@ -46,7 +46,7 @@ int main(int argc, const char * argv[]) {
     else
     {
         tParseTree *tree;
-        if(parse(inf, &tree) == 0)
+        if(parse(inf, &tree) < 1)
             printf("PARSING FAILED\n");
         else
             printf("PARSING FINISHED OK\n");
