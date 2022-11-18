@@ -1,8 +1,8 @@
 EXEC := gigachad_compiler
 
 #Zde pridavejte zdrojaky chlapi
-SRCS := main.c lex.c
-OBJS := main.o lex.o
+SRCS := main.c lex.c parser.c
+OBJS := main.o lex.o parser.o
 
 CC := gcc
 CFLAGS := -std=c99 -Wall -Wextra -Wpedantic -c
