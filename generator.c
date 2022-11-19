@@ -118,26 +118,10 @@ void infix_to_postfix(tToken * token){
                 if (priority(token, stack) >= 1) {
                     stack_push(stack, *token);
                 } else {
-                    if (list_is_active(list) == false){
-                        insert_first(list, *token);
-                        list_first(list);
-                    }
-                    else{
-                        insert_after(list, *token);
-                        list_next(list);
-                    }
                     stack_pop(stack);
                     if (priority(token, stack) >= 1)
                         stack_push(stack, *token);
                     else {
-                        if (list_is_active(list) == false){
-                            insert_first(list, *token);
-                            list_first(list);
-                        }
-                        else{
-                            insert_after(list, *token);
-                            list_next(list);
-                        }
                         stack_pop(stack);
                         stack_push(stack, *token);
                     }
@@ -145,12 +129,8 @@ void infix_to_postfix(tToken * token){
 
             case tRPar:
                 while (stack_top(stack).type != tLPar) {
-                    insert_after(list,stack_top(stack));
-                    list_next(list);
                     stack_pop(stack);
                 }
-                insert_after(list,stack_top(stack));
-                list_next(list);
                 stack_pop(stack);
 
             case tMul:
