@@ -9,7 +9,6 @@ while($num < 5){
       $num3 = 15;
       while($num4 < 3){
          $num5 = $num4;
-         echo $num5;
          $num4 = $num4 + 1;
       }
    }else{

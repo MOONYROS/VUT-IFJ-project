@@ -13,51 +13,50 @@
 #include "parser.h"
 
 char* rule[SYNTAXRULES][RULEITEMS] = {
-    {"if_statement",            "tIf", "tLPar", "condition", "tRPar", "tLCurl", "statements", "tRCurl", "tElse", "tLCurl", "statements", "tRCurl", ""},
-    {"while_statement",         "tWhile", "tLPar", "condition", "tRPar", "tLCurl", "statements", "tRCurl", ""},
+    {"programs",                "program", "programs", ""},
+    {"programs",                "EPS", ""},
+    {"program",                 "functionDeclaration", ""},
+    {"program",                 "statements", ""},
+    {"if_statement",            "tIf", "tLPar", "expression", "tRPar", "tLCurl", "statements", "tRCurl", "tElse", "tLCurl", "statements", "tRCurl", ""},
+    {"while_statement",         "tWhile", "tLPar", "expression", "tRPar", "tLCurl", "statements", "tRCurl", ""},
     {"functionDeclaration",     "tFunction", "tFuncName", "tLPar", "arguments", "tRPar", "tColon", "type", "tLCurl", "statements", "tRCurl", ""},
     {"arguments",               "variable", "variables", ""},
     {"arguments",               "EPS", ""},
     {"functionCall",            "tFuncName", "tLPar", "parameters", "tRPar", ""},
-    {"parameters",              "term", "parameters2", ""}, //misto paramater dame term
+    {"parameters",              "term", "parameters2", ""},
     {"parameters",              "EPS", ""},
     {"parameters2",             "tComma", "term", "parameters2", ""},
     {"parameters2",             "EPS", ""},
-    // {"parameter",               "factor", ""},
     {"statements",              "statement", "statements", ""},
     {"statements",              "EPS", ""},
-    {"statement",               "functionDeclaration", ""},
     {"statement",               "if_statement", ""},
     {"statement",               "while_statement", ""},
     {"statement",               "functionCall", "tSemicolon", ""},
     {"statement",               "tReturn", "expression", "tSemicolon", ""},
-    {"statement",               "expression", "statement2", "tSemicolon", ""},
-    {"statement2",              "tAssign", "statement3", ""},
-    {"statement2",              "EPS", ""},
-    {"statement3",              "expression", ""},
-    {"statement3",              "functionCall", ""},
-    {"condition",               "functionCall", "condition2", ""},
-    {"condition",               "expression", "condition2", ""},
-    {"condition2",              "relational_operators", "expression", ""},
-    {"condition2",              "EPS", ""},
+    {"statement",               "preExpression1", ""},
+    {"statement",               "preExpression2", ""},
+    {"preExpression1",          "variable", "nextTerminal", ""},
+    {"nextTerminal",            "tAssign", "expression", "tSemicolon", ""},
+    {"nextTerminal",            "expression2", "tSemicolon", ""},
+    {"preExpression2",          "const", "expression2", "tSemicolon", ""},
+    {"preExpression2",          "tLPar", "const", "expression2", "tRPar", "tSemicolon", ""},
+    {"expression",              "tLPar", "expression", "tRPar", "expression2", ""},
     {"expression",              "term", "expression2", ""},
     {"expression",              "EPS", ""},
     {"expression2",             "tPlus", "expression", ""},
     {"expression2",             "tMinus", "expression", ""},
-    {"expression2",             "tMul", "expression", ""}, //nove
-    {"expression2",             "tDiv", "expression", ""}, //nove
-    {"expression2",             "tConcat", "expression", ""}, // nove
+    {"expression2",             "tMul", "expression", ""},
+    {"expression2",             "tDiv", "expression", ""},
+    {"expression2",             "tConcat", "expression", ""},
+    {"expression2",             "tLess", "expression", ""},
+    {"expression2",             "tLessEq", "expression", ""},
+    {"expression2",             "tMore", "expression", ""},
+    {"expression2",             "tMoreEq", "expression", ""},
+    {"expression2",             "tIdentical", "expression", ""},
+    {"expression2",             "tNotIdentical", "expression", ""},
     {"expression2",             "EPS", ""},
-    {"term",                    "const", ""},//, "term2", ""},
-    {"term",                    "variable", ""}, // , "term2", ""},
-    /*
-    {"term2",                   "tMul", "term", ""},      // misto factor term
-    {"term2",                   "tConcat", "term", ""},   // misto factor term
-    {"term2",                   "tDiv", "term", ""},      // misto factor term
-    {"term2",                   "EPS", ""},
-    {"factor",                  "variable", ""},
-    {"factor",                  "const", ""},
-    */
+    {"term",                    "const", ""},
+    {"term",                    "variable", ""},
     {"variables",               "tComma", "variable", "variables", ""},
     {"variables",               "EPS", ""},
     {"variable",                "type", "tIdentifier", ""},
@@ -75,12 +74,6 @@ char* rule[SYNTAXRULES][RULEITEMS] = {
     {"type",                    "tTypeFloat", ""},
     {"type",                    "tTypeString", ""},
     {"type",                    "tVoid", ""},
-    {"relational_operators",    "tLess", ""},
-    {"relational_operators",    "tLessEq", ""},
-    {"relational_operators",    "tMore", ""},
-    {"relational_operators",    "tMoreEq", ""},
-    {"relational_operators",    "tIdentical", ""},
-    {"relational_operators",    "tNotIdentical", ""},
 };
 
 void printParseTree(tParseTree* tree, int level)
@@ -171,7 +164,12 @@ int parser(FILE *f, tToken *token, tParseTree **tree, const char *state, int ite
                     printf("%*sEpsilon na (%d) %s\n", iter*2, "", i+1, state);
 					koncime = 1;
 				}
-				if (koncime) {
+                if ((strcmp(state, "statements") == 0) && token->type == tRCurl) // (strcmp(state, "statement") == 0 && strcmp(rule[i][j], "tSemicolon"))
+                {
+                    printf("%*sVOJEB ; } na (%d) %s\n", iter * 2, "", i + 1, state);
+                    koncime = 1;
+                }
+                if (koncime) {
                     *tree = newNonterminal(rule[i][0], lst);
 					return 1;
 				}
@@ -270,5 +268,5 @@ int parse(FILE *f, tParseTree **tree)
         printf("INVALID TOKEN\n");
         return 0;
     }
-    return parser(f, &token, tree, "statements", 0, 0);
+    return parser(f, &token, tree, "programs", 0, 0); // statements
 }

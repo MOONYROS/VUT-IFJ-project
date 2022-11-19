@@ -261,7 +261,7 @@ int ReadToken(FILE *f, tToken *token)
                                 if (ch == '=')  // Kontrola identicnosti
                                 {
                                     state = sFinish;
-                                    strcpy(token->data, "==");
+                                    strcpy(token->data, "===");
                                     token->type = tIdentical;
                                 }
                                 else    // pokud prisly pouze 2 symboly =, jdeme do tInvalid, protoze to nas jazyk nepodporuje
@@ -338,7 +338,7 @@ int ReadToken(FILE *f, tToken *token)
                         case '/':
                             SAVECHAR;
                             ch = fgetc(f);
-                            SAVECHAR;
+                            //SAVECHAR;
                             if (ch == '/')   // Single line comment
                             {
                                 while (!feof(f) && (ch != '\n'))

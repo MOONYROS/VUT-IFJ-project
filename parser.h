@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include "token.h"
 
-#define SYNTAXRULES 59 //63
+#define SYNTAXRULES 61 //58 //55 //63
 #define RULEITEMS   13
 
 char *rule[SYNTAXRULES][RULEITEMS];
