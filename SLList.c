@@ -46,6 +46,18 @@ void insert_after(list * list, tToken token){
     }
 }
 
+tToken get_first(list * list){
+    if (list->first != NULL) {
+        return (list->first->token);
+    }
+}
+
+tToken get_active(list * list){
+    if (list->active != NULL){
+        return list->active->token;
+    }
+}
+
 bool list_is_active(list * list){
     if(list->active == NULL){
         return false;

@@ -20,10 +20,8 @@ void stack_push(tStack * stack, tToken item){
 }
 
 tToken stack_top(tStack *stack){
-    tToken *top;
     if(stack->top != -1){
-        *top = stack->items[stack->top];
-        return *top;
+        return (stack->items[stack->top]);
     }
 }
 
