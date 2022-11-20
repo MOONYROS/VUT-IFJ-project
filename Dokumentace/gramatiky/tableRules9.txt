@@ -1,0 +1,70 @@
+%token tTypeInt tTypeFloat tTypeString tNullTypeInt tNullTypeFloat tNullTypeString tIf tElse tWhile tFunction tReturn tVoid tNull tInvalid tIdentifier tFuncName tType tNullType tPlus tMinus tConcat tMul tDiv tLPar tRPar tLCurl tRCurl tColon tSemicolon tComma tAssign tIdentical tNotIdentical tLess tLessEq tMore tMoreEq tInt tReal tReal2 tInt2 tLiteral
+%%
+
+programs : program programs
+         |; /*epsilon*/
+
+program : tFunction tFuncName tLPar arguments tRPar tColon type tLCurl statements tRCurl   
+        | statement;
+
+statements : statement statements
+           |; /* epsilon */
+
+statement : tIf tLPar expression tRPar tLCurl statements tRCurl tElse tLCurl statements returnState tRCurl
+          | tWhile tLPar expression tRPar tLCurl statements tRCurl
+          | tFuncName tLPar parameters tRPar tSemicolon
+          | preExpression1
+          | preExpression2;
+
+returnState : tReturn returnValue tSemicolon
+            |;
+
+returnValue : expression
+            |;
+
+preExpression1 : tIdentifier nextTerminal;
+
+nextTerminal : tAssign expression tSemicolon
+             | expression2 tSemicolon;
+
+preExpression2 : const expression2 tSemicolon
+               | tLPar const expression2 tRPar tSemicolon;
+		
+expression : term expression2
+           | tLPar expression tRPar expression2;
+                 
+expression2 : tPlus expression
+            | tMinus expression
+            | tMul expression
+            | tDiv expression
+            | tConcat expression
+            | tLess expression
+            | tLessEq expression
+            | tMore expression
+            | tMoreEq expression
+            | tIdentical expression
+            | tNotIdentical expression
+            |; /* epsilon */
+
+arguments : type tIdentifier argumentVars
+          |; /* epsilon */
+
+argumentVars : tComma type tIdentifier argumentVars
+             |; /* epsilon */ 
+                  
+parameters : term parameters2
+           |; /* epsilon */
+
+parameters2 : tComma term parameters2
+            |; /* epsilon */
+
+term : const
+     | tIdentifier;
+           
+const : tInt | tReal | tReal2 | tInt2 | tNull | tLiteral;
+
+type :  tNullTypeInt | tNullTypeFloat | tNullTypeString
+	     |tTypeInt | tTypeFloat | tTypeString
+	     |tVoid;
+            
+
