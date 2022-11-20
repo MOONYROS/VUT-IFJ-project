@@ -567,7 +567,6 @@ int ReadToken(FILE *f, tToken *token)
                     ungetc(ch, f);
                     state = sFinish;
                     token->type = tInt;
-                    printf("PRVNI CISLO\n");
                 }
                 break;
             case sFloat:    // Co kdyz prijde jenom 234.? je to 234.0 nebo tInvalid?
@@ -600,7 +599,6 @@ int ReadToken(FILE *f, tToken *token)
                     ungetc(ch, f);
                     state = sFinish;
                     token->type = tReal;
-                    printf("DRUHE CISLO\n");
                 }
                 break;
             case sRexp:
@@ -680,7 +678,6 @@ int ReadToken(FILE *f, tToken *token)
                 ch = ungetc(ch, f); // neprislo cislo, tento znak vratime a jsme v koncovem stavu
                 state = sFinish;
                 token->type = tInt2;
-                printf("TRETI CISLO\n");
                 break;
             case sDollar:
                 while ((isAlpha(ch)) || (isDigit(ch)) || (ch == '_'))
