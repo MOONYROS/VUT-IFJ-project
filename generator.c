@@ -66,20 +66,114 @@ int priority(tToken *token, tStack * stack) {
     }
 }
 
-void infix_to_postfix(list * list){
+void infix_to_postfix(tlist * list){
 
+    tlist * postfix;
+    tToken * token;
+    tStack * stack;
+    stack_init(stack);
+    list_init(postfix);
     list_first(list);
+
+    //prochazeni listu s tokeny expressionu
     while (list_is_active(list) == true) {
         //vytahneme aktivni token
-        tToken token = get_active(list);
+         (* token) = get_active(list);
 
-        //TODO
+        switch (token->type) {
+
+            case tMul | tDiv:
+                if (priority(token, stack) == 2){
+                    stack_push(stack, *token);
+                }
+                else{
+                    insert_after(postfix,stack_top(stack));
+                    stack_pop(stack);
+                    stack_push(stack,*token);
+                }
+
+
+            case tPlus | tMinus:
+                if (priority(token, stack) == 2){
+                    stack_push(stack, *token);
+                }
+                else if (priority(token, stack) == 1){
+                    insert_after(postfix,stack_top(stack));
+                    stack_pop(stack);
+                    stack_push(stack,*token);
+                }
+                else{
+                    insert_after(postfix,stack_top(stack));
+                    stack_pop(stack);
+                    if (priority(token,stack) == 1){
+                        insert_after(postfix,stack_top(stack));
+                        stack_pop(stack);
+                        stack_push(stack,*token);
+                    }
+                    else{
+                        stack_push(stack,*token);
+                    }
+                }
+
+
+            case tLess | tLessEq | tMore | tMoreEq:
+                if (priority(token, stack) == 2){
+                    stack_push(stack, *token);
+                }
+                else if (priority(token, stack) == 1){
+                    insert_after(postfix,stack_top(stack));
+                    stack_pop(stack);
+                    stack_push(stack,*token);
+                }
+                else{
+                    insert_after(postfix,stack_top(stack));
+                    stack_pop(stack);
+                    if (priority(token, stack) == 0){
+                        insert_after(postfix,stack_top(stack));
+                        stack_pop(stack);
+                        if (priority(token, stack) == 1){
+                            insert_after(postfix,stack_top(stack));
+                            stack_pop(stack);
+                            stack_push(stack,*token);
+                        }
+                        else{
+                            stack_push(stack,*token);
+                        }
+                    }
+                    else if (priority(token, stack) == 1){
+                        insert_after(postfix,stack_top(stack));
+                        stack_pop(stack);
+                        stack_push(stack,*token);
+                    }
+                    else{
+                        stack_push(stack,*token);
+                    }
+                }
+
+
+            case tIdentical | tNotIdentical: ;
+
+
+            case tIdentifier | tNull | tInt2 | tInt | tReal2 | tReal:;
+
+
+            case tConcat:;
+
+
+            case tLiteral:;
+
+
+            case tRPar:;
+
+
+            //case tLPar:;
+        }
 
         //posuneme aktivitu
         list_next(list);
     }
 }
 
-void tri_code_gen(list * list){
+void tri_code_gen(tlist * list){
 //TODO
 }

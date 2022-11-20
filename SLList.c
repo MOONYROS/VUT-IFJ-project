@@ -6,22 +6,22 @@
 #include <malloc.h>
 #include <stdio.h>
 
-void list_init(list * list){
+void list_init(tlist * list){
     list->first = NULL;
     list->active = NULL;
 }
 
-void list_first(list * list){
+void list_first(tlist * list){
     list->active = list->first;
 }
 
-void list_next(list * list){
+void list_next(tlist * list){
     if(list->active != NULL){
         list->active = list->active->next_item;
     }
 }
 
-void insert_first(list * list, tToken token){
+void insert_first(tlist * list, tToken token){
     list_item_ptr new_item = malloc(sizeof(struct list_item));
     if (new_item == NULL){
         printf("Chyba pri alokaci pameti");
@@ -33,7 +33,7 @@ void insert_first(list * list, tToken token){
     list->first = new_item;
 }
 
-void insert_after(list * list, tToken token){
+void insert_after(tlist * list, tToken token){
     if(list->active != NULL){
         list_item_ptr new_item = malloc(sizeof(struct list_item));
         if (new_item == NULL){
@@ -46,19 +46,19 @@ void insert_after(list * list, tToken token){
     }
 }
 
-tToken get_first(list * list){
+tToken get_first(tlist * list){
     if (list->first != NULL) {
         return (list->first->token);
     }
 }
 
-tToken get_active(list * list){
+tToken get_active(tlist * list){
     if (list->active != NULL){
         return list->active->token;
     }
 }
 
-bool list_is_active(list * list){
+bool list_is_active(tlist * list){
     if(list->active == NULL){
         return false;
     }
@@ -67,7 +67,7 @@ bool list_is_active(list * list){
     }
 }
 
-void dispose(list * list){
+void dispose(tlist * list){
     list_item_ptr item;
     while (list->first != NULL){
         item = list->first;

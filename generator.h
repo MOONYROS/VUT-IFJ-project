@@ -11,7 +11,7 @@
 
 int priority(tToken *token, tStack * stack);
 int token_type(tToken * token);
-void infix_to_postfix(list * list);
-void tri_code_gen(list * list);
+void infix_to_postfix(tlist * list);
+void tri_code_gen(tlist * list);
 
 #endif //IFJCODE22_GENERATOR_H
