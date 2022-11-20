@@ -25,5 +25,7 @@ void list_next(list * list);
 bool list_is_active(list * list);
 void insert_first(list * list, tToken token);
 void insert_after(list * list, tToken token);
+tToken get_first(list * list);
+tToken get_active(list * list);
 
 #endif //IFJCODE22_SLLIST_H
