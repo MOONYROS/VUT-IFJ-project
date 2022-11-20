@@ -15,27 +15,23 @@
 char* rule[SYNTAXRULES][RULEITEMS] = {
     {"programs",                "program", "programs", ""},
     {"programs",                "EPS", ""},
-    {"program",                 "functionDeclaration", ""},
-    {"program",                 "statements", ""},
-    {"if_statement",            "tIf", "tLPar", "expression", "tRPar", "tLCurl", "statements", "tRCurl", "tElse", "tLCurl", "statements", "tRCurl", ""},
-    {"while_statement",         "tWhile", "tLPar", "expression", "tRPar", "tLCurl", "statements", "tRCurl", ""},
-    {"functionDeclaration",     "tFunction", "tFuncName", "tLPar", "arguments", "tRPar", "tColon", "type", "tLCurl", "statements", "tRCurl", ""},
-    {"arguments",               "variable", "variables", ""},
+    {"program",                 "tFunction", "tFuncName", "tLPar", "arguments", "tRPar", "tColon", "type", "tLCurl", "statements", "tRCurl", ""},
+    {"program",                 "statement", ""},
+    {"arguments",               "type", "tIdentifier", "argumentVars", ""},
     {"arguments",               "EPS", ""},
-    {"functionCall",            "tFuncName", "tLPar", "parameters", "tRPar", ""},
     {"parameters",              "term", "parameters2", ""},
     {"parameters",              "EPS", ""},
     {"parameters2",             "tComma", "term", "parameters2", ""},
     {"parameters2",             "EPS", ""},
     {"statements",              "statement", "statements", ""},
     {"statements",              "EPS", ""},
-    {"statement",               "if_statement", ""},
-    {"statement",               "while_statement", ""},
-    {"statement",               "functionCall", "tSemicolon", ""},
+    {"statement",               "tIf", "tLPar", "expression", "tRPar", "tLCurl", "statements", "tRCurl", "tElse", "tLCurl", "statements", "tRCurl", ""},
+    {"statement",               "tWhile", "tLPar", "expression", "tRPar", "tLCurl", "statements", "tRCurl", ""},
+    {"statement",               "tFuncName", "tLPar", "parameters", "tRPar", "tSemicolon", ""},
     {"statement",               "tReturn", "expression", "tSemicolon", ""},
     {"statement",               "preExpression1", ""},
     {"statement",               "preExpression2", ""},
-    {"preExpression1",          "variable", "nextTerminal", ""},
+    {"preExpression1",          "tIdentifier", "nextTerminal", ""},
     {"nextTerminal",            "tAssign", "expression", "tSemicolon", ""},
     {"nextTerminal",            "expression2", "tSemicolon", ""},
     {"preExpression2",          "const", "expression2", "tSemicolon", ""},
@@ -57,9 +53,8 @@ char* rule[SYNTAXRULES][RULEITEMS] = {
     {"expression2",             "EPS", ""},
     {"term",                    "const", ""},
     {"term",                    "variable", ""},
-    {"variables",               "tComma", "variable", "variables", ""},
-    {"variables",               "EPS", ""},
-    {"variable",                "type", "tIdentifier", ""},
+    {"argumentVars",            "tComma", "type", "tIdentifier", "argumentVars", ""},   // pro argument deklarace funkce
+    {"argumentVars",            "EPS", ""},                                     // pro argument deklarace funkce                     // pro argument deklarace funkce
     {"variable",                "tIdentifier", ""},
     {"const",                   "tInt", ""},
     {"const",                   "tReal", ""},
@@ -75,6 +70,8 @@ char* rule[SYNTAXRULES][RULEITEMS] = {
     {"type",                    "tTypeString", ""},
     {"type",                    "tVoid", ""},
 };
+
+
 
 void printParseTree(tParseTree* tree, int level)
 {
@@ -164,11 +161,11 @@ int parser(FILE *f, tToken *token, tParseTree **tree, const char *state, int ite
                     printf("%*sEpsilon na (%d) %s\n", iter*2, "", i+1, state);
 					koncime = 1;
 				}
-                if ((strcmp(state, "statements") == 0) && token->type == tRCurl) // (strcmp(state, "statement") == 0 && strcmp(rule[i][j], "tSemicolon"))
+                /*if ((strcmp(state, "statements") == 0) && token->type == tRCurl) // (strcmp(state, "statement") == 0 && strcmp(rule[i][j], "tSemicolon"))
                 {
                     printf("%*sVOJEB ; } na (%d) %s\n", iter * 2, "", i + 1, state);
                     koncime = 1;
-                }
+                }*/
                 if (koncime) {
                     *tree = newNonterminal(rule[i][0], lst);
 					return 1;

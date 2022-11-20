@@ -1,33 +1,51 @@
 <?php
 declare(strict_types=1);
-// FUNGUJE
-$num = 4;
-$num2 = 2;
-function number1() : string{
-   $num = 5;
-   if($num === 5){
-      number2();
-   } else{
-      $num = 5;
-   }
-}
-function number2() : float{
-   $num2 = 1;
-   if($num2 === 1){
-   $num2 = 3;
-   $string1 = "Ah"."oj.";
-   } else{
-      $num2 = 0;
 
-	  function asd(string $lmao, int $prdel) : float{
-		return $lmao + $prdel;
-	  }
-   }
+function zaseNeco() : ?string{
+    lmao($a, $b);
+
+    if($a * 5678 <= 876 === $c / $z)
+    {
+        write();
+    }
+    else
+    {
+        $a=1;
+        $b=2;
+        $c=$a*$b+$c*3;
+        write($c);
+    }
 }
-if($num === 5){
-   return (3 * $x)   /	 $z;
+
+$a=1;
+$b=2;
+$c=$a*$b+$c*3;
+write($c);
+
+function cosik() : void {
+    if($e)
+    {
+        $a;
+    }
+    else
+    {
+        $s < 54678;
+    }
 }
-else{
-   number1();
+
+if($a + 3 * 6 - $x === 8)
+{
+    $c = 5;
+    write($x, $z);
 }
+else
+{
+    $aklsjdfh;
+    $a;
+    //$a = $x * 1 + 6 <= $z;
+    //read();
+}
+
+$a=34978562;
+
 ?>
