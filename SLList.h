@@ -27,5 +27,6 @@ void insert_first(tlist * list, tToken token);
 void insert_after(tlist * list, tToken token);
 tToken get_first(tlist * list);
 tToken get_active(tlist * list);
+tToken get_next(tlist * list);
 
 #endif //IFJCODE22_SLLIST_H

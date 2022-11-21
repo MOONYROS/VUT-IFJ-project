@@ -68,11 +68,19 @@ int priority(tToken *token, tStack * stack) {
 
 void infix_to_postfix(tlist * list){
 
-    tlist * postfix;
+    tToken *tmpLiteral;
+    tToken *tmpConcat;
+
     tToken * token;
     tStack * stack;
     stack_init(stack);
+
+    tToken * left;
+    tlist * postfix;
+
+    left->type = tLPar;
     list_init(postfix);
+    insert_first(postfix, *left);
     list_first(list);
 
     //prochazeni listu s tokeny expressionu
@@ -82,7 +90,8 @@ void infix_to_postfix(tlist * list){
 
         switch (token->type) {
 
-            case tMul | tDiv:
+            case tMul:
+            case tDiv:
                 if (priority(token, stack) == 2){
                     stack_push(stack, *token);
                 }
@@ -91,9 +100,11 @@ void infix_to_postfix(tlist * list){
                     stack_pop(stack);
                     stack_push(stack,*token);
                 }
+            break;
 
 
-            case tPlus | tMinus:
+            case tPlus:
+            case tMinus:
                 if (priority(token, stack) == 2){
                     stack_push(stack, *token);
                 }
@@ -114,9 +125,13 @@ void infix_to_postfix(tlist * list){
                         stack_push(stack,*token);
                     }
                 }
+            break;
 
 
-            case tLess | tLessEq | tMore | tMoreEq:
+            case tLess:
+            case tLessEq:
+            case tMore:
+            case tMoreEq:
                 if (priority(token, stack) == 2){
                     stack_push(stack, *token);
                 }
@@ -149,29 +164,117 @@ void infix_to_postfix(tlist * list){
                         stack_push(stack,*token);
                     }
                 }
+                break;
 
 
-            case tIdentical | tNotIdentical: ;
+            case tIdentical:
+            case tNotIdentical:
+                if (priority(token, stack) == 2){
+                    stack_push(stack, *token);
+                }
+                else if (priority(token, stack) == 1){
+                    insert_after(postfix,stack_top(stack));
+                    stack_pop(stack);
+                    stack_push(stack,*token);
+                }
+                else{
+                    insert_after(postfix,stack_top(stack));
+                    stack_pop(stack);
+                    if (priority(token, stack) == 0){
+                        insert_after(postfix,stack_top(stack));
+                        stack_pop(stack);
+                        if (priority(token, stack) == 0) {
+                            insert_after(postfix, stack_top(stack));
+                            stack_pop(stack);
+                            if (priority(token, stack) == 1){
+                                insert_after(postfix, stack_top(stack));
+                                stack_pop(stack);
+                                stack_push(stack,*token);
+                            }
+                            else{
+                                stack_push(stack,*token);
+                            }
+                        }
+                        else if (priority(token, stack) == 1){
+                            insert_after(postfix, stack_top(stack));
+                            stack_pop(stack);
+                            stack_push(stack,*token);
+                        }
+                        else{
+                            stack_push(stack,*token);
+                        }
+                    }
+                    else if (priority(token, stack) == 1){
+                        insert_after(postfix, stack_top(stack));
+                        stack_pop(stack);
+                        stack_push(stack,*token);
+                    }
+                    else{
+                        stack_push(stack,*token);
+                    }
+                }
+            break;
 
 
-            case tIdentifier | tNull | tInt2 | tInt | tReal2 | tReal:;
+            case tIdentifier:
+            case tNull:
+            case tInt2:
+            case tInt:
+            case tReal2:
+            case tReal:
+                insert_after(postfix, *token);
+            break;
 
 
-            case tConcat:;
+            case tConcat:
+                (*tmpConcat) = get_next(list);
+                if ((tmpConcat->type == tLiteral)){
+                    insert_after(postfix, *token);
+                }
+                else{
+                    printf("Invalid operation for concat");
+                    return;
+                }
+            break;
 
 
-            case tLiteral:;
+            case tLiteral:
+                (*tmpLiteral) = get_next(list);
+                if ((tmpLiteral->type == tConcat) || (tmpLiteral->type == tIdentical) || (tmpLiteral->type == tNotIdentical)){
+                    insert_after(postfix, *token);
+                }
+                else{
+                    printf("Invalid operation for literal");
+                    return;
+                }
+            break;
 
 
-            case tRPar:;
+            case tRPar:
+                while (stack_top(stack).type != tLPar){
+                    insert_after(postfix, stack_top(stack));
+                    stack_pop(stack);
+                }
+                stack_pop(stack);
+            break;
 
 
-            //case tLPar:;
+            case tLPar:
+                stack_push(stack, *token);
+            break;
         }
 
         //posuneme aktivitu
         list_next(list);
     }
+
+    //skonci aktivita seznamu takze popujeme cely zasobnik az po implicitni tLPar
+    while (stack_top(stack).type != tLPar){
+        insert_after(postfix, stack_top(stack));
+        stack_pop(stack);
+    }
+    stack_pop(stack);
+
 }
 
 void tri_code_gen(tlist * list){

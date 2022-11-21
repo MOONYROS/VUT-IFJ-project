@@ -58,6 +58,12 @@ tToken get_active(tlist * list){
     }
 }
 
+tToken get_next(tlist * list){
+    if (list->active != NULL){
+        return list->active->next_item->token;
+    }
+}
+
 bool list_is_active(tlist * list){
     if(list->active == NULL){
         return false;
