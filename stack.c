@@ -2,42 +2,36 @@
 // Created by jonys on 17.11.2022.
 //
 
-#include <stdio.h>
 #include <stdbool.h>
 #include "stack.h"
 
-void stack_init(tStack * stack){
-    stack->top = -1;
+
+tStack *stack_init(int size){
+    tStack * stack = malloc(sizeof(struct tStack));
+    if (stack == NULL){
+        return NULL;
+    }
+    stack->size = size;
+    stack->top = NULL;
+    return stack;
 }
 
-void stack_push(tStack * stack, tToken item){
-    if (stack->top == MAX-1){
-        printf("Stack overflow\n");
-    } else{
-        stack->top++;
-        stack->items[stack->top] = item;
-    }
+void stack_push(tStack * stack, tExItem * item){
+
 }
 
-tToken stack_top(tStack *stack){
-    if(stack->top != -1){
-        return (stack->items[stack->top]);
-    }
+tExItem * stack_top(tStack *stack){
+
 }
 
-tToken stack_pop(tStack *stack){
-    if(stack->top == -1) {
-        printf("Stack underflow");
-    } else{
-        stack->top--;
-        return stack->items[stack->top];
-    }
+tExItem * stack_pop(tStack *stack){
+
 }
 
 bool stack_empty(tStack *stack){
-    if(stack->top == -1){
-        return true;
-    } else{
-        return false;
-    }
+
+}
+
+void stack_dispose(tStack * stack){
+
 }
