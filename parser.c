@@ -49,8 +49,8 @@ tTokenType strToToken(const char *tokenStr)
 void prl(char* str)
 {
     level++;
-    return; // jen aby nebyl warning, ze se str nic nedelame, kdy mame zakomentovany nasleduji radek
     dbgMsg("%*s%s\n", level*2, "", str);
+    return; // jen aby nebyl warning, ze se str nic nedelame, kdy mame zakomentovany nasleduji radek
 }
 
 void nextToken()

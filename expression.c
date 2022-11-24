@@ -1,4 +1,4 @@
-//
+// 
 //  expression.c
 //  IFJ-prekladac
 //
@@ -8,15 +8,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "support.h"
 #include "token.h"
 #include "tstack.h"
 #include "symtable.h"
 
-tTokenType evalExp(tStack* exp, tSymTable* st)
+const char prd_table[15][15] = {
+//    *   /   +   -   .   <   >  <=  >=  === !==  (   )  id   $
+    {'>','>','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // *
+    {'>','>','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // /   
+    {'<','<','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // +
+    {'<','<','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // -
+    {'<','<','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // .
+    {'<','<','<','<','<','>','>','>','>','>','>','<','>','<','>'},  // <
+    {'<','<','<','<','<','>','>','>','>','>','>','<','>','<','>'},  // >
+    {'<','<','<','<','<','>','>','>','>','>','>','<','>','<','>'},  // <=
+    {'<','<','<','<','<','>','>','>','>','>','>','<','>','<','>'},  // >=
+    {'<','<','<','<','<','<','<','<','<','>','>','<','>','<','>'},  // ===
+    {'<','<','<','<','<','<','<','<','<','>','>','<','>','<','>'},  // !==
+    {'<','<','<','<','<','<','<','<','<','<','<','<','=','<','x'},  // (
+    {'>','>','>','>','>','>','>','>','>','>','>','x','>','x','>'},  // )
+    {'>','>','>','>','>','>','>','>','>','>','>','x','>','x','>'},  // id
+    {'<','<','<','<','<','<','<','<','<','<','<','<','x','<','x'}   // $
+};
+
+tTokenType evalExp(tStack* expStack, tSymTable* st)
 {
-    tToken token = { 0, 0 };
+    tToken token = { 0, NULL };
     // i kdyz je token lokalni promenna, tak jeji data jsou dymaicky alokovane
     token.data = safe_malloc(MAX_TOKEN_LEN);
     tTokenType typ = tNone;
@@ -24,9 +42,9 @@ tTokenType evalExp(tStack* exp, tSymTable* st)
     // u identifikatoru (promennych) zkontroluju jestli jsou v symbol table
     // prvni rozumny datovy typ si vratim jako datovy typ celeho vyrazu
     // jinak to nic uziteneho nedela ;-)
-    while (!tstack_isEmpty(exp))
+    while (!tstack_isEmpty(expStack))
     {
-        tstack_pop(exp, &token);
+        tstack_pop(expStack, &token);
 
         if(token.type==tIdentifier)
         {
@@ -38,7 +56,7 @@ tTokenType evalExp(tStack* exp, tSymTable* st)
                 if (typ == tNone)
                     typ = sti->dataType;
                 else
-                { // a pokud uz typ mame a prisla promenna, ktera je jineho typu, tak prozatim semanticka chybe, nez poradne dodelame evalExp()
+                { // a pokud uz typ mame a prisla promenna, ktera je jineho typu, tak prozatim semanticka chybe, nez poradne dodelame evalExpStack()
                     if(typ != sti->dataType)
                         errorExit("expression with different variable data types", CERR_SEM_TYPE); // tady to vypise chybu exitne program uplne
                 }
