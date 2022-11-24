@@ -32,8 +32,51 @@ const char prd_table[15][15] = {
     {'<','<','<','<','<','<','<','<','<','<','<','<','x','<','x'}   // $
 };
 
-tTokenType evalExp(tStack* expStack, tSymTable* st)
+int typeToIndex(tTokenType token)
 {
+    switch (token)
+    {
+        case tMul:
+            return 0;
+        case tDiv:
+            return 1;
+        case tPlus:
+            return 2;
+        case tMinus:
+            return 3;
+        case tConcat:
+            return 4;
+        case tLess:
+            return 5;
+        case tMore:
+            return 6;
+        case tLessEq:
+            return 7;
+        case tMoreEq:
+            return 8;
+        case tIdentical:
+            return 9;
+        case tNotIdentical:
+            return 10;
+        case tLPar:
+            return 11;
+        case tRPar:
+            return 12;
+        case tIdentifier:
+            return 13;
+        default:
+            // Any other token is considered finishing character.
+            return 14;
+    }
+}
+
+tTokenType evalExp(tStack* expStack, tSymTable* symTable)
+{
+    tStackItem *top;
+    // We need these pointers to know what exactly should be reduced on the stack.
+    tStackItem *second;
+    tStackItem *third;
+
     tToken token = { 0, NULL };
     // i kdyz je token lokalni promenna, tak jeji data jsou dymaicky alokovane
     token.data = safe_malloc(MAX_TOKEN_LEN);
@@ -48,7 +91,7 @@ tTokenType evalExp(tStack* expStack, tSymTable* st)
 
         if(token.type==tIdentifier)
         {
-            tSymTableItem* sti = st_search(st, token.data);
+            tSymTableItem* sti = st_search(symTable, token.data);
             if (sti != NULL)
             {
                 dbgMsg("%s", token.data);
