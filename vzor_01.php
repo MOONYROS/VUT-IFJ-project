@@ -9,8 +9,6 @@ function secti(int $prvni, int $druhy) : int
 }
 */
 
-$i = -1;
-
 function prazdna() : void {}
 
 $a = 1;

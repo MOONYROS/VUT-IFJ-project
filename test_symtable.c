@@ -1,3 +1,8 @@
+#include <stdlib.h>
+#include "symtable.h"
+
+struct SymTable st;
+
 void pridej(char* key)
 {
     if (st_insert(&st, key) != NULL)
