@@ -1,8 +1,16 @@
+//
+//  support.h
+//  IFJ-prekladac
+//
+//  Created by Ondrej Lukasek on 15.10.2022.
+//
+
 #include "token.h"
 
 char *tokenName[tMaxToken] = {
-    "tTypeInt", "tTypeFloat", "tTypeString", "tNullTypeInt", "tNullTypeFloat", "tNullTypeString",
-    "tIf", "tElse", "tWhile", "tFunction", "tReturn", "tVoid", "tNull",
+    "tNone",
+    "tTypeInt", "tTypeFloat", "tTypeString", "tNullTypeInt", "tNullTypeFloat", "tNullTypeString", "tVoid",
+    "tIf", "tElse", "tWhile", "tFunction", "tReturn", "tNull",
     "tInvalid", "tIdentifier", "tFuncName", "tType", "tNullType",
     "tPlus", "tMinus", "tConcat","tMul", "tDiv", "tLPar", "tRPar", "tLCurl", "tRCurl", "tColon", "tSemicolon", "tComma",
     "tAssign", "tIdentical",

@@ -8,9 +8,12 @@
 #ifndef token_h
 #define token_h
 
+#define MAX_TOKEN_LEN   1024
+
 typedef enum {
-    tTypeInt, tTypeFloat, tTypeString, tNullTypeInt, tNullTypeFloat, tNullTypeString,
-    tIf, tElse, tWhile, tFunction, tReturn, tVoid, tNull,
+    tNone,
+    tTypeInt, tTypeFloat, tTypeString, tNullTypeInt, tNullTypeFloat, tNullTypeString, tVoid,
+    tIf, tElse, tWhile, tFunction, tReturn, tNull,
     tInvalid, tIdentifier, tFuncName, tType, tNullType,
     tPlus, tMinus, tConcat, tMul, tDiv, tLPar, tRPar, tLCurl, tRCurl, tColon, tSemicolon, tComma,
     tAssign, tIdentical,
@@ -22,13 +25,9 @@ typedef enum {
     tMaxToken
 } tTokenType;
 
-char *tokenName[tMaxToken];
-
 typedef struct{
     tTokenType type;
-    char data[1024];
+    char* data;
 } tToken;
-
-//extern tToken *token;
 
 #endif /* token_h */

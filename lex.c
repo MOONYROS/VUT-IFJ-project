@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "support.h"
 #include "token.h"
 #include "lex.h"
 
@@ -30,6 +31,16 @@ tTokenType keywordToken[] = {tIf, tElse, tWhile, tFunction, tReturn, tNull, tTyp
 #define NULLTYPES 3
 char *nullType[] = {"int", "float", "string"};
 tTokenType nullTypeToken[] = {tNullTypeInt, tNullTypeFloat, tNullTypeString};
+
+int srcLine = 0;
+
+char nextChar(FILE* stream)
+{
+    char ch = fgetc(stream);
+    if (ch == '\n')
+        srcLine++;
+    return ch;
+}
 
 // porovna, jestli je retezec stejny s nekterym z klicovych slov
 int isKeyword(char *str)
@@ -79,19 +90,29 @@ int isWhiteChar(char ch)
     return 0;
 }
 
+void skipWhites(FILE* f, char* ch)
+{
+    while (!feof(f) && isWhiteChar(*ch))
+    {
+        *ch = nextChar(f);
+    }
+
+}
+
 int SkipProlog(FILE *f)
 {
     char ch;
-    char line[255];
+    char line[255]="";
     char *pos;
+    line[0] = 0;
     pos = &line[0];
     *pos = 0;
     
-    ch = fgetc(f);
+    ch = nextChar(f);
     for (int i = 0; i < 4; i++)
     {
         SAVECHAR;
-        ch = fgetc(f);
+        ch = nextChar(f);
         if (feof(f))
             return 0;
         if (isWhiteChar(ch))
@@ -100,18 +121,16 @@ int SkipProlog(FILE *f)
     SAVECHAR;
     if (strcmp(line, "<?php") != 0)
         return 0;
-    ch = fgetc(f);
-    while (!feof(f) && isWhiteChar(ch))
-    {
-        ch = fgetc(f);
-    }
+    ch = nextChar(f);
+    skipWhites(f, &ch);
     if (feof(f))
         return 0;
+    // tady je potreba jeste osetrit komentare uprostred prologu
     pos = &line[0];
     for (int i = 0; i < 23; i++)
     {
         SAVECHAR;
-        ch = fgetc(f);
+        ch = nextChar(f);
         if(feof(f))
             return 0;
         if (isWhiteChar(ch))
@@ -120,11 +139,8 @@ int SkipProlog(FILE *f)
     SAVECHAR;
     if (strcmp(line, "declare(strict_types=1);") != 0)
         return 0;
-    ch = fgetc(f);
-    while (!feof(f) && isWhiteChar(ch))
-    {
-        ch = fgetc(f);
-    }
+    ch = nextChar(f);
+    skipWhites(f, &ch);
     if(feof(f))
         return 0;
     ungetc(ch, f);
@@ -141,7 +157,7 @@ int ReadToken(FILE *f, tToken *token)
     
     while (state != sFinish)
     {
-        ch = fgetc(f);
+        ch = nextChar(f);
         if (feof(f))
         {
             token->type = tEpilog;
@@ -225,12 +241,12 @@ int ReadToken(FILE *f, tToken *token)
                             token->type = tComma;
                             break;
                         case '?':
-                            ch = fgetc(f);
+                            ch = nextChar(f);
                             if (ch == '>')   // Kontrola rovnosti
                             {
                                 while (!feof(f))
                                 {
-                                    ch = fgetc(f);
+                                    ch = nextChar(f);
                                     if(isWhiteChar(ch) == 0 && !feof(f))
                                     {
                                         ungetc(ch, f);
@@ -254,10 +270,10 @@ int ReadToken(FILE *f, tToken *token)
                             state = sDollar;
                             break;
                         case '=':   // Kontrola prirazeni
-                            ch = fgetc(f);
+                            ch = nextChar(f);
                             if (ch == '=')   // Kontrola rovnosti
                             {
-                                ch = fgetc(f);
+                                ch = nextChar(f);
                                 if (ch == '=')  // Kontrola identicnosti
                                 {
                                     state = sFinish;
@@ -279,10 +295,10 @@ int ReadToken(FILE *f, tToken *token)
                             }
                             break;
                         case '!':
-                            ch = fgetc(f);
+                            ch = nextChar(f);
                             if(ch == '=')
                             {
-                                ch = fgetc(f);
+                                ch = nextChar(f);
                                 if (ch == '=')
                                 {
                                     state = sFinish;
@@ -304,7 +320,7 @@ int ReadToken(FILE *f, tToken *token)
                             }
                             break;
                         case '<':
-                            ch = fgetc(f);
+                            ch = nextChar(f);
                             if (ch == '=')
                             {
                                 state = sFinish;
@@ -320,7 +336,7 @@ int ReadToken(FILE *f, tToken *token)
                             }
                             break;
                         case '>':
-                            ch = fgetc(f);
+                            ch = nextChar(f);
                             if (ch == '=')
                             {
                                 state = sFinish;
@@ -337,44 +353,44 @@ int ReadToken(FILE *f, tToken *token)
                             break;
                         case '/':
                             SAVECHAR;
-                            ch = fgetc(f);
-                            //SAVECHAR;
+                            ch = nextChar(f);
+                            // SAVECHAR;
                             if (ch == '/')   // Single line comment
                             {
                                 while (!feof(f) && (ch != '\n'))
                                 {
-                                    ch = fgetc(f);
+                                    ch = nextChar(f);
                                     if(ch != '\n')
                                         SAVECHAR;
                                 }
                                 if (feof(f))
                                 {
-                                    printf("EOF COMMENT: %s\n", token->data);
+                                    dbgMsg("EOF COMMENT: %s\n", token->data);
                                     state = sFinish;
                                     token->type = tInvalid;
                                     return 1;
                                 }
-                                printf("COMMENT: %s\n", token->data);
+                                //dbgMsg("COMMENT: %s\n", token->data);
                                 pos = token->data;
                             }
                             else if (ch == '*')  // Start of block comment
                             {
                                 while (!feof(f))
                                 {
-                                    ch = fgetc(f);
+                                    ch = nextChar(f);
                                     if(ch == '*')
                                     {
-                                        ch = fgetc(f);
+                                        ch = nextChar(f);
                                         if(feof(f))
                                         {
-                                            printf ("EOF IN MULTILINE COMMENT\n");
+                                            dbgMsg ("EOF IN MULTILINE COMMENT\n");
                                             state = sFinish;
                                             token->type = tInvalid;
                                             return 1;
                                         }
                                         else if (ch == '/')
                                         {
-                                            printf("MULTILINE COMMENT\n");
+                                            //dbgMsg("MULTILINE COMMENT\n");
                                             pos = token->data;
                                             *pos = '\0';
                                             break;
@@ -383,7 +399,7 @@ int ReadToken(FILE *f, tToken *token)
                                 }
                                 if (feof(f))
                                 {
-                                    printf("EOF IN MULTILINE COMMENT\n");
+                                    dbgMsg("EOF IN MULTILINE COMMENT\n");
                                     state = sFinish;
                                     token->type = tInvalid;
                                     return 1;
@@ -395,6 +411,7 @@ int ReadToken(FILE *f, tToken *token)
                                 state = sFinish;
                                 token->type = tDiv;
                             }
+                            break;
                         default:
                             break;
                     }
@@ -518,7 +535,7 @@ int ReadToken(FILE *f, tToken *token)
                 while ((isAlpha(ch)) || (isDigit(ch)) || (ch == '_'))
                 {
                     SAVECHAR;
-                    ch = fgetc(f);
+                    ch = nextChar(f);
                 }
                 ungetc(ch, f);
                 int i = isKeyword(token->data);
@@ -533,7 +550,7 @@ int ReadToken(FILE *f, tToken *token)
                 while (isAlpha(ch))
                 {
                     SAVECHAR;
-                    ch = fgetc(f);
+                    ch = nextChar(f);
                 }
                 ungetc(ch, f);
                 int j = isNullType(token->data);
@@ -550,7 +567,7 @@ int ReadToken(FILE *f, tToken *token)
                 while (isDigit(ch))
                 {
                     SAVECHAR;
-                    ch = fgetc(f);
+                    ch = nextChar(f);
                 }
                 if (ch == '.') // jetlize prijde tecka, ulozime ji a presouvame se do sFloat
                 {
@@ -567,6 +584,7 @@ int ReadToken(FILE *f, tToken *token)
                     ungetc(ch, f);
                     state = sFinish;
                     token->type = tInt;
+                    // dbgMsg("PRVNI CISLO\n");
                 }
                 break;
             case sFloat:    // Co kdyz prijde jenom 234.? je to 234.0 nebo tInvalid?
@@ -587,7 +605,7 @@ int ReadToken(FILE *f, tToken *token)
                 while (isDigit(ch)) // Za tecku prislo dalsi cislo, to ulozime
                 {
                     SAVECHAR;
-                    fgetc(f);
+                    ch = nextChar(f);
                 }
                 if ((ch == 'e') || (ch == 'E')) // Realne exponencialni
                 {
@@ -599,6 +617,7 @@ int ReadToken(FILE *f, tToken *token)
                     ungetc(ch, f);
                     state = sFinish;
                     token->type = tReal;
+                    // dbgMsg("DRUHE CISLO\n");
                 }
                 break;
             case sRexp:
@@ -634,7 +653,7 @@ int ReadToken(FILE *f, tToken *token)
                 while (isDigit(ch)) // dokud prichazeji cisla, ukladame je
                 {
                     SAVECHAR;
-                    ch = fgetc(f);
+                    ch = nextChar(f);
                 }
                 ungetc(ch, f);  // prislo nam neco jineho nez cislo, takze se o znak vratime a dame se do stavu sFinish a typ tokenu je tReal2
                 state = sFinish;
@@ -673,44 +692,27 @@ int ReadToken(FILE *f, tToken *token)
                 while (isDigit(ch)) // dokud prichazeji cisla, ukladame je
                 {
                     SAVECHAR;
-                    ch = fgetc(f);
+                    ch = nextChar(f);
                 }
                 ch = ungetc(ch, f); // neprislo cislo, tento znak vratime a jsme v koncovem stavu
                 state = sFinish;
                 token->type = tInt2;
+                // dbgMsg("TRETI CISLO\n");
                 break;
             case sDollar:
                 while ((isAlpha(ch)) || (isDigit(ch)) || (ch == '_'))
                 {
                     SAVECHAR;
-                    ch = fgetc(f);
+                    ch = nextChar(f);
                 }
                 ungetc(ch, f);
                 state = sFinish;
                 token->type = tIdentifier;
                 break;
             default:
-                printf("NEOSETRENY STAV: Sem bychom se nikdy nemeli dostat.\n");
+                dbgMsg("NEOSETRENY STAV: Sem bychom se nikdy nemeli dostat.\n");
         }
     }
-    
-    /*
-    while ((ch != EOF) && (ch != '\n') && (ch != '\r') && (ch != '\t') && (ch != ' ')) {
-        *pos = ch;
-        pos++;
-        ch = fgetc(f);
-    }
-    *pos = '\0';
-    if(ch == EOF)
-    {
-        if(pos == token->data)
-            return 0;
-        else
-        {
-            return 1;
-        }
-    }
-    */
     
     return 1;
 }

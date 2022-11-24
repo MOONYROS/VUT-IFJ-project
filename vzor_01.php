@@ -1,27 +1,26 @@
-<?php
+<?php 
 declare(strict_types=1);
 
-function lmao(?int $idk, int $idc) : void
+/*
+function secti(int $prvni, int $druhy) : int
 {
-    $xD;
-    return;
+    $tmp = $prvni + $druhy;
+    return $tmp;
 }
+*/
 
-function lmao(?int $idk, int $idc) : void
-{
-    $xD;
-    return 9087+345987<$x*$z;
-}
+$i = -1;
 
-function lmao(?int $idk, int $idc) : void
-{
-    $xD;
-}
+function prazdna() : void {}
 
-if($OMEGALUL < $TOSNADOPRAVDU + $FUNGUJE){
-    $a;
-}
-else{
-    $b;
-}
+$a = 1;
+// $aa = ;
+$b = 2;
+$c = $a+$b;
+
+secti($a, $b);
+
+write("rozdil je ");
+write($e);
+
 ?>

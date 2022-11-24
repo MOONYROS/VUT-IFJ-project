@@ -1,0 +1,73 @@
+programs -> program programs
+programs -> epsilon 
+
+program -> tFunction tFuncName tLPar arguments tRPar tColon type tLCurl statements returnState tRCurl   
+program -> statement
+
+statements -> statement statements
+statements -> epsilon 
+
+statement -> tIf tLPar expression tRPar tLCurl statements tRCurl tElse tLCurl statements tRCurl
+statement -> tWhile tLPar expression tRPar tLCurl statements tRCurl
+statement -> tFuncName tLPar parameters tRPar tSemicolon
+statement -> tSemicolon
+statement -> tIdentifier nextTerminal
+statement -> preExpression
+
+returnState -> tReturn returnValue tSemicolon
+returnState -> epsilon 
+
+returnValue -> expression
+returnValue -> epsilon 
+
+nextTerminal -> tAssign expression tSemicolon
+nextTerminal -> expression2 tSemicolon
+
+preExpression -> const expression2 tSemicolon
+preExpression -> tLPar const expression2 tRPar tSemicolon
+		
+expression -> term expression2
+expression -> tLPar expression tRPar expression2
+                 
+expression2 -> tPlus expression
+expression2 -> tMinus expression
+expression2 -> tMul expression
+expression2 -> tDiv expression
+expression2 -> tConcat expression
+expression2 -> tLess expression
+expression2 -> tLessEq expression
+expression2 -> tMore expression
+expression2 -> tMoreEq expression
+expression2 -> tIdentical expression
+expression2 -> tNotIdentical expression
+expression2 -> epsilon 
+
+arguments -> type tIdentifier argumentVars
+arguments -> epsilon 
+
+argumentVars -> tComma type tIdentifier argumentVars
+argumentVars -> epsilon  
+                  
+parameters -> term parameters2
+parameters -> epsilon 
+
+parameters2 -> tComma term parameters2
+parameters2 -> epsilon 
+
+term -> const
+term -> tIdentifier
+           
+const -> tInt 
+const -> tReal 
+const -> tReal2 
+const -> tInt2 
+const -> tNull 
+const -> tLiteral
+
+type ->  tNullTypeInt 
+type -> tNullTypeFloat 
+type -> tNullTypeString
+type -> tTypeInt 
+type -> tTypeFloat 
+type -> tTypeString
+type -> tVoid

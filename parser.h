@@ -10,31 +10,25 @@
 
 #include <stdio.h>
 #include "token.h"
+#include "tstack.h"
+#include "symtable.h"
 
-#define SYNTAXRULES 58
-#define RULEITEMS   13
-
-char *rule[SYNTAXRULES][RULEITEMS];
-
-typedef struct parseTree{
-
-    struct parseTree *next;
-	int is_nonterminal;
-	union
-	{
-		struct {
-			tTokenType tType;
-			char *data;
-		} term;
-		struct {
-			struct parseTree *tree;
-			char *name;
-		} nonterm;
-	};
-} tParseTree;
-
-int parse(FILE *f, tParseTree **tree);
-
-void printParseTree(tParseTree* tree, int level);
+void parse();
+void parse_programs();
+void parse_program();
+void parse_statements(tSymTable* st);
+void parse_statement(tSymTable* st);
+void parse_returnValue(tStack* stack);
+void parse_nextTerminal(tSymTable* st);
+void parse_preExpression();
+void parse_expression(tStack* stack);
+void parse_expression2(tStack* stack);
+void parse_arguments(tStack* stack);
+void parse_argumentVars(tStack* stack);
+void parse_parameters(tStack* stack);
+void parse_parameters2(tStack* stack);
+void parse_term(tStack* stack);
+void parse_const(tStack* stack);
+void parse_type(tStack* stack);
 
 #endif /* parser_h */

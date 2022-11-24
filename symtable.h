@@ -1,55 +1,52 @@
-/**
- * @file symtable.h
- * @author Ondrej Koumar, xkouma02@stud.fit.vutbr.cz
- * @brief Header file of symbol table (implemented as hash table) 
- *        for our gigachar compiler of IFJCode22 imperative language.
- * @version 0.1
- * @date 2022-11-15
- */
+//
+//  lex.h
+//  IFJ-prekladac
+//
+//  Created by Ondrej Lukasek on 15.10.2022.
+//
 
 #ifndef symtable_h
 #define symtable_h
 
-#include "token.h"
 #include <stdbool.h>
 
-#define hashTableSize 1021;
-
-extern int htSize;
-
-typedef union tokenData
-{
-    char **literal;
-    int intValue;
-    float floatValue;
-} tData;
+#define ST_SIZE 509
 
 
-typedef struct tableItem 
-{
-    char *key;
-    bool isDefined;
-    tData *tokenData;
-    tTokenType tokenType;
-    tItem *nextItem;
-} tItem;
-
-typedef tItem *hashTable[]; 
+/* typedef enum {
+    DTUnknown, DTInt, DTFloat, DTString, DTNullInt, DTNullFloat, DTNullString, DTVoid
+} tDataType; */
 
 
+typedef struct FuncParam {
+    char* name; 
+    tTokenType dataType;
+    struct FuncParam* next;
+} tFuncParam;
 
-void htInit(hashTable *symTable);
+typedef struct SymTable tSymTable;
 
-unsigned int getHash(char *key);
+typedef struct SymTableItem {
+    char name[255];             // name of variable or function
+    tTokenType dataType;         // data type variable or function
+    int isDefined;              // ??? je to potreba
+    int isFunction;             // 1 (true) if name is function
+    int returned;               // function only: info if the function has correctly returned
+    struct SymTable* localST;   // function only: pointer to local symbol table for funcion
+    tFuncParam* params;         // function only : list of function paramaters
+    struct SymTableItem* next;  // hash table items with the same hash
+} tSymTableItem;
 
-tItem* searchItem(hashTable *symTable, char *key);
+struct SymTable{
+    tSymTableItem* items[ST_SIZE];
+};
 
-tData* getValue(hashTable *symTable, char *key);
+int get_hash(char *key);
+void st_init(tSymTable *table);
+tSymTableItem* st_search(tSymTable *table, char *key);
+tSymTableItem* st_insert(tSymTable *table, char *key);
+void st_delete(tSymTable*table, char *key);
+void st_delete_all(tSymTable* table);
+void st_print(tSymTable* table);
 
-void insertItem(hashTable *symTable, tData data, char *key);
-
-void deleteItem(hashTable *symTable, char *key);
-
-void htDispose(hashTable *symTable);
-
-#endif // symtable_h
+#endif /* symtable_h */

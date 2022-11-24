@@ -6,55 +6,38 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <stdarg.h>
 
+#include "support.h"
 #include "token.h"
+#include "symtable.h"
 #include "lex.h"
 #include "parser.h"
 
-tParseTree* otocParseTree(tParseTree* tree)
-{
-	tParseTree* tree2 = NULL;
-	while (tree != NULL)
-	{
-		if (tree->is_nonterminal)
-		{
-			tree->nonterm.tree = otocParseTree(tree->nonterm.tree);
-		}
-		tParseTree* tmpptr = tree->next;
-		tree->next = tree2;
-		tree2 = tree;
-
-		tree = tmpptr;
-	}
-	return tree2;
-}
-
+tSymTable st;
+FILE* inf;
 
 int main(int argc, const char * argv[]) {
-    // insert code here...
-    printf("Gigachad compiler\n");
+    dbgMsg("Gigachad compiler\n");
 
-    FILE *inf;
 
-    inf = fopen("vzor_01.php", "r");
+    if (argc > 1)
+        inf = fopen(argv[1], "r");
+    else
+        inf = stdin;
     if(inf == NULL){
-        printf("nemuzu otevrit soubor\n");
-        printf("%s\n", strerror(errno));
+        errorExit("cannot open file", CERR_INTERNAL);
     }
     else
     {
-        tParseTree *tree;
-        if(parse(inf, &tree) < 1)
-            printf("PARSING FAILED\n");
-        else
-            printf("PARSING FINISHED OK\n");
+        parse();
+        
+        dbgMsg("PARSING FINISHED OK\n");
         fclose(inf);
-        printf("Parse tree:\n");
-		tree = otocParseTree(tree);
-        printParseTree(tree, 0);
     }
 
-    return 0;
+    return CERR_OK;
 }

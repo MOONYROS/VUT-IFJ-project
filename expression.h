@@ -1,8 +1,23 @@
 //
-// Created by jonys on 22.11.2022.
+//  expression.h
+//  IFJ-prekladac
+//
+//  Created by Ondrej Lukasek on 15.10.2022.
 //
 
-#ifndef IFJCODE22_EXPRESSION_H
-#define IFJCODE22_EXPRESSION_H
+#ifndef expression_h
+#define expression_h
 
-#endif //IFJCODE22_EXPRESSION_H
+#include <stdio.h>
+#include <stdbool.h>
+#include "token.h"
+#include "tstack.h"
+#include "symtable.h"
+
+// function to evaluate expression
+// returns type of and exp expression
+// generates code to ??? tohle musime upresnit, jak budeme delat
+// in case of semantic failure calls errorExit(msg, errno)
+tTokenType evalExp(tStack* exp, tSymTable* st);
+
+#endif /* expression_h */
