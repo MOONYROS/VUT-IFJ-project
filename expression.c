@@ -70,6 +70,29 @@ int typeToIndex(tTokenType token)
     }
 }
 
+void expression(tToken token, tStack stack){
+
+    int precedence = prd_table[typeToIndex(token.type)][typeToIndex(stack.top->token.type)];
+
+    switch (precedence) {
+        case '=':;
+            // evaluating expression
+            // code generation
+            break;
+
+        case '>':;
+            // evaluating expression
+            // code generation
+            break;
+
+        case '<':;
+            // evaluating expression
+            // code generation
+            break;
+            
+    }
+}
+
 tTokenType evalExp(tStack* expStack, tSymTable* symTable)
 {
     tStackItem *top;
