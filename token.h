@@ -30,4 +30,6 @@ typedef struct{
     char* data;
 } tToken;
 
+extern tToken token;
+
 #endif /* token_h */

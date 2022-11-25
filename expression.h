@@ -10,9 +10,6 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "token.h"
-#include "tstack.h"
-#include "symtable.h"
 
 // function to evaluate expression
 // returns type of and exp expression
@@ -22,5 +19,7 @@ tTokenType evalExp(tStack* expStack, tSymTable* symTable);
 
 // Converts token type (e.g. tMul) to index of precedence table.
 int typeToIndex(tTokenType token);
+
+void expression();
 
 #endif /* expression_h */

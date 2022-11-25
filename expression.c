@@ -8,10 +8,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "expression.h"
+#include "symtable.h"
+#include "tstack.h"
 #include "support.h"
 #include "token.h"
-#include "tstack.h"
-#include "symtable.h"
 
 const char prd_table[15][15] = {
 //    *   /   +   -   .   <   >  <=  >=  === !==  (   )  id   $
@@ -70,36 +72,60 @@ int typeToIndex(tTokenType token)
     }
 }
 
-void expression(tToken token, tStack stack){
-
-    int precedence = prd_table[typeToIndex(token.type)][typeToIndex(stack.top->token.type)];
-
-    switch (precedence) {
-        case '=':;
-            // evaluating expression
-            // code generation
-            break;
-
-        case '>':;
-            // evaluating expression
-            // code generation
-            break;
-
-        case '<':;
-            // evaluating expression
-            // code generation
-            break;
-            
-    }
-}
-
-tTokenType evalExp(tStack* expStack, tSymTable* symTable)
+void expression(tStack *stack)
 {
     tStackItem *top;
     // We need these pointers to know what exactly should be reduced on the stack.
     tStackItem *second;
     tStackItem *third;
 
+    // We want always want to push on the stack when the evaluation starts
+    char precedence = '<';
+
+    do // Mozna predelame na while, zatim to neberte na 100% chlapci, popremyslim o tom
+    {
+        // There still are tokens waiting for evaluation but there is a wrong input token
+        if (!tstack_isEmpty(stack) && typeToIndex(token.type) == 14)
+            errorExit("Syntax error: expected term or operator.\n", CERR_SYNTAX);
+
+        switch (precedence) 
+        {
+            case '=':
+                // evaluating expression
+                // code generation
+                break;
+
+            case '>':
+                // evaluating expression
+                // code generation
+                break;
+
+            case '<':
+                // evaluating expression
+                tstack_push(stack, token);
+                // code generation
+                break;      
+        }
+
+        // Moving stack pointers (tried to do it safely without segfault lmao)
+        top = tstack_peek(stack);
+        if (top->next != NULL)
+        {
+            second = top->next;
+            if (second->next != NULL)
+                third = second->next;
+        }
+
+        // Loads next token and finds precedence in precedence table
+        nextToken();
+        precedence = prd_table[typeToIndex(token.type)][typeToIndex(stack->top->token.type)];
+
+        // We need both empty stack and finishing token to end this loop successfully.
+    } while (!tstack_isEmpty(stack) || typeToIndex(token.type) != 14);
+}
+
+tTokenType evalExp(tStack* expStack, tSymTable* symTable)
+{
     tToken token = { 0, NULL };
     // i kdyz je token lokalni promenna, tak jeji data jsou dymaicky alokovane
     token.data = safe_malloc(MAX_TOKEN_LEN);
