@@ -15,6 +15,7 @@
 #include "support.h"
 #include "token.h"
 
+
 const char prd_table[15][15] = {
 //    *   /   +   -   .   <   >  <=  >=  === !==  (   )  id   $
     {'>','>','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // *
@@ -113,6 +114,7 @@ tTokenType variableType(tSymTable *table, tToken *token)
     return item->dataType;
 }
 
+// ?? Zatim nevime, jestli se bude pouzivat
 bool isDefined(tSymTable *table, tToken *token)
 {
     tSymTableItem *item = st_search(table, token->data);
@@ -159,26 +161,34 @@ int typeToIndex(tTokenType token)
 
 void expression(tStack *stack, tSymTable *table)
 {
-    /*
-        Todle nebudou asi muset nutne byt ukazatele na zasobnik, mozna budou stacit nejaky promenny urcityho
-        datovyho typu - domluvit se
-    */
-    tStackItem *stackTop;
+    if (isOperator(&token) || token.type == tRPar)
+    {
+        dbgMsg("Syntax error: Cannot start expression with %s.\n", tokenName[token.type]);
+        return;
+    }
+    else if (typeToIndex(token) == 14)
+    {
+        dbgMsg("Syntax error: Empty expression.\n");
+        return;
+    }
+
     // We need these pointers to know what exactly should be reduced on the stack.
+    // All the the operators are binary - we dont need more pointers.
+    tStackItem *stackTop;
     tStackItem *second;
     tStackItem *third;
 
-    // We want always want to push on the stack when the evaluation starts
+    // Precedence of stack's top token and input token.
     char precedence;
     tstack_push(stack, token);
+
+    // Parentheses counter. Left par -> +1, right par -> -1.
+    int parCount = 0;
+
     // We need both empty stack and finishing token to end this loop successfully.
     while (!tstack_isEmpty(stack) || typeToIndex(token.type) != 14) 
     {
-        // There still are tokens waiting for evaluation but there is a wrong input token
-        if (!tstack_isEmpty(stack) && typeToIndex(token.type) == 14)
-            errorExit("Syntax error: Expected term or operator.\n", CERR_SYNTAX);
-
-
+        // Definition of the three stack pointers 
         stackTop = tstack_peek(stack);
         if (stackTop != NULL)
         {
@@ -209,46 +219,52 @@ void expression(tStack *stack, tSymTable *table)
                 // The following token after literal const or string var has to be any string operator
                 if ((isString(NULL, stackTop) || isString(table, stackTop)) && !stringOp(&token))
                 {
-                    dbgMsg("Semantic error: No string operator after string var/const.\n");
+                    dbgMsg("Semantic error: Missing string operator after string var/const.\n");
                     return;
                 }
+
                 // Stack: string const/var, string operator are on stack but there is no string const/var as input token
                 else if (second != NULL && \
                         (isString(NULL, &second->token) || isString(table, &second->token)) && \
                         (stringOp(stackTop) && !(isString(NULL, &token) || isString(table, &token))))
                 {
-                    dbgMsg("Semantic error: String var/const, string operator, next isn't string var/const.\n");
+                    dbgMsg("Semantic error: String var/const, string operator, missing string var/const.\n");
                     return;
                 }
+
                 // The following token after number var/const has to be any num operator
                 else if ((isNumber(NULL, stackTop) || isNumber(table, stackTop)) && !numberOp(&token))
                 {
-                    dbgMsg("Semnatic error: No number operator after number var/const.\n");
+                    dbgMsg("Semnatic error: Missing number operator after number var/const.\n");
                     return;
                 }
+
                 // Stack: number, number operator are on stack next token has to be number.
                 else if (second != NULL && \
                         (isNumber(NULL, &second->token) || isNumber(table, &second->token)) && \
                         (numberOp(stackTop) && !(isNumber(NULL, &token) || isNumber(table, &token))))
                 {
-                    dbgMsg("Semantic error: Number var/const, number operator, next isn't number.\n");
+                    dbgMsg("Semantic error: Number var/const, number operator, missing number.\n");
                     return;
                 }
 
+                if (token.type == tLPar)
+                    parCount++;
+                else if (token.type == tRPar)
+                {
+                    parCount--;
+                    if (parCount == -1)
+                    {
+                        dbgMsg("Syntax error: Too much right parentheses.\n");
+                        return;
+                    }
+                }
+
+                tstack_push(stack, token);
                 /*
                     Prirazeni neni (nevime volani funkci)
                     Vyhledani prommene v symtable - bude potreba prommena typu pointer na polozku v symtab
-                    Je potreba vyresit kontrolu typu - jak? Moznosti - pushovani struktury na zasobnik (novej zasobnik ci neco take)
-                                                                     - ukladani do promenne - docela prasarna 
-                    Uvolnit token a vzit novej
-                    break; asi?
                 */
-                /*
-                    Stringy - operator musi byt string_op(), dalsi operand taky string nebo var typu string
-                    Prvni token musi byt promenna nebo konstanta
-                */
-                tstack_push(stack, token);
-                // code generation
                 break;  
 
             case '>':
@@ -257,7 +273,7 @@ void expression(tStack *stack, tSymTable *table)
                 break;
 
             default:
-                dbgMsg("Syntax error: expected different token.\n");
+                dbgMsg("Syntax error: Expected different token.\n");
                 return;
         }
         nextToken();
@@ -268,7 +284,7 @@ tTokenType evalExp(tStack* expStack, tSymTable* symTable)
 {
     tToken token = { 0, NULL };
     // i kdyz je token lokalni promenna, tak jeji data jsou dymaicky alokovane
-    token.data = safe_malloc(MAX_TOKEN_LEN);
+    token.data = safe_malloc(MAX_TOKEN_LEN); //??
     tTokenType typ = tNone;
     // projdu vsechny tokeny co mam na stacku a vypisu je pres dbgMsg (printf, ale da se vypnout v support.h pres DEBUG_MSG)
     // u identifikatoru (promennych) zkontroluju jestli jsou v symbol table
