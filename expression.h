@@ -20,6 +20,7 @@ tTokenType evalExp(tStack* expStack, tSymTable* symTable);
 // Converts token type (e.g. tMul) to index of precedence table.
 int typeToIndex(tTokenType token);
 
+// Evaluates expression.
 void expression();
 
 #endif /* expression_h */
