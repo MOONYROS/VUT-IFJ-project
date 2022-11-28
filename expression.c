@@ -127,48 +127,55 @@ bool checkOpDefinition(tSymTable *table, tToken *third, tToken *top)
     return true;
 }
 
-void convertTypes(tSymTable *table, tToken *top, tToken *third)
+int convertTypes(tSymTable *table, tToken *top, tToken *third, tTokenType operation)
 {
+    bool notDiv;
+    if (operation != tDiv)
+        notDiv = true;
+    else 
+        notDiv = false;
+
     // Obe ciselne konstanty
     if (isNumber(NULL, top) && isNumber(NULL, third))
     {
+        if (notDiv) 
+        {
+            if (isReal(top) || isReal(third))
+            {
+                top->type = tReal;
+                third->type = tReal;
+                // Vygeneruj instrukci pro typovou konverzi
+            }
+        }
+        else
+        {
+            top->type = tReal;
+            top->type = tReal;
+            // Vygeneruj instrukci pro typovou konverzi
+        }
 
+        return 0;
     }
     // Prvni promenna, druha konstanta
     else if (isNumber(table, top) && isNumber(NULL, third))
     {
-
+        
+        return 1;
     }
     // Prvni konstanta, druha promenna
     else if (isNumber(NULL, top) && isNumber(table, third))
     {
 
+        return 2;
     }
     // Dve promenne
-    else if (isNumber(table, top) && isNumber(table, third))
+    else // (isNumber(table, top) && isNumber(table, third))
     {
     
+        return 3;
     }
-    // Oba retezcove literaly
-    else if (isString(NULL, top) && isString(NULL, third))
-    {
-        
-    }
-    // Jedna retezcova promenna, jeden literal
-    else if (isString(table, top) && isString(NULL, third))
-    {
 
-    }
-    // Jeden literal, jedna promenna
-    else if (isString(NULL, top) && isString(table, third))
-    {
-
-    }
-    // Zbyvaji dve retezcove promenne 
-    else
-    {
-
-        }
+    return -1;
 }
 
 int typeToIndex(tTokenType token)
@@ -407,18 +414,22 @@ void expression(tStack *expStack, tSymTable *table)
                     dbgMsg("Semantic error: Empty stack in expression while trying to reduce.\n");
                     return;
                 }
+                
+                if (!checkOpDefinition(table, &third->token, &stackTop->token))
+                {
+                    dbgMsg("Semantic error: A variable is not defined.\n");
+                    return;
+                }
 
                 dbgMsg("Redukujeme: dva operandy, first: %s, third: %s, operator (second): %s.\n", stackTop->token.data, third->token.data, tokenName[second->token.type]);
                 switch (second->token.type)
                 {
                     case tPlus:
-                        if (!checkOpDefinition(table, &third->token, &stackTop->token))
+                        if (convertTypes(table, &third->token, &stackTop->token, tPlus))
                         {
-                            dbgMsg("Semantic error: A variable is not defined.\n");
+                            dbgMsg("An error occured when trying to convert types.\n");
                             return;
                         }
-                        // Tato funkce bude generovat kod pro typovou konverzi
-                        convertTypes(table, &third->token, &stackTop->token);
                         break;
                     case tMinus:
 
