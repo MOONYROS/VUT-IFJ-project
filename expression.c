@@ -103,11 +103,72 @@ tTokenType variableType(tSymTable *table, tToken *token)
     return item->dataType;
 }
 
-// ?? Zatim nevime, jestli se bude pouzivat
 bool isDefined(tSymTable *table, tToken *token)
 {
     tSymTableItem *item = st_search(table, token->data);
     return item->isDefined;
+}
+
+bool checkOpDefinition(tSymTable *table, tToken *third, tToken *top)
+{
+    tSymTableItem *item;
+    if (isVar(top))
+    {
+        item = st_search(table, top->data);
+        if (!item->isDefined)
+            return false;
+    }
+    if (isVar(third))
+    {
+        item = st_search(table, third->data);
+        if (!item->isDefined)
+            return false;
+    }
+    return true;
+}
+
+void convertTypes(tSymTable *table, tToken *top, tToken *third)
+{
+    // Obe ciselne konstanty
+    if (isNumber(NULL, top) && isNumber(NULL, third))
+    {
+
+    }
+    // Prvni promenna, druha konstanta
+    else if (isNumber(table, top) && isNumber(NULL, third))
+    {
+
+    }
+    // Prvni konstanta, druha promenna
+    else if (isNumber(NULL, top) && isNumber(table, third))
+    {
+
+    }
+    // Dve promenne
+    else if (isNumber(table, top) && isNumber(table, third))
+    {
+    
+    }
+    // Oba retezcove literaly
+    else if (isString(NULL, top) && isString(NULL, third))
+    {
+        
+    }
+    // Jedna retezcova promenna, jeden literal
+    else if (isString(table, top) && isString(NULL, third))
+    {
+
+    }
+    // Jeden literal, jedna promenna
+    else if (isString(NULL, top) && isString(table, third))
+    {
+
+    }
+    // Zbyvaji dve retezcove promenne 
+    else
+    {
+
+        }
 }
 
 int typeToIndex(tTokenType token)
@@ -328,7 +389,7 @@ void expression(tStack *expStack, tSymTable *table)
                     jak to bude fungovat:
 
                     Kdyz se dostaneme sem do redukce, tak nas uz nezajima, co to je za operator a jake ma operandy,
-                    protoze syntakticke chyby se sem nedostanou a semanticke uz mame (snad) vyresene u toho pushovani.
+                    protoze syntakticke chyby se sem nedostanou a nektere semanticke uz mame (snad) vyresene u toho pushovani.
                     Potrebujem teda de facto vzit ty dva operandy a operator, provest semantickou akci, pripadne nejake
                     typove konverze, popnout dva operandy a operator a vysledek pushnout zpatky na zasobnik (evalStack). 
                     Pokud jsou obe promenne, tak provedu operaci a vysledek ulozim do tabulky symbolu (prvniho operandu),
@@ -340,86 +401,24 @@ void expression(tStack *expStack, tSymTable *table)
                     Otazkou je, jestli se s TS bude vubec pracovat a jestli nemame rovnou generovat instrukce.
                     Sorry chlapi, moc jsem toho nestih, vecer po zapase na to jeste kouknu.
                 */
+
                 if (tstack_isEmpty(evalStack))
                 {
                     dbgMsg("Semantic error: Empty stack in expression while trying to reduce.\n");
                     return;
                 }
 
-                // Typove konverze muzeme udelat rovnou, pokud nejsou definovane, tak to hodi rovnou error.
-                // Rikal jsem si, ze by se rovnou mohly generovat instrukce pro typovou konverzi?
-
-                // Obe ciselne konstanty
-                if (isNumber(NULL, &stackTop->token) && isNumber(NULL, &third->token))
-                {
-
-                }
-                // Prvni promenna, druha konstanta
-                else if (isNumber(table, &stackTop->token) && isNumber(NULL, &third->token))
-                {
-                    if (!isDefined(table, &third->token))
-                    {
-                        dbgMsg("Uninitialized number variable.\n");
-                        return;
-                    }
-                }
-                // Prvni konstanta, druha promenna
-                else if (isNumber(NULL, &stackTop->token) && isNumber(table, &third->token))
-                {
-                    if (!isDefined(table, &third->token))
-                    {
-                        dbgMsg("Uninitialized number variable.\n");
-                        return;
-                    }
-                }
-                // Dve promenne
-                else if (isNumber(table, &stackTop->token) && isNumber(table, &third->token))
-                {
-                    if (!isDefined(table, &third->token) || !isDefined(table, &stackTop->token))
-                    {
-                        dbgMsg("Uninitialized number variable.\n");
-                        return;
-                    }
-                }
-                // Oba retezcove literaly
-                else if (isString(NULL, &stackTop->token) && isString(NULL, &third->token))
-                {
-                    
-                }
-                // Jedna retezcova promenna, jeden literal
-                else if (isString(table, &stackTop->token) && isString(NULL, &third->token))
-                {
-                    if (!isDefined(table, &stackTop->token))
-                    {
-                        dbgMsg("Uninitialized string variable.\n");
-                        return;
-                    }
-                }
-                // Jeden literal, jedna promenna
-                else if (isString(NULL, &stackTop->token) && isString(table, &third->token))
-                {
-                    if (!isDefined(table, &third->token))
-                    {
-                        dbgMsg("Uninitialized string variable.\n");
-                        return;
-                    }
-                }
-                // Zbyvaji dve retezcove promenne 
-                else
-                {
-                    if (!isDefined(table, &third->token) || !isDefined(table, &stackTop->token))
-                    {
-                        dbgMsg("Uninitialized string variable.\n");
-                        return;
-                    }
-                }
-
-
                 dbgMsg("Redukujeme: dva operandy, first: %s, third: %s, operator (second): %s.\n", stackTop->token.data, third->token.data, tokenName[second->token.type]);
                 switch (second->token.type)
                 {
                     case tPlus:
-
+                        if (!checkOpDefinition(table, &third->token, &stackTop->token))
+                        {
+                            dbgMsg("Semantic error: A variable is not defined.\n");
+                            return;
+                        }
+                        // Tato funkce bude generovat kod pro typovou konverzi
+                        convertTypes(table, &third->token, &stackTop->token);
                         break;
                     case tMinus:
 
