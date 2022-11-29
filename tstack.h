@@ -36,5 +36,6 @@ bool tstack_isFull(tStack* stack);
 int tstack_count(tStack* stack);
 tToken* tstack_peek(tStack* stack);
 void tstack_print(tStack* stack);
+void tstack_insertAfter(tStack *stack, tStackItem *active, tToken inserted);
 
 #endif // tstack_h

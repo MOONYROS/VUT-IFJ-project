@@ -7,18 +7,14 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "parser.h"
 #include "support.h"
 #include "token.h"
 #include "lex.h"
-#include "parser.h"
 #include "tstack.h"
 #include "symtable.h"
 #include "expression.h"
 
-extern char* tokenName[tMaxToken];
-extern tToken token;
-extern FILE* inf;
-extern int srcLine;
 int level = 0;
 tSymTable gst;
 tToken assignId;

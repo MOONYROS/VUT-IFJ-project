@@ -115,12 +115,12 @@ bool tstack_pop(tStack* stack, tToken *token)
                 strcpy(token->data, toDelete->token.data);
                 free(toDelete->token.data);
             }
-            
             stack->top = toDelete->next;
             free(toDelete);
         }
         else
             return false;
+
         if (stack->top == NULL)
             stack->last = NULL;
         return true;
@@ -182,5 +182,21 @@ void tstack_print(tStack* stack)
             item = item->next;
         }
         dbgMsg("\n");
+    }
+}
+
+// Stack hodne na steroidech
+void tstack_insertAfter(tStack *stack, tStackItem *active, tToken inserted)
+{
+    if (stack != NULL)
+    {
+        tStackItem *tmp = stack->top;
+        while (tmp != active)
+            tmp = tmp->next;
+        tStackItem *newItem = safe_malloc(sizeof(tStackItem));
+        newItem->token = inserted;
+        // can be null
+        newItem->next = tmp->next;
+        tmp->next = newItem;
     }
 }

@@ -9,9 +9,12 @@
 #define parser_h
 
 #include <stdio.h>
-#include "token.h"
-#include "tstack.h"
-#include "symtable.h"
+
+int readTokenPRINT(FILE *f, tToken token);
+tTokenType strToToken(const char *tokenStr);
+void prl(char *str);
+void nextToken();
+void matchTokenAndNext(tTokenType tokType);
 
 void parse();
 void parse_programs();
@@ -30,5 +33,9 @@ void parse_parameters2(tStack* stack);
 void parse_term(tStack* stack);
 void parse_const(tStack* stack);
 void parse_type(tStack* stack);
+
+extern char* tokenName[tMaxToken];
+extern int srcLine;
+extern FILE* inf;
 
 #endif /* parser_h */
