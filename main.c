@@ -17,7 +17,6 @@
 #include "lex.h"
 #include "parser.h"
 
-tSymTable st;
 FILE* inf;
 
 int main(int argc, const char * argv[]) {
@@ -35,7 +34,7 @@ int main(int argc, const char * argv[]) {
     {
         parse();
         
-        dbgMsg("PARSING FINISHED OK\n");
+        //dbgMsg("PARSING FINISHED OK\n");
         fclose(inf);
     }
 

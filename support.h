@@ -24,6 +24,7 @@
 #define CERR_INTERNAL   99
 
 void *safe_malloc(size_t size);
+void safe_free(void* ptr);
 void errorExit(char* msg, int errCode);
 int dbgMsg(const char* fmt, ...);
 

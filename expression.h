@@ -18,9 +18,7 @@
 // returns type of and exp expression
 // generates code to ??? tohle musime upresnit, jak budeme delat
 // in case of semantic failure calls errorExit(msg, errno)
-tTokenType evalExp(tStack* expStack, tSymTable* symTable);
-
-// Converts token type (e.g. tMul) to index of precedence table.
-int typeToIndex(tTokenType token);
+tTokenType evalExp(tStack* exp, tSymTable* st);
+tTokenType const2type(tTokenType ctype);
 
 #endif /* expression_h */

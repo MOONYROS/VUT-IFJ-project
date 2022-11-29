@@ -61,19 +61,22 @@ unsigned int crc32(const unsigned char* buf, size_t len)
     return ~crc;
 }
 
-int get_hash(char *key) {
+int get_hash(char *key) 
+{
   return (crc32((const unsigned char *)key, strlen(key)) % ST_SIZE);
 }
 
-void st_init(tSymTable *table) {
+void st_init(tSymTable *table) 
+{
     for(int i = 0; i < ST_SIZE; i++)
         table->items[i] = NULL;
 }
 
-tSymTableItem *st_search(tSymTable *table, char *key) {
-    if(table == NULL)
+tSymTableItem *st_search(tSymTable *table, char *key)
+{
+    if (table == NULL)
         return NULL;
-    
+
     int index = get_hash(key);
     tSymTableItem *tmpItem = table->items[index];
 
@@ -89,9 +92,12 @@ tSymTableItem *st_search(tSymTable *table, char *key) {
 
 tSymTableItem* st_insert(tSymTable* table, char* key)
 {
+    if (table == NULL)
+        return NULL;
+
     tSymTableItem *foundItem = st_search(table, key);
     if (foundItem != NULL)
-        return NULL;
+        return NULL; // cannot insert, symbol alreard in symbol table
     else
     {
         int index = get_hash(key);
@@ -101,9 +107,9 @@ tSymTableItem* st_insert(tSymTable* table, char* key)
             return NULL;
         strcpy(newItem->name, key);
         newItem->dataType = tNone;
-        newItem->isDefined = 0;
         newItem->isFunction = 0;
-        newItem->returned = 0;
+        newItem->isDefined = 0;
+        newItem->hasReturn = 0;
         newItem->localST = NULL;
         newItem->params = NULL;
         if (tmpItem == NULL)
@@ -120,12 +126,110 @@ tSymTableItem* st_insert(tSymTable* table, char* key)
     }
 }
 
+tSymTableItem* st_insert_function(tSymTable* table, char* key, tTokenType type)
+{
+    if (table == NULL)
+        return NULL;
+
+    tSymTableItem* sti = st_insert(table, key);
+    if (sti == NULL)
+        return NULL;
+    else
+    {
+        sti->dataType = type;
+        sti->isFunction = 1;
+    }
+    sti->localST = safe_malloc(sizeof(tSymTable));
+    st_init(sti->localST);
+    return sti;
+}
+
+tSymTableItem* st_add_params(tSymTable* table, char* key, tTokenType type, char* name)
+{
+    if (table == NULL)
+        return NULL;
+
+    tSymTableItem* fce = st_search(table, key);
+    if (fce == NULL)
+        return NULL;
+
+    tFuncParam* funcPar = safe_malloc(sizeof(tFuncParam));
+    if (funcPar == NULL)
+        return NULL; // jen kvuli IntelliSense, safe_malloc nikdy NULL nevrati
+    funcPar->dataType = type;
+    funcPar->name = safe_malloc(strlen(name) + 1);
+    strcpy(funcPar->name, name);
+    funcPar->next = NULL;
+
+    if (fce->params == NULL)
+    {
+        fce->params = funcPar;
+    }
+    else
+    {
+        tFuncParam* last = fce->params;
+        while (last->next != NULL)
+            last = last->next;
+        last->next = funcPar;
+    }
+
+    // add parameter as local variable to function's symbol table
+    tSymTableItem* sti = st_searchinsert(fce->localST, funcPar->name);
+    if (sti == NULL)
+    {
+        errorExit("cannot insert or find parameter to function local symbol table", CERR_INTERNAL);
+        return NULL; // prevent C6011
+    }
+    sti->dataType = funcPar->dataType;
+
+    return fce;
+}
+
+tSymTableItem* st_searchinsert(tSymTable* table, char* key)
+{
+    if (table == NULL)
+        return NULL;
+
+    tSymTableItem* foundItem = st_search(table, key);
+    if (foundItem != NULL)
+        return foundItem;
+    return st_insert(table, key);
+
+}
+
+int st_nr_func_params(tSymTable* table, char* key)
+{
+    tSymTableItem* sti = st_search(table, key);
+    int cnt = 0;
+    if (sti != NULL)
+    {
+        tFuncParam* param = sti->params;
+        while (param != NULL)
+        {
+            cnt++;
+            param = param->next;
+        }
+    }
+    return cnt;
+}
+
+tTokenType st_get_type(tSymTable* table, char* key)
+{
+    tSymTableItem* sti = st_search(table, key);
+    if (sti != NULL)
+        return sti->dataType;
+    else
+        return tNone;
+}
+
 void st_delete_params(tFuncParam **paramToDelete)
 {
     tFuncParam* param = *paramToDelete;
     while (param != NULL)
     {
         tFuncParam* tmpParam = param->next;
+        if(param->name!=NULL)
+            free(param->name);
         free(param);
         param = tmpParam;
     }
@@ -182,6 +286,7 @@ void st_delete_all(tSymTable *table) {
             toDelete = table->items[i];
             st_delete_params(&(toDelete->params));
             st_delete_all(toDelete->localST); // smazat lokalni tabulku symbolu, pokud existuje
+            free(toDelete->localST);
             free(table->items[i]);
             table->items[i] = NULL;
         }
@@ -191,27 +296,44 @@ void st_delete_all(tSymTable *table) {
 
 void st_print(tSymTable* table)
 {
+    if (table == NULL)
+        return;
+
     tSymTableItem* item;
     for (int i = 0; i < ST_SIZE; i++)
     {
         item = table->items[i];
         if (item != NULL)
         {
-            dbgMsg("[%d] = %s", i, item->name);
+            dbgMsg("[%3d] ", i);
             if(item->isFunction)
             {
-                dbgMsg("(");
+                dbgMsg("%s (", item->name);
                 tFuncParam* fp = item->params;
                 while (fp != NULL)
                 {
+                    dbgMsg(" %s", tokenName[fp->dataType]);
                     dbgMsg(" %s", fp->name);
                     fp = fp->next;
                 }
                 dbgMsg(" ) : %s", tokenName[item->dataType]);
+                if (item->localST != NULL)
+                {
+                    dbgMsg(" --> localST:");
+                    tSymTableItem* litem;
+                    for (int j = 0; j < ST_SIZE; j++)
+                    {
+                        litem = item->localST->items[j];
+                        if (litem != NULL)
+                        {
+                            dbgMsg(" %s", litem->name);
+                        }
+                    }
+                }
             }
             else
             {
-                dbgMsg("  : %s", tokenName[item->dataType]);
+                dbgMsg("$%s : %s", item->name, tokenName[item->dataType]);
             }
             while (item->next != NULL)
             {
@@ -221,5 +343,4 @@ void st_print(tSymTable* table)
             dbgMsg("\n");
         }
     }
-
 }

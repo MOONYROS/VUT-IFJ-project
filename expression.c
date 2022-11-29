@@ -1,4 +1,4 @@
-// 
+//
 //  expression.c
 //  IFJ-prekladac
 //
@@ -8,142 +8,177 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "support.h"
 #include "token.h"
 #include "tstack.h"
 #include "symtable.h"
+#include "generator.h"
 
-const char prd_table[15][15] = {
-//    *   /   +   -   .   <   >  <=  >=  === !==  (   )  id   $
-    {'>','>','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // *
-    {'>','>','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // /   
-    {'<','<','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // +
-    {'<','<','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // -
-    {'<','<','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // .
-    {'<','<','<','<','<','>','>','>','>','>','>','<','>','<','>'},  // <
-    {'<','<','<','<','<','>','>','>','>','>','>','<','>','<','>'},  // >
-    {'<','<','<','<','<','>','>','>','>','>','>','<','>','<','>'},  // <=
-    {'<','<','<','<','<','>','>','>','>','>','>','<','>','<','>'},  // >=
-    {'<','<','<','<','<','<','<','<','<','>','>','<','>','<','>'},  // ===
-    {'<','<','<','<','<','<','<','<','<','>','>','<','>','<','>'},  // !==
-    {'<','<','<','<','<','<','<','<','<','<','<','<','=','<','x'},  // (
-    {'>','>','>','>','>','>','>','>','>','>','>','x','>','x','>'},  // )
-    {'>','>','>','>','>','>','>','>','>','>','>','x','>','x','>'},  // id
-    {'<','<','<','<','<','<','<','<','<','<','<','<','x','<','x'}   // $
-};
+extern int prgPass;
+extern const char tmpExpResultName[];
 
-int typeToIndex(tTokenType token)
+tTokenType const2type(tTokenType ctype)
 {
-    switch (token)
+    tTokenType typ = tNone;
+    switch (ctype)
     {
-        case tMul:
-            return 0;
-        case tDiv:
-            return 1;
-        case tPlus:
-            return 2;
-        case tMinus:
-            return 3;
-        case tConcat:
-            return 4;
-        case tLess:
-            return 5;
-        case tMore:
-            return 6;
-        case tLessEq:
-            return 7;
-        case tMoreEq:
-            return 8;
-        case tIdentical:
-            return 9;
-        case tNotIdentical:
-            return 10;
-        case tLPar:
-            return 11;
-        case tRPar:
-            return 12;
-        case tIdentifier:
-            return 13;
-        default:
-            // Any other token is considered finishing character.
-            return 14;
+    case tInt:
+        typ = tTypeInt;
+        break;
+    case tInt2:
+        typ = tTypeInt;
+        break;
+    case tReal:
+        typ = tTypeFloat;
+        break;
+    case tReal2:
+        typ = tTypeFloat;
+        break;
+    case tLiteral:
+        typ = tTypeString;
+        break;
+    default:
+        typ = ctype;
+        break;
     }
+    return typ;
 }
 
-tTokenType evalExp(tStack* expStack, tSymTable* symTable)
+tTokenType evalExp(tStack* exp, tSymTable* st)
 {
-    tStackItem *top;
-    // We need these pointers to know what exactly should be reduced on the stack.
-    tStackItem *second;
-    tStackItem *third;
-
-    tToken token = { 0, NULL };
+    tToken token = { 0, 0 };
     // i kdyz je token lokalni promenna, tak jeji data jsou dymaicky alokovane
     token.data = safe_malloc(MAX_TOKEN_LEN);
     tTokenType typ = tNone;
+    char code[MAX_IFJC_LEN];
+    char tmpStr[MAX_IFJC_LEN];
+
+    addCode("# expression START");
+    addCode("CREATEFRAME");
+    addCode("DEFVAR TF@%s", tmpExpResultName);
+
     // projdu vsechny tokeny co mam na stacku a vypisu je pres dbgMsg (printf, ale da se vypnout v support.h pres DEBUG_MSG)
     // u identifikatoru (promennych) zkontroluju jestli jsou v symbol table
     // prvni rozumny datovy typ si vratim jako datovy typ celeho vyrazu
     // jinak to nic uziteneho nedela ;-)
-    while (!tstack_isEmpty(expStack))
-    {
-        tstack_pop(expStack, &token);
 
-        if(token.type==tIdentifier)
+    sprintf(code, "MOVE TF@%s ", tmpExpResultName); // pripravim si naplneni docasne promenne prvnim tokenem, ktery by nemel byt operace
+
+    while (!tstack_isEmpty(exp))
+    {
+        tstack_pop(exp, &token);
+
+        switch (token.type)
         {
-            tSymTableItem* sti = st_search(symTable, token.data);
-            if (sti != NULL)
+        case tIdentifier:
+            {
+                tSymTableItem* sti = st_search(st, token.data);
+                if (sti != NULL)
+                {
+                    dbgMsg("%s", token.data);
+                    // navratovy typ vyrazu nastvim podle prvni promenne, ktera mi prijde pod ruku ;-)
+                    if (typ == tNone)
+                        typ = sti->dataType;
+                    else
+                    { // a pokud uz typ mame a prisla promenna, ktera je jineho typu, tak prozatim semanticka chybe, nez poradne dodelame evalExp()
+                        if (typ != sti->dataType)
+                            errorExit("expression with different variable data types", CERR_SEM_TYPE); // tady to vypise chybu exitne program uplne
+                    }
+                    sprintf(tmpStr, "LF@%s", token.data);
+                    strcat(code, tmpStr);
+                    addCode(code);
+                    code[0] = '\0';
+                }
+                else
+                {
+                    char errMsg[200];
+                    sprintf(errMsg, "variable '%s' not defined before use", token.data);
+                    errorExit(errMsg, CERR_SEM_UNDEF); // tady to vypise chybu exitne program uplne
+                }
+            }
+            break;
+        case tInt:
+        case tInt2:
             {
                 dbgMsg("%s", token.data);
-                // navratovy typ vyrazu nastvim podle prvni promenne, ktera mi prijde pod ruku ;-)
+                int tmpi;
+                if (sscanf(token.data, "%d", &tmpi) != 1)
+                    errorExit("wrong integer constant", CERR_INTERNAL);
+                strcat(code, ifjCodeInt(tmpStr, tmpi));
+                addCode(code);
+                code[0] = '\0';
                 if (typ == tNone)
-                    typ = sti->dataType;
-                else
-                { // a pokud uz typ mame a prisla promenna, ktera je jineho typu, tak prozatim semanticka chybe, nez poradne dodelame evalExpStack()
-                    if(typ != sti->dataType)
-                        errorExit("expression with different variable data types", CERR_SEM_TYPE); // tady to vypise chybu exitne program uplne
-                }
-            }
-            else
+                    // konstanty prevest na typ nebo primo typ
+                    typ = const2type(token.type);
+            } 
+            break;
+        case tReal:
+        case tReal2:
             {
-                char errMsg[200];
-                sprintf(errMsg, "variable '%s' not defined before use", token.data);
-                errorExit(errMsg, CERR_SEM_UNDEF); // tady to vypise chybu exitne program uplne
-            }
-        }
-        else
-        {
-            dbgMsg("%s", token.data);
-            // nasledujici if krmici typ je jen dummy, aby mi to neco delalo, vyhodnoceni vyrazu to pak musi vratit samozrejme spravne
-            // navratovy typ nastvim podle prvniho konstany se smysluplnym typem, ktery mi prijde pod ruku ;-)
-            if ((typ == tNone) && ((token.type >= tInt) && (token.type <= tLiteral)))
-            {
-                // konstanty prevest na typ nebo primo typ
-                switch (token.type)
-                {
-                case tInt:
-                    typ = tTypeInt;
-                    break;
-                case tInt2:
-                    typ = tTypeInt;
-                    break;
-                case tReal:
-                    typ = tTypeFloat;
-                    break;
-                case tReal2:
-                    typ = tTypeFloat;
-                    break;
-                case tLiteral:
-                    typ = tTypeString;
-                    break;
-                default:
-                    typ = token.type;
-                    break;
-                }
-            }
-        }
+                double tmpd;
+                if (sscanf(token.data, "%lf", &tmpd) != 1)
+                    errorExit("wrong integer constant", CERR_INTERNAL);
+                strcat(code, ifjCodeReal(tmpStr, tmpd));
+                addCode(code);
+                code[0] = '\0';
+                if (typ == tNone)
+                    // konstanty prevest na typ nebo primo typ
+                    typ = const2type(token.type);
 
+            } 
+            break;
+        case tLiteral:
+            {
+                strcat(code, ifjCodeStr(tmpStr, token.data));
+                addCode(code);
+                code[0] = '\0';
+                // nasledujici if krmici typ je jen dummy, aby mi to neco delalo, vyhodnoceni vyrazu to pak musi vratit samozrejme spravne
+                // delaji to i predhozi case tInt a TReal...
+                // navratovy typ nastvim podle prvniho konstany se smysluplnym typem, ktery mi prijde pod ruku ;-)
+                if (typ == tNone)
+                    // konstanty prevest na typ nebo primo typ
+                    typ = const2type(token.type);
+            }
+            break;
+        case tPlus:
+            {
+                sprintf(tmpStr, "ADD TF@%s TF@%s ", tmpExpResultName, tmpExpResultName);
+                strcpy(code, tmpStr);
+            }
+            break;
+        case tMinus:
+            {
+                sprintf(tmpStr, "SUB TF@%s TF@%s ", tmpExpResultName, tmpExpResultName);
+                strcpy(code, tmpStr);
+            }
+            break;
+        case tMul:
+            {
+                sprintf(tmpStr, "MUL TF@%s TF@%s ", tmpExpResultName, tmpExpResultName);
+                strcpy(code, tmpStr);
+            }
+            break;
+        case tDiv:
+            {
+                sprintf(tmpStr, "DIV TF@%s TF@%s ", tmpExpResultName, tmpExpResultName);
+                strcpy(code, tmpStr);
+            }
+            break;
+        case tConcat:
+            {
+                sprintf(tmpStr, "CONCAT TF@%s TF@%s ", tmpExpResultName, tmpExpResultName);
+                strcpy(code, tmpStr);
+            }
+            break;
+        default:
+            errorExit("unknown token in expression", CERR_SYNTAX); // tohle by se nemelo stat, pokud to projde syntaktickou analyzou, ale pro sichr
+            break;
+        }
     }
+    if (strlen(code) != 0)
+        errorExit("partial instruction in expression evaluation exit", CERR_INTERNAL); // this should not happe if everything properly parsed
+    addCode("# expression END");
     free(token.data);
     return typ;
 }
