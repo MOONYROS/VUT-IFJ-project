@@ -10,13 +10,10 @@
 #include <string.h>
 
 #include "expression.h"
-#include "symtable.h"
-#include "tstack.h"
 #include "support.h"
-#include "token.h"
+#include "generator.h"
 
-
-const char prd_table[15][15] = {
+char prdTable[15][15] = {
 //    *   /   +   -   .   <   >  <=  >=  === !==  (   )  id   $
     {'>','>','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // *
     {'>','>','>','>','>','>','>','>','>','>','>','<','>','<','>'},  // /   
@@ -41,17 +38,17 @@ bool isOperator(tToken *token)
         token->type == tLessEq || token->type == tMoreEq || token->type == tIdentical || token->type == tNotIdentical || token->type == tConcat);
 }
 
-bool numberOp(tToken *token)
+bool isNumberOp(tToken *token)
 {
     return (token->type == tMul || token->type == tDiv || token->type == tPlus || token->type == tMinus);
 }
 
-bool relationalOp(tToken *token)
+bool isRelationalOp(tToken *token)
 {
     return (token->type == tLess || token->type == tMore || token->type == tLessEq || token->type == tMoreEq || token->type == tIdentical || token->type == tNotIdentical);
 }
 
-bool stringOp(tToken *token)
+bool isStringOp(tToken *token)
 {
     return (token->type == tIdentical || token->type == tNotIdentical || token->type == tConcat);
 }
@@ -68,33 +65,51 @@ bool isVar(tToken *token)
 
 bool isNumber(tSymTable *table, tToken *token)
 {
-    // If theres table as param, then we're searching for variable
-    if (table != NULL)
+    if (isVar(token))
     {
-        if (variableType(table, token) == tTypeInt || variableType(table, token) == tTypeFloat || \
-            variableType(table, token) == tNullTypeInt || variableType(table, token) == tNullTypeFloat)
-            return true;
+        if (!isDefined(table, token))
+        {
+            dbgMsg("Semantic error: Undefined variable.\n");
+            return false;
+        }
+
+        return (variableType(table, token) == tTypeInt || variableType(table, token) == tTypeFloat || \
+            variableType(table, token) == tNullTypeInt || variableType(table, token) == tNullTypeFloat);
     }
-    // If not, just check if current token is number
-    else if (token->type == tInt || token->type == tInt2 || token->type == tReal || token->type == tReal2)
-        return true;
-    
-    return false;    
+    else 
+        return (token->type == tInt || token->type == tInt2 || token->type == tReal || token->type == tReal2);
 }
 
 bool isString(tSymTable *table, tToken *token)
 {   
-    // If theres table as param, then we're searching for variable
-    if (table != NULL)
+    if (isVar(token))
     {
-        if (variableType(table, token) == tTypeString || variableType(table, token) == tNullTypeString)
-            return true;
-    }
-    // If not, just check if current token is string literal
-    else if (token->type == tLiteral)
-        return true;
+        if (!isDefined(table, token))
+        {
+            dbgMsg("Semantic error: Undefined variable.\n");
+            return false;
+        }
 
-    return false;
+        return (variableType(table, token) == tTypeString || variableType(table, token) == tNullTypeString);
+    }
+    else 
+        return token->type == tLiteral;
+}
+
+bool isReal(tSymTable *table, tToken *token)
+{
+    if (isVar(token))
+        return (variableType(table, token) == tTypeFloat || variableType(table, token) == tNullTypeFloat);
+    else 
+        return (token->type == tReal || token->type == tReal2);
+}
+
+bool isInt(tSymTable *table, tToken *token)
+{
+    if (isVar(token))
+        return (variableType(table, token) == tTypeInt || variableType(table, token) == tNullTypeInt);
+    else 
+        return (token->type == tInt || token->type == tInt2);
 }
 
 tTokenType variableType(tSymTable *table, tToken *token)
@@ -109,6 +124,7 @@ bool isDefined(tSymTable *table, tToken *token)
     return item->isDefined;
 }
 
+// This should be a redundant function thanks to isNumber and isString.
 bool checkOpDefinition(tSymTable *table, tToken *third, tToken *top)
 {
     tSymTableItem *item;
@@ -127,55 +143,95 @@ bool checkOpDefinition(tSymTable *table, tToken *third, tToken *top)
     return true;
 }
 
-int convertTypes(tSymTable *table, tToken *top, tToken *third, tTokenType operation)
+bool isNull(tSymTable *table, tToken *token)
 {
-    bool notDiv;
-    if (operation != tDiv)
-        notDiv = true;
-    else 
-        notDiv = false;
+    tSymTableItem *item = st_search(table, token->data);
+    return item->dataType == tNull;
+}
 
-    // Obe ciselne konstanty
-    if (isNumber(NULL, top) && isNumber(NULL, third))
+tTokenType getResultType(tSymTable *table, tToken *top, tToken *third, tTokenType operation)
+{
+    switch (operation)
     {
-        if (notDiv) 
-        {
-            if (isReal(top) || isReal(third))
+        case tPlus:
+        case tMinus:
+        case tMul:
+        case tDiv:
+            if (isNull(table, top) || isNull(table, third))
             {
-                top->type = tReal;
-                third->type = tReal;
-                // Vygeneruj instrukci pro typovou konverzi
+                dbgMsg("Semantic error: At least one of the operands is NULL.\n");
+                return tNone;
+            }   
+
+            if (isReal(table, top) && isReal(table, third))
+                return tReal;
+            else if (isInt(table, top) && isInt(table, third))
+                return tInt;
+            else 
+            {
+                dbgMsg("Semantic error: Operands have to be the same type when performing %s.\n", tokenName[operation]);
+                return tNone;
+            }
+
+        case tConcat:
+            return tLiteral;
+
+        case tLess:
+        case tLessEq:
+        case tMore:
+        case tMoreEq:
+        case tIdentical:
+        case tNotIdentical:
+
+            return tInt;
+
+        default:
+            // Semka bysme se asi nemeli nikdy dostat.
+            return tNone;
+    }
+}
+
+void rearrangeStack(tStack *stack)
+{
+    tStackItem *tmp = stack->top;
+
+    tToken zero = {tInt, NULL};
+    zero.data = safe_malloc(sizeof("0"));
+    zero.data = "0";
+    tToken leftPar = {tLPar, NULL};
+    leftPar.data = safe_malloc(sizeof("("));
+    leftPar.data = "(";
+    tToken rightPar = {tRPar, NULL};
+    rightPar.data = safe_malloc(sizeof(")"));
+    rightPar.data = ")";
+
+    if (stack->top->token.type == tMinus)
+    {
+        tstack_push(stack, zero);
+        tstack_push(stack, leftPar);
+        tmp = tmp->next;
+        tstack_insertAfter(stack, tmp, rightPar);
+    }
+
+    tStackItem *operator;
+    while (tmp != NULL)
+    {
+        if (isNumberOp(&tmp->token) || tmp->token.type == tLPar)
+        {
+            operator = tmp;
+            tmp = tmp->next;
+            if (tmp->token.type == tMinus)
+            {
+                tstack_insertAfter(stack, operator, leftPar);
+                operator = operator->next;
+                tstack_insertAfter(stack, operator, zero);
+                for (int i = 0; i < 3; i++)
+                    operator = operator->next;
+                tstack_insertAfter(stack, operator, rightPar);
             }
         }
-        else
-        {
-            top->type = tReal;
-            top->type = tReal;
-            // Vygeneruj instrukci pro typovou konverzi
-        }
-
-        return 0;
+        tmp = tmp->next;
     }
-    // Prvni promenna, druha konstanta
-    else if (isNumber(table, top) && isNumber(NULL, third))
-    {
-        
-        return 1;
-    }
-    // Prvni konstanta, druha promenna
-    else if (isNumber(NULL, top) && isNumber(table, third))
-    {
-
-        return 2;
-    }
-    // Dve promenne
-    else // (isNumber(table, top) && isNumber(table, third))
-    {
-    
-        return 3;
-    }
-
-    return -1;
 }
 
 int typeToIndex(tTokenType token)
@@ -249,34 +305,46 @@ static int oper_prio(tToken token)
 }
 */
 
-void expression(tStack *expStack, tSymTable *table)
+tTokenType expression(tStack *expStack, tSymTable *table)
 {
     tStack *evalStack;
     tstack_init(evalStack);
 
     // We need these pointers to know what exactly should be reduced on the evaluation stack.
     // All the the operators are binary - we dont need more pointers.
+    tToken *topToken;
     tStackItem *stackTop;
     tStackItem *second;
     tStackItem *third;
-    // Pseudo nonterminals
-    tStackItem intExpression;
-    tStackItem floatExpression;
-    tStackItem stringExpression;
+    // Pseudo nonterminal
+    tToken *nonTerminal;
 
     // Precedence of evaluation stack's top token and input token.
     char precedence;
+    
+    // For knowledge of final type of result that is being returned to
+    tTokenType resultType;
 
-    tToken inputToken; 
+    tToken inputToken = {0, NULL}; 
+    inputToken.data = safe_malloc(MAX_TOKEN_LEN);
     tstack_pop(expStack, &inputToken);
     tstack_push(evalStack, inputToken);
 
+    // TODO: Preskladat vstupni stack tak, aby byl mozno pracovat s unarnim -
+
+    rearrangeStack(expStack);
+
+    addCode("#EXPRESSION START\n");
+    addCode("CREATEFRAME");
+    addCode("DEFVAR TF@%s", expResultName);
+
     // We need both empty stack and finishing token to end this loop successfully.
-    while (!tstack_isEmpty(evalStack) || typeToIndex(inputToken.type) != 14) 
+    while (!tstack_isEmpty(evalStack)) 
     {
         
         // Definition of the three stack pointers 
-        stackTop = tstack_peek(evalStack);
+        topToken = tstack_peek(evalStack);
+        stackTop->token = *topToken;
         if (stackTop != NULL)
         {
             if (stackTop->next != NULL)
@@ -304,7 +372,7 @@ void expression(tStack *expStack, tSymTable *table)
         */
         
         // We have var/const on top of stack
-        if (isVar(stackTop) || isConst(stackTop))
+        if (isVar(&stackTop->token) || isConst(&stackTop->token))
             // shifting when stack second is left par
 
             /*
@@ -338,11 +406,10 @@ void expression(tStack *expStack, tSymTable *table)
             }
             */
             // Semantika je stejna jako kod nahore, klidne mrkni do tabulky a over si to
-            precedence = prd_table[typeToIndex(second->token.type)][typeToIndex(inputToken.type)];
+            precedence = prdTable[typeToIndex(second->token.type)][typeToIndex(inputToken.type)];
         else
             // Toto je spravne, pokud top je lpar, operator nebo rpar, musime za kazdou cenu dale pushnout
             precedence = '<';
-
 
         switch (precedence) 
         {
@@ -352,44 +419,40 @@ void expression(tStack *expStack, tSymTable *table)
             case '<':
                 // evaluating expression
                 // The following token after literal const or string var has to be any string operator
-                if ((isString(NULL, stackTop) || isString(table, stackTop)) && !stringOp(&inputToken))
+                if ((isString(NULL, &stackTop->token) || isString(table, &stackTop->token)) && !isStringOp(&inputToken))
                 {
                     dbgMsg("Semantic error: Missing string operator after string var/const.\n");
-                    return;
+                    return tNone;
                 }
 
                 // Stack: string const/var, string operator are on stack but there is no string const/var as input token
                 else if (second != NULL && \
                         (isString(NULL, &second->token) || isString(table, &second->token)) && \
-                        (stringOp(stackTop) && !(isString(NULL, &inputToken) || isString(table, &inputToken))))
+                        (isStringOp(&stackTop->token) && !(isString(NULL, &inputToken) || isString(table, &inputToken))))
                 {
                     dbgMsg("Semantic error: String var/const, string operator, missing string var/const.\n");
-                    return;
+                    return tNone;
                 }
 
                 // The following token after number var/const has to be any num operator
-                else if ((isNumber(NULL, stackTop) || isNumber(table, stackTop)) && !numberOp(&token) && !relationalOp(&token))
+                else if ((isNumber(NULL, &stackTop->token) || isNumber(table, &stackTop->token)) && !isNumberOp(&token) && isRelationalOp(&token))
                 {
                     dbgMsg("Semantic error: Missing number operator after number var/const.\n");
-                    return;
+                    return tNone;
                 }
 
                 // Stack: number, number operator are on stack next token has to be number.
                 else if (second != NULL && (isNumber(NULL, &second->token) || isNumber(table, &second->token)) && \
-                        ((numberOp(stackTop) || relationalOp(stackTop)) && !(isNumber(NULL, &inputToken) || isNumber(table, &inputToken))))
+                        ((isNumberOp(&stackTop->token) || isRelationalOp(&stackTop->token)) && !(isNumber(NULL, &inputToken) || isNumber(table, &inputToken))))
                 {
                     dbgMsg("Semantic error: Number var/const, number operator, missing number.\n");
-                    return;
+                    return tNone;
                 }
 
                 tstack_pop(expStack, &inputToken);
                 tstack_push(evalStack, inputToken);
-
-                if (tstack_isFull(evalStack))
-                    exitError("Expression stack overflow.\n", CERR_INTERNAL);
-
+                
                 break;  
-
             case '>':
                 // evaluating expression
                 /*
@@ -412,24 +475,79 @@ void expression(tStack *expStack, tSymTable *table)
                 if (tstack_isEmpty(evalStack))
                 {
                     dbgMsg("Semantic error: Empty stack in expression while trying to reduce.\n");
-                    return;
+                    return tNone;
                 }
                 
+                // It shouldn't get here when there's an undefined variable, got it here just in case something screws up
                 if (!checkOpDefinition(table, &third->token, &stackTop->token))
                 {
                     dbgMsg("Semantic error: A variable is not defined.\n");
-                    return;
+                    return tNone;
                 }
 
                 dbgMsg("Redukujeme: dva operandy, first: %s, third: %s, operator (second): %s.\n", stackTop->token.data, third->token.data, tokenName[second->token.type]);
+                
+                resultType = getResultType(table, &stackTop->token, &third->token, second->token.type);
+
+                if (isNumber(table, &stackTop->token) && isNumber(table, &third->token))
+                {
+                    if (isVar(&stackTop->token) && isVar(&third->token))
+                    {
+                        nonTerminal->type = resultType;
+                        // generate code
+                        /*sprintf(tmpStr, "LF@%s", &third->token.data);
+                        strcat(code, tmpStr);
+                        addCode(code);
+
+                        sprintf(tmpStr, "LF@%s", &stackTop->token.data);
+                        strcat(code, tmpStr);
+                        addCode(code);*/
+                    }
+                    else if (isConst(&stackTop->token) && isVar(&third->token))
+                    {
+                        
+                    }
+                    else if (isVar(&stackTop->token) && isConst(&third->token))
+                    {
+                        
+                    }
+                    else if (isConst(&stackTop->token) && isConst(&third->token))
+                    {
+                        
+                    }
+                }
+                else if (isNumber(table, &stackTop->token) && isString(table, &third->token))
+                {
+                    if (second->token.type != tIdentical && second->token.type != tNotIdentical)
+                    {
+                        dbgMsg("Semantic error: Can only compare with === and !===.\n");
+                        return tNone;
+                    }
+                }
+                else if (isString(table, &stackTop->token) && isNumber(table, &third->token))
+                {
+                    if (second->token.type != tIdentical && second->token.type != tNotIdentical)
+                    {
+                        dbgMsg("Semantic error: Can only compare with === and !===.\n");
+                        return tNone;
+                    }
+                }
+                else // if (isString(table, &stackTop->token) && isString(table, &third->token))
+                {
+
+                }
+
+                /*
+                tstack_pop(evalStack);
+                tstack_pop(evalStack);
+                tstack_pop(evalStack);
+                */
+                tstack_push(evalStack, *nonTerminal);
+
                 switch (second->token.type)
                 {
                     case tPlus:
-                        if (convertTypes(table, &third->token, &stackTop->token, tPlus))
-                        {
-                            dbgMsg("An error occured when trying to convert types.\n");
-                            return;
-                        }
+
                         break;
                     case tMinus:
 
@@ -469,8 +587,8 @@ void expression(tStack *expStack, tSymTable *table)
                 // code generation
                 break;
         }
-        nextToken();
     } 
+    free(inputToken.data);
 }
 
 tTokenType evalExp(tStack* expStack, tSymTable* symTable)
