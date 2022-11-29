@@ -3,7 +3,7 @@ declare(strict_types=1);
 // FUNGUJE
 $num = 4;
 $num2 = 2;
-function number1(){
+function number1() : void{
    $num = 5;
    if($num === 5){
       number2();
@@ -11,7 +11,7 @@ function number1(){
       $num = -5;
    }
 }
-function number2(){
+function number2()  : void{
    $num2 = -1;
    if($num2 === -1){
    $num2 = -3;
