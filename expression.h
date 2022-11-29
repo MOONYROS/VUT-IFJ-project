@@ -18,7 +18,8 @@
 // returns type of and exp expression
 // generates code to ??? tohle musime upresnit, jak budeme delat
 // in case of semantic failure calls errorExit(msg, errno)
-tTokenType evalExp(tStack* expStack, tSymTable* symTable);
+tTokenType evalExp(tStack* exp, tSymTable* st);
+tTokenType const2type(tTokenType ctype);
 
 bool isOperator(tToken *token);
 bool isNumberOp(tToken *token);

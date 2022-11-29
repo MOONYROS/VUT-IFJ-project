@@ -10,7 +10,7 @@
 #include "support.h"
 #include "token.h"
 #include "lex.h"
-#include "parser-str.h"
+#include "parser.h"
 
 extern char* tokenName[tMaxToken];
 

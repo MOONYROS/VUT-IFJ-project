@@ -32,7 +32,7 @@ tTokenType keywordToken[] = {tIf, tElse, tWhile, tFunction, tReturn, tNull, tTyp
 char *nullType[] = {"int", "float", "string"};
 tTokenType nullTypeToken[] = {tNullTypeInt, tNullTypeFloat, tNullTypeString};
 
-int srcLine = 0;
+int srcLine = 1;
 
 char nextChar(FILE* stream)
 {
@@ -418,11 +418,18 @@ int ReadToken(FILE *f, tToken *token)
                 }
                 break;
             /* SPATNE NASTAVENE PODMINKY A PROBIHA SPATNE VYHODNOCOVANI ZNAKU */
+            // aaa OPRAVIT aaa
             case sLiteral:  // prisla nam uvozovka
                 if (ch == '\"') // prisla dalsi uvozovka - ukoncujeme retezec
                 {
                     state = sFinish;
                     token->type = tLiteral;
+                }
+                // aaa tohle je jen temporary fix, je potreba to opravit aaa
+                else if (ch == '\\')    // pokud prisel backslash, presouvame se do sEsc
+                {
+                    SAVECHAR;
+                    state = sEsc;
                 }
                 else if (ch >= 32) // (ch <= 255) je vzdycky TRUE, takze neni treba zapisovat
                 {
@@ -433,11 +440,6 @@ int ReadToken(FILE *f, tToken *token)
                 //    state = sFinish;
                 //    token->type = tInvalid;
                 //}
-                else if (ch == '\\')    // pokud prisel backslash, presouvame se do sEsc
-                {
-                    SAVECHAR;
-                    state = sEsc;
-                }
                 else if (ch == '%')
                 {
                     SAVECHAR;

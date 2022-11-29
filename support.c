@@ -18,13 +18,20 @@ void* safe_malloc(size_t size)
 {
     char* ptr = malloc(size);
     if (ptr == NULL)
+    {
         errorExit("memory allocation failed", CERR_INTERNAL);
+    }
     else
     {
         for (size_t i=0; i < size; i++)
             *(ptr + i) = 0;
     }
     return ptr;
+}
+
+void safe_free(void* ptr)
+{
+    free(ptr);
 }
 
 void errorExit(char* msg, int errCode)
@@ -35,31 +42,31 @@ void errorExit(char* msg, int errCode)
         fprintf(stderr, "NO ERROR: ");
         break;
     case CERR_LEX:
-        fprintf(stderr, "Lexical error on line %d: ", srcLine);
+        fprintf(stderr, "Lexical error near line %d: ", srcLine);
         break;
     case CERR_SYNTAX:
-        fprintf(stderr, "Syntax error on line %d: ", srcLine);
+        fprintf(stderr, "Syntax error near line %d: ", srcLine);
         break;
     case CERR_SEM_FUNC:
-        fprintf(stderr, "Semantic error (function) on line %d: ", srcLine);
+        fprintf(stderr, "Semantic error (function) near line %d: ", srcLine);
         break;
     case CERR_SEM_ARG:
-        fprintf(stderr, "Semantic error (argument) on line %d: ", srcLine);
+        fprintf(stderr, "Semantic error (argument) near line %d: ", srcLine);
         break;
     case CERR_SEM_UNDEF:
-        fprintf(stderr, "Semantic error (undefined) on line %d: ", srcLine);
+        fprintf(stderr, "Semantic error (undefined) near line %d: ", srcLine);
         break;
     case CERR_SEM_RET:
-        fprintf(stderr, "Semantic error (return) on line %d: ", srcLine);
+        fprintf(stderr, "Semantic error (return) near line %d: ", srcLine);
         break;
     case CERR_SEM_TYPE:
-        fprintf(stderr, "Semantic error (type) on line %d: ", srcLine);
+        fprintf(stderr, "Semantic error (type) near line %d: ", srcLine);
         break;
     case CERR_SEM_OTHER:
-        fprintf(stderr, "Semantic error (other) on line %d: ", srcLine);
+        fprintf(stderr, "Semantic error (other) near line %d: ", srcLine);
         break;
     case CERR_INTERNAL:
-        fprintf(stderr, "Internal compiler error on line %d: ", srcLine);
+        fprintf(stderr, "Internal compiler error near line %d: ", srcLine);
         break;
     }
     fprintf(stderr, "%s\n", msg);
