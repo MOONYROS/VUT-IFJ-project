@@ -101,16 +101,26 @@ void tstack_pushl(tStack* stack, tToken token)
 
 bool tstack_pop(tStack* stack, tToken *token)
 {
+    if (token == NULL)
+        return false;
+
     if (stack != NULL)
     {
         tStackItem* toDelete = stack->top;
         if (toDelete != NULL)
         {
             token->type = toDelete->token.type;
-            strcpy(token->data, toDelete->token.data);
+            if (toDelete->token.data != NULL)
+            {
+                strcpy(token->data, toDelete->token.data);
+                free(toDelete->token.data);
+            }
+            
             stack->top = toDelete->next;
             free(toDelete);
         }
+        else
+            return false;
         if (stack->top == NULL)
             stack->last = NULL;
         return true;
