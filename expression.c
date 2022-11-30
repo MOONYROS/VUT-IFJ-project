@@ -229,8 +229,54 @@ void rearrangeStack(tStack *stack)
     }
 }
 
+<<<<<<< Updated upstream
 // Todo
 int typeToIndex(tTokenType tokenType)
+=======
+double convertToDouble(tToken * token)
+{
+    double tmp;
+    sscanf(token->data, "%lf", &tmp);
+    return tmp;
+}
+
+int convertToInt(tToken * token)
+{
+    int tmp;
+    sscanf(token->data, "%d", &tmp);
+    return tmp;
+}
+
+int typeToIndex(tTokenType ctype)
+{
+    tTokenType typ = tNone;
+    switch (ctype)
+    {
+    case tInt:
+        typ = tTypeInt;
+        break;
+    case tInt2:
+        typ = tTypeInt;
+        break;
+    case tReal:
+        typ = tTypeFloat;
+        break;
+    case tReal2:
+        typ = tTypeFloat;
+        break;
+    case tLiteral:
+        typ = tTypeString;
+        break;
+    default:
+        typ = ctype;
+        break;
+    }
+    return typ;
+}
+
+/*
+static int oper_prio(tToken token)
+>>>>>>> Stashed changes
 {
     switch (tokenType)
     {
@@ -273,6 +319,11 @@ tTokenType expression(tStack *expStack, tSymTable *table)
     tStack *evalStack;
     tstack_init(evalStack);
 
+    char code[MAX_IFJC_LEN];
+    char tmpStr[MAX_IFJC_LEN];
+    int tmpInt;
+    double tmpReal;
+
     // We need these pointers to know what exactly should be reduced on the evaluation stack.
     // All the the operators are binary - we dont need more pointers.
     tToken *topToken;
@@ -295,7 +346,7 @@ tTokenType expression(tStack *expStack, tSymTable *table)
 
     rearrangeStack(expStack);
 
-    addCode("#EXPRESSION START\n");
+    addCode("#EXPRESSION START");
     addCode("CREATEFRAME");
     addCode("DEFVAR TF@%s", expResultName);
 
@@ -318,6 +369,11 @@ tTokenType expression(tStack *expStack, tSymTable *table)
         
         // We have var/const on top of stack
         if (isVar(&stackTop->token) || isConst(&stackTop->token))
+<<<<<<< Updated upstream
+=======
+            // shifting when stack second is left par
+
+>>>>>>> Stashed changes
             precedence = prdTable[typeToIndex(second->token.type)][typeToIndex(inputToken.type)];
         else
             // Toto je spravne, pokud top je lpar, operator nebo rpar, musime za kazdou cenu dale pushnout
@@ -374,25 +430,108 @@ tTokenType expression(tStack *expStack, tSymTable *table)
                     {
                         nonTerminal->type = resultType;
                         // generate code
-                        /*sprintf(tmpStr, "LF@%s", &third->token.data);
+                        sprintf(tmpStr, "LF@%s", third->token.data);
                         strcat(code, tmpStr);
                         addCode(code);
+                        code[0] = '\0';
 
-                        sprintf(tmpStr, "LF@%s", &stackTop->token.data);
+                        sprintf(tmpStr, "LF@%s", stackTop->token.data);
                         strcat(code, tmpStr);
-                        addCode(code);*/
+                        addCode(code);
+                        code[0] = '\0';
                     }
                     else if (isConst(&stackTop->token) && isVar(&third->token))
                     {
-                        
+                        nonTerminal->type = resultType;
+                        // generate code
+                        sprintf(tmpStr, "LF@%s", third->token.data);
+                        strcat(code, tmpStr);
+                        addCode(code);
+                        code[0] = '\0';
+
+                        if(isInt(NULL,&stackTop->token))
+                        {
+                            // musime vytahnout hodnotu a udelat z ni int
+                            tmpInt = convertToInt(&stackTop->token);
+                            ifjCodeInt(tmpStr,tmpInt);
+                        }
+                        else
+                        {
+                            // musime vytahnout hodnotu a udelat z ni double
+                            tmpReal = convertToDouble(&stackTop->token);
+                            ifjCodeReal(tmpStr, tmpReal);
+                        }
+
+                        strcat(code, tmpStr);
+                        addCode(code);
+                        code[0] = '\0';
                     }
                     else if (isVar(&stackTop->token) && isConst(&third->token))
                     {
-                        
+                        nonTerminal->type = resultType;
+                        // generate code
+                        sprintf(tmpStr, "LF@%s", stackTop->token.data);
+                        strcat(code, tmpStr);
+                        addCode(code);
+                        code[0] = '\0';
+
+                        if(isInt(NULL,&third->token))
+                        {
+                            // musime vytahnout hodnotu a udelat z ni int
+                            tmpInt = convertToInt(&third->token);
+                            ifjCodeInt(tmpStr,tmpInt);
+                        }
+                        else
+                        {
+                            // musime vytahnout hodnotu a udelat z ni double
+                            tmpReal = convertToDouble(&third->token);
+                            ifjCodeReal(tmpStr, tmpReal);
+                        }
+
+                        strcat(code, tmpStr);
+                        addCode(code);
+                        code[0] = '\0';
                     }
                     else if (isConst(&stackTop->token) && isConst(&third->token))
                     {
-                        
+                        nonTerminal->type = resultType;
+
+                        if(isInt(NULL,&third->token) && isInt(NULL, &stackTop->token))
+                        {
+                            // musime vytahnout hodnotu a udelat z ni int
+                            tmpInt = convertToInt(&third->token);
+                            ifjCodeInt(tmpStr,tmpInt);
+                            strcat(code, tmpStr);
+                            addCode(code);
+                            code[0] = '\0';
+
+                            // musime vytahnout hodnotu a udelat z ni int
+                            tmpInt = convertToInt(&stackTop->token);
+                            ifjCodeInt(tmpStr,tmpInt);
+                            strcat(code, tmpStr);
+                            addCode(code);
+                            code[0] = '\0';
+                        }
+                        else if(isReal(NULL,&third->token) && isReal(NULL, &stackTop->token))
+                        {
+                            // musime vytahnout hodnotu a udelat z ni double
+                            tmpReal = convertToDouble(&third->token);
+                            ifjCodeReal(tmpStr,tmpReal);
+                            strcat(code, tmpStr);
+                            addCode(code);
+                            code[0] = '\0';
+
+                            // musime vytahnout hodnotu a udelat z ni double
+                            tmpReal = convertToDouble(&stackTop->token);
+                            ifjCodeReal(tmpStr,tmpReal);
+                            strcat(code, tmpStr);
+                            addCode(code);
+                            code[0] = '\0';
+                        }
+                        else
+                        {
+                            dbgMsg("Semantic error: Operands of different type.");
+                        }
                     }
                 }
                 else if (isNumber(table, &stackTop->token) && isString(table, &third->token))
@@ -421,25 +560,40 @@ tTokenType expression(tStack *expStack, tSymTable *table)
                 switch (second->token.type)
                 {
                     case tPlus:
-
+                        sprintf(tmpStr, "ADD TF@%s TF@%s ", expResultName, expResultName);
+                        strcpy(code, tmpStr);
                         break;
                     case tMinus:
-
+                        sprintf(tmpStr, "SUB TF@%s TF@%s ", expResultName, expResultName);
+                        strcpy(code, tmpStr);
                         break;
                     case tMul:
-
+                        sprintf(tmpStr, "MUL TF@%s TF@%s ", expResultName, expResultName);
+                        strcpy(code, tmpStr);
                         break;
                     case tDiv:
-
+                        if (isInt(NULL, &stackTop->token) || isInt(table, &stackTop->token))
+                        {
+                            sprintf(tmpStr, "IDIV TF@%s TF@%s ", expResultName, expResultName);
+                            strcpy(code, tmpStr);
+                        }
+                        else
+                        {
+                            sprintf(tmpStr, "DIV TF@%s TF@%s ", expResultName, expResultName);
+                            strcpy(code, tmpStr);
+                        }
                         break;
                     case tConcat:
-
+                        sprintf(tmpStr, "CONCAT TF@%s TF@%s ", expResultName, expResultName);
+                        strcpy(code, tmpStr);
                         break;
                     case tMore:
-
+                        sprintf(tmpStr, "GT TF@%s TF@%s ", expResultName, expResultName);
+                        strcpy(code, tmpStr);
                         break;
                     case tLess:
-
+                        sprintf(tmpStr, "LT TF@%s TF@%s ", expResultName, expResultName);
+                        strcpy(code, tmpStr);
                         break;
                     case tMoreEq:
 
@@ -466,6 +620,7 @@ tTokenType expression(tStack *expStack, tSymTable *table)
     free(inputToken.data);
 }
 
+/*
 tTokenType evalExp(tStack* expStack, tSymTable* symTable)
 {
     tToken token = { 0, NULL };
@@ -602,4 +757,4 @@ tTokenType evalExp(tStack* expStack, tSymTable* symTable)
     addCode("# expression END");
     free(token.data);
     return typ;
-}
+}*/

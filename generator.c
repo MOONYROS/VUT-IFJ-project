@@ -105,9 +105,41 @@ char* ifjCodeReal(char* outStr, double val)
 {
     if (outStr == NULL)
         return NULL;
-    
+
     sprintf(outStr, "float@%a", val);
     return outStr;
+}
+
+void generateHead()
+{
+    addCode("# program START");
+    addCode(".IFJcode22");
+    //tady mozna potreba vytvorit GF jak se pise v zadani
+}
+
+void generateFuncDecl()
+{
+    addCode("# function declaration");
+}
+
+void generateFuncCall()
+{
+    addCode("# function call");
+}
+
+void generateIfStatement()
+{
+    addCode("# if statement");
+}
+
+void generateWhileStatement()
+{
+    addCode("# while statement");
+}
+
+void generateAssignment()
+{
+    addCode("# assignment");
 }
 
 int addCode(const char* fmt, ...)
