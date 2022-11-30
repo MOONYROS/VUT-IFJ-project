@@ -137,9 +137,9 @@ void generateWhileStatement()
     addCode("# while statement");
 }
 
-void generateAssignment()
+void generateStatement()
 {
-    addCode("# assignment");
+    addCode("# statement");
 }
 
 int addCode(const char* fmt, ...)

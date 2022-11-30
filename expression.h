@@ -36,7 +36,7 @@ bool isDefined(tSymTable *table, tToken *token);
 bool checkOpDefinition(tSymTable *table, tToken *third, tToken *top);
 tTokenType getResultType(tSymTable *table, tToken *top, tToken *third, tTokenType operation);
 void rearrangeStack(tStack *stack);
-tTokenType expression(tStack *expStack, tSymTable *table);
+tTokenType evalExp(tStack *expStack, tSymTable *table);
 
 // Converts token type (e.g. tMul) to index of precedence table.
 int typeToIndex(tTokenType token);

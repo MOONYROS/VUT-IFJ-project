@@ -167,7 +167,8 @@ tTokenType getResultType(tSymTable *table, tToken *top, tToken *third, tTokenTyp
                 return tInt;
             else 
                 errorExit("Semantic error: Operands have to be the same type when performing arithmetic operation.\n", CERR_SEM_TYPE);
-
+            return tNone;
+            
         case tConcat:
             return tLiteral;
 
@@ -229,10 +230,6 @@ void rearrangeStack(tStack *stack)
     }
 }
 
-<<<<<<< Updated upstream
-// Todo
-int typeToIndex(tTokenType tokenType)
-=======
 double convertToDouble(tToken * token)
 {
     double tmp;
@@ -247,36 +244,7 @@ int convertToInt(tToken * token)
     return tmp;
 }
 
-int typeToIndex(tTokenType ctype)
-{
-    tTokenType typ = tNone;
-    switch (ctype)
-    {
-    case tInt:
-        typ = tTypeInt;
-        break;
-    case tInt2:
-        typ = tTypeInt;
-        break;
-    case tReal:
-        typ = tTypeFloat;
-        break;
-    case tReal2:
-        typ = tTypeFloat;
-        break;
-    case tLiteral:
-        typ = tTypeString;
-        break;
-    default:
-        typ = ctype;
-        break;
-    }
-    return typ;
-}
-
-/*
-static int oper_prio(tToken token)
->>>>>>> Stashed changes
+int typeToIndex(tTokenType tokenType)
 {
     switch (tokenType)
     {
@@ -314,9 +282,38 @@ static int oper_prio(tToken token)
     }
 }
 
-tTokenType expression(tStack *expStack, tSymTable *table)
+/*
+static int oper_prio(tToken token)
 {
-    tStack *evalStack;
+   tTokenType typ = tNone;
+    switch (ctype)
+    {
+    case tInt:
+        typ = tTypeInt;
+        break;
+    case tInt2:
+        typ = tTypeInt;
+        break;
+    case tReal:
+        typ = tTypeFloat;
+        break;
+    case tReal2:
+        typ = tTypeFloat;
+        break;
+    case tLiteral:
+        typ = tTypeString;
+        break;
+    default:
+        typ = ctype;
+        break;
+    }
+    return typ;
+}
+*/
+
+tTokenType evalExp(tStack *expStack, tSymTable *table)
+{
+    tStack *evalStack = NULL;
     tstack_init(evalStack);
 
     char code[MAX_IFJC_LEN];
@@ -326,21 +323,25 @@ tTokenType expression(tStack *expStack, tSymTable *table)
 
     // We need these pointers to know what exactly should be reduced on the evaluation stack.
     // All the the operators are binary - we dont need more pointers.
-    tToken *topToken;
-    tStackItem *stackTop;
-    tStackItem *second;
-    tStackItem *third;
+    tStackItem *stackTop = NULL;
+    tStackItem *second = NULL;
+    tStackItem *third = NULL;
     // Pseudo nonterminal
-    tToken *nonTerminal;
-
     // Precedence of evaluation stack's top token and input token.
-    char precedence;
+    char precedence = '<';
     
     // For knowledge of final type of result that is being returned to
     tTokenType resultType;
 
+    tToken *nonTerminal = NULL;
+    nonTerminal->data = safe_malloc(MAX_TOKEN_LEN);
+    tToken *uselessToken = NULL;
+    uselessToken->data = safe_malloc(MAX_TOKEN_LEN);
+    tToken *topToken = NULL;
+    topToken->data = safe_malloc(MAX_TOKEN_LEN);
     tToken inputToken = {0, NULL}; 
     inputToken.data = safe_malloc(MAX_TOKEN_LEN);
+
     tstack_pop(expStack, &inputToken);
     tstack_push(evalStack, inputToken);
 
@@ -353,7 +354,6 @@ tTokenType expression(tStack *expStack, tSymTable *table)
     // The 'finishing symbol' is empty evaluation stack.
     while (!tstack_isEmpty(evalStack)) 
     {
-        
         // Definition of the three stack pointers 
         topToken = tstack_peek(evalStack);
         stackTop->token = *topToken;
@@ -369,20 +369,10 @@ tTokenType expression(tStack *expStack, tSymTable *table)
         
         // We have var/const on top of stack
         if (isVar(&stackTop->token) || isConst(&stackTop->token))
-<<<<<<< Updated upstream
-=======
-            // shifting when stack second is left par
-
->>>>>>> Stashed changes
-            precedence = prdTable[typeToIndex(second->token.type)][typeToIndex(inputToken.type)];
-        else
-            // Toto je spravne, pokud top je lpar, operator nebo rpar, musime za kazdou cenu dale pushnout
-            precedence = '<';
-
-        switch (precedence) 
         {
+            switch (precedence)
+            {
             case '=':
-                break;
             
             case '<':
                 // evaluating expression
@@ -397,7 +387,7 @@ tTokenType expression(tStack *expStack, tSymTable *table)
                     errorExit("Semantic error: String var/const, string operator, missing string var/const.\n", CERR_SEM_TYPE);
 
                 // The following token after number var/const has to be any num operator
-                else if (isNumber(table, &stackTop->token) && !isNumberOp(&token) && isRelationalOp(&token))
+                else if (isNumber(table, &stackTop->token) && !isNumberOp(&token) && !isRelationalOp(&token))
                     errorExit("Semantic error: Missing number operator after number var/const.\n", CERR_SEM_TYPE);
 
                 // Number and number operator are on stack, next token has to be number.
@@ -449,7 +439,7 @@ tTokenType expression(tStack *expStack, tSymTable *table)
                         addCode(code);
                         code[0] = '\0';
 
-                        if(isInt(NULL,&stackTop->token))
+                        if (isInt(NULL, &stackTop->token))
                         {
                             // musime vytahnout hodnotu a udelat z ni int
                             tmpInt = convertToInt(&stackTop->token);
@@ -475,7 +465,7 @@ tTokenType expression(tStack *expStack, tSymTable *table)
                         addCode(code);
                         code[0] = '\0';
 
-                        if(isInt(NULL,&third->token))
+                        if (isInt(NULL,&third->token))
                         {
                             // musime vytahnout hodnotu a udelat z ni int
                             tmpInt = convertToInt(&third->token);
@@ -529,9 +519,7 @@ tTokenType expression(tStack *expStack, tSymTable *table)
                             code[0] = '\0';
                         }
                         else
-                        {
-                            dbgMsg("Semantic error: Operands of different type.");
-                        }
+                            errorExit("Semantic error: Operands of different type.\n", CERR_SEM_TYPE);
                     }
                 }
                 else if (isNumber(table, &stackTop->token) && isString(table, &third->token))
@@ -547,77 +535,88 @@ tTokenType expression(tStack *expStack, tSymTable *table)
                 }
                 else // if (isString(table, &stackTop->token) && isString(table, &third->token))
                 {
+                    strcat(code, ifjCodeStr(tmpStr, stackTop->token.data));
+                    addCode(code);
+                    code[0] = '\0';
 
+                    strcat(code, ifjCodeStr(tmpStr, third->token.data));
+                    addCode(code);
+                    code[0] = '\0';
                 }
-
-                /*
-                tstack_pop(evalStack);
-                tstack_pop(evalStack);
-                tstack_pop(evalStack);
-                */
+            }
                 tstack_push(evalStack, *nonTerminal);
 
                 switch (second->token.type)
                 {
                     case tPlus:
-                        sprintf(tmpStr, "ADD TF@%s TF@%s ", expResultName, expResultName);
-                        strcpy(code, tmpStr);
+                        addCode("ADD TF@%s TF@%s ", expResultName, expResultName);
                         break;
                     case tMinus:
-                        sprintf(tmpStr, "SUB TF@%s TF@%s ", expResultName, expResultName);
-                        strcpy(code, tmpStr);
+                        addCode("SUB TF@%s TF@%s ", expResultName, expResultName);
                         break;
                     case tMul:
-                        sprintf(tmpStr, "MUL TF@%s TF@%s ", expResultName, expResultName);
-                        strcpy(code, tmpStr);
+                        addCode("MUL TF@%s TF@%s ", expResultName, expResultName);
                         break;
                     case tDiv:
-                        if (isInt(NULL, &stackTop->token) || isInt(table, &stackTop->token))
+                        if (isInt(table, &stackTop->token))
                         {
-                            sprintf(tmpStr, "IDIV TF@%s TF@%s ", expResultName, expResultName);
-                            strcpy(code, tmpStr);
+                            addCode("IDIV TF@%s TF@%s ", expResultName, expResultName);
                         }
                         else
                         {
-                            sprintf(tmpStr, "DIV TF@%s TF@%s ", expResultName, expResultName);
-                            strcpy(code, tmpStr);
+                            addCode("DIV TF@%s TF@%s ", expResultName, expResultName);
                         }
                         break;
                     case tConcat:
-                        sprintf(tmpStr, "CONCAT TF@%s TF@%s ", expResultName, expResultName);
-                        strcpy(code, tmpStr);
+                        addCode("CONCAT TF@%s TF@%s ", expResultName, expResultName);
                         break;
                     case tMore:
-                        sprintf(tmpStr, "GT TF@%s TF@%s ", expResultName, expResultName);
-                        strcpy(code, tmpStr);
+                        addCode("GT TF@%s TF@%s ", expResultName, expResultName);
                         break;
                     case tLess:
-                        sprintf(tmpStr, "LT TF@%s TF@%s ", expResultName, expResultName);
-                        strcpy(code, tmpStr);
+                        addCode("LT TF@%s TF@%s ", expResultName, expResultName);
                         break;
                     case tMoreEq:
-
+                        addCode("JUMPIFEQ %s TF@%s TF@%s", expResultName, expResultName, expResultName);
+                        addCode("GT TF@%s TF@%s ", expResultName, expResultName);
+                        addCode("LABEL %s", expResultName);
                         break;
                     case tLessEq:
-
+                        addCode("JUMPIFEQ %s TF@%s TF@%s", expResultName, expResultName, expResultName);
+                        addCode("LT TF@%s TF@%s ", expResultName, expResultName);
+                        addCode("LABEL %s", expResultName);
                         break;
                     case tIdentical:
-
+                        addCode("JUMPIFEQ %s TF@%s TF@%s",  expResultName, expResultName, expResultName);
+                        addCode("MOVE TF@%s 0", expResultName);
+                        addCode("JUMP %s", expResultName);
+                        addCode("LABEL %s", expResultName);
+                        addCode("MOVE TF@%s 1", expResultName);
+                        addCode("LABEL %s", expResultName);
                         break;
                     case tNotIdentical:
-
+                        addCode("JUMPIFNEQ %s TF@%s TF@%s",  expResultName, expResultName, expResultName);
+                        addCode("MOVE TF@%s 0", expResultName);
+                        addCode("JUMP %s", expResultName);
+                        addCode("LABEL %s", expResultName);
+                        addCode("MOVE TF@%s 1", expResultName);
+                        addCode("LABEL %s", expResultName);
                         break;
                     default:
-                        // Should never get here. 
                         errorExit("Syntax Error: Wrong operator.\n", CERR_SYNTAX);
                         break;
                 }
-
-                // code generation
+                tstack_pop(evalStack, uselessToken);
+                tstack_pop(evalStack, uselessToken);
+                tstack_pop(evalStack, uselessToken);
                 break;
         }
     } 
-    free(inputToken.data);
+    safe_free(inputToken.data);
+    safe_free(topToken->data);
+    safe_free(uselessToken->data);
+    safe_free(nonTerminal->data);
+    return nonTerminal->type;
 }
 
 /*
@@ -758,3 +757,7 @@ tTokenType evalExp(tStack* expStack, tSymTable* symTable)
     free(token.data);
     return typ;
 }*/
+
+
+
+
