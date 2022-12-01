@@ -10,9 +10,6 @@
 #include <string.h>
 
 #include "expression.h"
-#include "tstack.h"
-#include "token.h"
-#include "symtable.h"
 #include "support.h"
 #include "generator.h"
 

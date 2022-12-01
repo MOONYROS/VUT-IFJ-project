@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "parser.h": "c",
-        "generator.h": "c"
+        "generator.h": "c",
+        "expression.h": "c"
     }
 }
