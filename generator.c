@@ -10,10 +10,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-
 #include "generator.h"
-#include "token.h"
-#include "support.h"
 
 tCodeLine* codeFirst = NULL;
 tCodeLine* codeLast = NULL;

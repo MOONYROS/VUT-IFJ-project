@@ -9,10 +9,6 @@
 
 #include "parser.h"
 #include "support.h"
-#include "token.h"
-#include "lex.h"
-#include "tstack.h"
-#include "symtable.h"
 #include "expression.h"
 #include "generator.h"
 

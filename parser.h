@@ -8,13 +8,11 @@
 #ifndef parser_h
 #define parser_h
 
-#include "support.h"
+
 #include "token.h"
-#include "lex.h"
 #include "tstack.h"
 #include "symtable.h"
-#include "expression.h"
-#include "generator.h"
+
 
 #include <stdio.h>
 

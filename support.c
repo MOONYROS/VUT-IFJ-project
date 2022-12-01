@@ -10,7 +10,6 @@
 #include <stdarg.h>
 
 #include "support.h"
-#include "token.h"
 
 extern int srcLine;
 

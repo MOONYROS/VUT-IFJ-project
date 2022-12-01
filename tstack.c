@@ -10,8 +10,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "support.h"
-#include "token.h"
 #include "tstack.h"
 
 extern char* tokenName[tMaxToken];
