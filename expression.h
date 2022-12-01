@@ -13,16 +13,16 @@
 #include "tstack.h"
 #include "token.h"
 #include "symtable.h"
-#include "support.h"
-#include "generator.h"
+
 
 // function to evaluate expression
 // returns type of and exp expression
 // generates code to ??? tohle musime upresnit, jak budeme delat
 // in case of semantic failure calls errorExit(msg, errno)
-tTokenType evalExp(tStack* exp, tSymTable* st);
 tTokenType const2type(tTokenType ctype);
 
+
+// Auxiliary functions for semantic controls etc.
 bool isOperator(tToken *token);
 bool isNumberOp(tToken *token);
 bool isRelationalOp(tToken *token);
@@ -37,6 +37,9 @@ tTokenType variableType(tSymTable *table, tToken *token);
 bool isDefined(tSymTable *table, tToken *token);
 bool checkOpDefinition(tSymTable *table, tToken *third, tToken *top);
 tTokenType getResultType(tSymTable *table, tToken *top, tToken *third, tTokenType operation);
+
+
+// Functions actually doing something
 void rearrangeStack(tStack *stack);
 tTokenType evalExp(tStack *expStack, tSymTable *table);
 

@@ -11,6 +11,7 @@
 #include "support.h"
 #include "expression.h"
 #include "generator.h"
+#include "lex.h"
 
 
 extern char* tokenName[tMaxToken];

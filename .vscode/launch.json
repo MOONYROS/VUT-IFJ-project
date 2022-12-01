@@ -6,7 +6,7 @@
             "request": "launch",
             "program": "${fileDirname}/gigachad_compiler",
             "args": ["vzor_01.php"],
-            "stopAtEntry": false,
+            "stopAtEntry": true,
             "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,

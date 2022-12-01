@@ -73,7 +73,6 @@ bool isNumber(tSymTable *table, tToken *token)
             errorExit("Semantic error: Undefined variable.\n", CERR_SEM_UNDEF);
             return false;
         }
-
         return (variableType(table, token) == tTypeInt || variableType(table, token) == tTypeFloat || \
             variableType(table, token) == tNullTypeInt || variableType(table, token) == tNullTypeFloat);
     }
@@ -90,7 +89,6 @@ bool isString(tSymTable *table, tToken *token)
             errorExit("Semantic error: Undefined variable.\n", CERR_SEM_UNDEF);
             return false;
         }
-
         return (variableType(table, token) == tTypeString || variableType(table, token) == tNullTypeString);
     }
     else 
@@ -161,7 +159,6 @@ tTokenType getResultType(tSymTable *table, tToken *top, tToken *third, tTokenTyp
             if (isNull(table, top) || isNull(table, third))
                 errorExit("Semantic error: NULL operand in arithmetic operation.\n", CERR_SEM_TYPE);
             
-
             if (isReal(table, top) && isReal(table, third))
                 return tReal;
             else if (isInt(table, top) && isInt(table, third))
@@ -334,12 +331,12 @@ tTokenType evalExp(tStack *expStack, tSymTable *table)
     // For knowledge of final type of result that is being returned to
     tTokenType resultType;
 
-    tToken *nonTerminal = NULL;
-    nonTerminal->data = safe_malloc(MAX_TOKEN_LEN);
-    tToken *uselessToken = NULL;
-    uselessToken->data = safe_malloc(MAX_TOKEN_LEN);
-    tToken *topToken = NULL;
-    topToken->data = safe_malloc(MAX_TOKEN_LEN);
+    tToken nonTerminal = {0, NULL};
+    nonTerminal.data = safe_malloc(MAX_TOKEN_LEN);
+    tToken uselessToken = {0, NULL};
+    uselessToken.data = safe_malloc(MAX_TOKEN_LEN);
+    tToken topToken = {0, NULL};
+    topToken.data = safe_malloc(MAX_TOKEN_LEN);
     tToken inputToken = {0, NULL}; 
     inputToken.data = safe_malloc(MAX_TOKEN_LEN);
 
@@ -356,8 +353,8 @@ tTokenType evalExp(tStack *expStack, tSymTable *table)
     while (!tstack_isEmpty(evalStack)) 
     {
         // Definition of the three stack pointers 
-        topToken = tstack_peek(evalStack);
-        stackTop->token = *topToken;
+        topToken = *(tstack_peek(evalStack));
+        stackTop->token = topToken;
         if (stackTop != NULL)
         {
             if (stackTop->next != NULL)
@@ -424,7 +421,7 @@ tTokenType evalExp(tStack *expStack, tSymTable *table)
                 {
                     if (isVar(&stackTop->token) && isVar(&third->token))
                     {
-                        nonTerminal->type = resultType;
+                        nonTerminal.type = resultType;
                         // generate code
                         sprintf(tmpStr, "LF@%s", third->token.data);
                         strcat(code, tmpStr);
@@ -438,7 +435,7 @@ tTokenType evalExp(tStack *expStack, tSymTable *table)
                     }
                     else if (isConst(&stackTop->token) && isVar(&third->token))
                     {
-                        nonTerminal->type = resultType;
+                        nonTerminal.type = resultType;
                         // generate code
                         sprintf(tmpStr, "LF@%s", third->token.data);
                         strcat(code, tmpStr);
@@ -464,7 +461,7 @@ tTokenType evalExp(tStack *expStack, tSymTable *table)
                     }
                     else if (isVar(&stackTop->token) && isConst(&third->token))
                     {
-                        nonTerminal->type = resultType;
+                        nonTerminal.type = resultType;
                         // generate code
                         sprintf(tmpStr, "LF@%s", stackTop->token.data);
                         strcat(code, tmpStr);
@@ -490,7 +487,7 @@ tTokenType evalExp(tStack *expStack, tSymTable *table)
                     }
                     else if (isConst(&stackTop->token) && isConst(&third->token))
                     {
-                        nonTerminal->type = resultType;
+                        nonTerminal.type = resultType;
 
                         if(isInt(NULL,&third->token) && isInt(NULL, &stackTop->token))
                         {
@@ -550,7 +547,7 @@ tTokenType evalExp(tStack *expStack, tSymTable *table)
                     code[0] = '\0';
                 }
             }
-                tstack_push(evalStack, *nonTerminal);
+                tstack_push(evalStack, nonTerminal);
 
                 switch (second->token.type)
                 {
@@ -612,17 +609,17 @@ tTokenType evalExp(tStack *expStack, tSymTable *table)
                         errorExit("Syntax Error: Wrong operator.\n", CERR_SYNTAX);
                         break;
                 }
-                tstack_pop(evalStack, uselessToken);
-                tstack_pop(evalStack, uselessToken);
-                tstack_pop(evalStack, uselessToken);
+                tstack_pop(evalStack, &uselessToken);
+                tstack_pop(evalStack, &uselessToken);
+                tstack_pop(evalStack, &uselessToken);
                 break;
         }
     } 
     safe_free(inputToken.data);
-    safe_free(topToken->data);
-    safe_free(uselessToken->data);
-    safe_free(nonTerminal->data);
-    return nonTerminal->type;
+    safe_free(topToken.data);
+    safe_free(uselessToken.data);
+    safe_free(nonTerminal.data);
+    return nonTerminal.type;
 }
 
 /*
