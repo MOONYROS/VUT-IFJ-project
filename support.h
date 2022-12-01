@@ -7,6 +7,8 @@
 
 #include <stdio.h>
 
+#include "token.h"
+
 #ifndef support_h
 #define support_h
 

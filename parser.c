@@ -16,8 +16,8 @@
 #include "expression.h"
 #include "generator.h"
 
+
 extern char* tokenName[tMaxToken];
-extern const char tmpExpResultName[];
 extern tToken token;
 extern FILE* inf;
 extern int srcLine;
@@ -63,7 +63,7 @@ void addCodeProlog()
     addCode("LABEL $$main");
     addCode("CREATEFRAME");
     addCode("PUSHFRAME");
-    addCode("DEFVAR LF@%s", tmpExpResultName);
+    addCode("DEFVAR LF@%s", expResultName);
     addCode("");
 }
 
@@ -749,7 +749,7 @@ void parse_nextTerminal(tSymTable* st)
                     dbgMsg("expression [ ");
                     //int cnt = tstack_count(tmpStack);
                     expType = evalExp(tmpStack, st);
-                    addCode("MOVE LF@%s TF@%s", assignId.data, tmpExpResultName);
+                    addCode("MOVE LF@%s TF@%s", assignId.data, expResultName);
                     on_stack_state_error(tmpStack, notEmpty, "stack should be empty after processsing assignment expression", CERR_INTERNAL);
                     dbgMsg(" ]");
                     matchTokenAndNext(tSemicolon);

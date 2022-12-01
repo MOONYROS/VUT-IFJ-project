@@ -10,8 +10,12 @@
 #include <string.h>
 
 #include "expression.h"
+#include "tstack.h"
+#include "token.h"
+#include "symtable.h"
 #include "support.h"
 #include "generator.h"
+
 
 char prdTable[15][15] = {
 //    *   /   +   -   .   <   >  <=  >=  === !==  (   )  id   $
@@ -282,8 +286,8 @@ int typeToIndex(tTokenType tokenType)
     }
 }
 
-/*
-static int oper_prio(tToken token)
+
+tTokenType const2type(tTokenType ctype)
 {
    tTokenType typ = tNone;
     switch (ctype)
@@ -309,7 +313,7 @@ static int oper_prio(tToken token)
     }
     return typ;
 }
-*/
+
 
 tTokenType evalExp(tStack *expStack, tSymTable *table)
 {
@@ -328,7 +332,7 @@ tTokenType evalExp(tStack *expStack, tSymTable *table)
     tStackItem *third = NULL;
     // Pseudo nonterminal
     // Precedence of evaluation stack's top token and input token.
-    char precedence = '<';
+    char precedence;
     
     // For knowledge of final type of result that is being returned to
     tTokenType resultType;
@@ -366,6 +370,11 @@ tTokenType evalExp(tStack *expStack, tSymTable *table)
                     third = second->next;
             }
         }
+
+        if (isVar(&stackTop->token) || isConst(&stackTop->token))
+            precedence = prdTable[typeToIndex(second->token.type)][typeToIndex(inputToken.type)];
+        else    
+            precedence = '<';
         
         // We have var/const on top of stack
         if (isVar(&stackTop->token) || isConst(&stackTop->token))

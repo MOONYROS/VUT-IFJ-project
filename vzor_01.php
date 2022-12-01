@@ -11,7 +11,7 @@ function secti(int $prvni, int $druhy) : int
 
 function prazdna() : void {}
 
-$a = 1;
+$a = 1+1;
 // $aa = ;
 $b = 2;
 $c = $a+$b;

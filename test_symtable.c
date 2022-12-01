@@ -1,3 +1,5 @@
+#include "symtable.h"
+
 void pridej(char* key)
 {
     if (st_insert(&st, key) != NULL)

@@ -13,6 +13,8 @@
 #include "tstack.h"
 #include "token.h"
 #include "symtable.h"
+#include "support.h"
+#include "generator.h"
 
 // function to evaluate expression
 // returns type of and exp expression
@@ -41,6 +43,6 @@ tTokenType evalExp(tStack *expStack, tSymTable *table);
 // Converts token type (e.g. tMul) to index of precedence table.
 int typeToIndex(tTokenType token);
 
-extern const char *expResultName;
+extern const char expResultName[];
 
 #endif /* expression_h */

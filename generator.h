@@ -10,6 +10,9 @@
 
 #define MAX_IFJC_LEN	1024
 
+#include "token.h"
+#include "support.h"
+
 typedef struct CodeLine {
 	char* code;
 	struct CodeLine* next;

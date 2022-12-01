@@ -8,9 +8,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "lex.h"
 #include "support.h"
 #include "token.h"
-#include "lex.h"
 
 #define SAVECHAR {\
     *pos = ch;\

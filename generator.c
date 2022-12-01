@@ -10,19 +10,20 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+
+#include "generator.h"
 #include "token.h"
 #include "support.h"
-#include "generator.h"
 
 tCodeLine* codeFirst = NULL;
 tCodeLine* codeLast = NULL;
 
-const char tmpExpResultName[] = "tmpRes"; // tmpExpResultGigachad
+const char expResultName[] = "tmpRes"; // tmpExpResultGigachad
 extern int prgPass;
 
 char* ifjCodeStr(char *outStr, char* str)
 {
-    char tmpStr[5];
+    char tmpStr[6];
 
     if (outStr == NULL)
         return NULL;
@@ -108,38 +109,6 @@ char* ifjCodeReal(char* outStr, double val)
 
     sprintf(outStr, "float@%a", val);
     return outStr;
-}
-
-void generateHead()
-{
-    addCode("# program START");
-    addCode(".IFJcode22");
-    //tady mozna potreba vytvorit GF jak se pise v zadani
-}
-
-void generateFuncDecl()
-{
-    addCode("# function declaration");
-}
-
-void generateFuncCall()
-{
-    addCode("# function call");
-}
-
-void generateIfStatement()
-{
-    addCode("# if statement");
-}
-
-void generateWhileStatement()
-{
-    addCode("# while statement");
-}
-
-void generateStatement()
-{
-    addCode("# statement");
 }
 
 int addCode(const char* fmt, ...)

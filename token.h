@@ -30,7 +30,7 @@ typedef struct{
     char* data;
 } tToken;
 
-char *tokenName[tMaxToken];
+extern char *tokenName[tMaxToken];
 
 extern tToken token;
 

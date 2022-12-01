@@ -12,6 +12,8 @@
 
 #define ST_SIZE 509
 
+#include "support.h"
+#include "token.h"
 
 /* typedef enum {
     DTUnknown, DTInt, DTFloat, DTString, DTNullInt, DTNullFloat, DTNullString, DTVoid

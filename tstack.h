@@ -9,6 +9,7 @@
 #define tstack_h
 
 #include <stdbool.h>
+#include "support.h"
 #include "token.h"
 
 #define MAX_STACK   500

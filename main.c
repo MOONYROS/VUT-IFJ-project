@@ -16,6 +16,8 @@
 #include "symtable.h"
 #include "lex.h"
 #include "parser.h"
+#include "generator.h"
+#include "expression.h"
 
 FILE* inf;
 

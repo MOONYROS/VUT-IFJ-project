@@ -1,8 +1,8 @@
 EXEC := gigachad_compiler
 
 #Zde pridavejte zdrojaky chlapi
-SRCS := main.c lex.c parser.c support.c expression.c tstack.c symtable.c token.c
-OBJS := main.o lex.o parser.o support.o expression.o tstack.o symtable.o token.o
+SRCS := main.c lex.c parser.c support.c expression.c tstack.c symtable.c token.c generator.c
+OBJS := main.o lex.o parser.o support.o expression.o tstack.o symtable.o token.o generator.o
 
 CC := gcc
 CFLAGS := -std=c99 -Wall -Wextra -Wpedantic -c
@@ -13,10 +13,7 @@ all: $(EXEC)
 
 $(EXEC): $(OBJS)
 	$(CC) $^ -o $@
-
-$(OBJS): $(SRCS)
-	$(CC) $(CFLAGS) $^
-
+	
 run: $(EXEC)
 	./$(EXEC)
 	

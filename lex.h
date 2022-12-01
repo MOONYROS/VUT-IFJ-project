@@ -8,6 +8,9 @@
 #ifndef lex_h
 #define lex_h
 
+#include "support.h"
+#include "token.h"
+
 #include <stdio.h>
 
 int SkipProlog(FILE *f);
