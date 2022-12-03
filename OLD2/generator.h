@@ -10,6 +10,9 @@
 
 #define MAX_IFJC_LEN	1024
 
+#include "token.h"
+#include "support.h"
+
 typedef struct CodeLine {
 	char* code;
 	struct CodeLine* next;
@@ -19,10 +22,6 @@ char* ifjCodeStr(char* outStr, char* str);
 char* ifjCodeInt(char* outStr, int val);
 char* ifjCodeReal(char* outStr, double val);
 int addCode(const char* fmt, ...);
-void genCodeProlog(FILE* f);
-void genCodeMain(FILE* f);
 void generateCode(FILE* f);
-void generateFuncCode(FILE* f);
-void generateEmbeddedFunctions(FILE* f);
 
 #endif /* generator_h */

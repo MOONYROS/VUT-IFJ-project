@@ -19,28 +19,3 @@ char *tokenName[tMaxToken] = {
     "tInt", "tReal", "tReal2", "tInt2",
     "tLiteral", "tEpilog"
 };
-
-int typeIsCompatible(tTokenType dst, tTokenType src)
-{
-    if (dst == src)
-        return 1;
-
-    switch (dst)
-    {
-    case tNullTypeInt:
-        if (src == tTypeInt || src == tNullType)
-            return 1;
-        break;
-    case tNullTypeFloat:
-        if (src == tTypeFloat || src == tNullType)
-            return 1;
-        break;
-    case tNullTypeString:
-        if (src == tTypeString || src == tNullType)
-            return 1;
-        break;
-    default:
-        break;
-    }
-    return 0;
-}

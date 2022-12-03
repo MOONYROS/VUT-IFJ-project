@@ -43,7 +43,7 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
 
 // Functions actually doing something
 void rearrangeStack(tStack *stack);
-tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table);
+tTokenType evalExp(tStack *expStack, tSymTable *table);
 
 // Converts token type (e.g. tMul) to index of precedence table.
 int typeToIndex(tTokenType token);

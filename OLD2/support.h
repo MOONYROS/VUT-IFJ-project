@@ -7,6 +7,8 @@
 
 #include <stdio.h>
 
+#include "token.h"
+
 #ifndef support_h
 #define support_h
 
@@ -27,6 +29,5 @@ void *safe_malloc(size_t size);
 void safe_free(void* ptr);
 void errorExit(char* msg, int errCode);
 int dbgMsg(const char* fmt, ...);
-int dbgMsg2(const char* fmt, ...);
 
 #endif /* support_h */

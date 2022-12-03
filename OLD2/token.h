@@ -30,7 +30,8 @@ typedef struct{
     char* data;
 } tToken;
 
-// vrati 0/1 (false/true) jestli se da do dst ulozit src
-int typeIsCompatible(tTokenType dst, tTokenType src);
+extern char *tokenName[tMaxToken];
+
+extern tToken token;
 
 #endif /* token_h */

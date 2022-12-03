@@ -9,13 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "token.h"
 #include "expression.h"
 #include "support.h"
 #include "generator.h"
 #include "expStack.h"
 
-extern char* tokenName[tMaxToken];
 
 char prdTable[15][15] = {
 //    *   /   +   -   .   <   >  <=  >=  === !==  (   )  id   $
@@ -124,10 +122,7 @@ tTokenType variableType(tSymTable *table, tExpression *exp)
 bool isDefined(tSymTable *table, tExpression *exp)
 {
     tSymTableItem *item = st_search(table, exp->data);
-    if (item != NULL)
-        return item->isDefined;
-    else
-        return false;
+    return item->isDefined;
 }
 
 bool isNull(tSymTable *table, tExpression *exp)
@@ -310,7 +305,7 @@ tTokenType const2type(tTokenType ctype)
     return typ;
 }
 
-tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
+tTokenType evalExp(tStack *expStack, tSymTable *table)
 {
     tExpStack *evalStack = NULL;
     expStackInit(evalStack);
@@ -359,15 +354,9 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     {
         // Code generation?
         if (isVar(table, &inputexp))
-        {
-            addCode("MOVE %s LF@%s", tgtVar, inputexp.data);
             return variableType(table, &inputexp);
-        }
         else
-        {
-            addCode("MOVE %s int@%s", tgtVar, inputexp.data);
             return inputexp.type;
-        }
     }
 
     // Prepare another exp as input exp
@@ -378,11 +367,11 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     inputexp.isNonTerminal = false;
 
     addCode("#EXPRESSION START");
-    //addCode("CREATEFRAME");
-    //addCode("DEFVAR TF@%s", expResultName);
+    addCode("CREATEFRAME");
+    addCode("DEFVAR TF@%s", expResultName);
     
     // The 'finishing symbol' is empty evaluation stack.
-    while (!expIsEmpty(evalStack)) 
+    while (!isEmpty(evalStack)) 
     {
         // Definition of the three stack pointers 
         expStackTop(evalStack, &stackTop);
@@ -445,7 +434,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         case '>':
 
             // This if should be redundant but just in case something screwed up...
-            if (expIsEmpty(evalStack))
+            if (isEmpty(evalStack))
                 errorExit("Semantic error: Empty stack in expression while trying to reduce.\n", CERR_SEM_OTHER);
 
             // Print whats being reduced on stack

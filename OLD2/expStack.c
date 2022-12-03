@@ -13,7 +13,7 @@
 #include "expStack.h"
 #include "support.h"
 
-unsigned int expStackLength(tExpStack *stack)
+unsigned int stackLength(tExpStack *stack)
 {
     if (stack == NULL)
         return 0;
@@ -84,14 +84,14 @@ bool expStackPop(tExpStack *stack, tExpression *exp)
     return true;
 }
 
-bool expIsEmpty(tExpStack *stack)
+bool isEmpty(tExpStack *stack)
 {
     return stack == NULL ? true : stack->top == NULL; 
 }
 
 void expStackTop(tExpStack *stack, tExpression *exp)
 {
-    if (expIsEmpty(stack))
+    if (isEmpty(stack))
         return;
 
     strcpy(exp->data, stack->top->exp->data);

@@ -9,6 +9,7 @@
 #define tstack_h
 
 #include <stdbool.h>
+#include "support.h"
 #include "token.h"
 
 #define MAX_STACK   500
@@ -36,7 +37,6 @@ bool tstack_isFull(tStack* stack);
 int tstack_count(tStack* stack);
 tToken* tstack_peek(tStack* stack);
 void tstack_print(tStack* stack);
-void tstack_insertAfter(tStack* stack, tStackItem* active, tToken inserted);
-
+void tstack_insertAfter(tStack *stack, tStackItem *active, tToken inserted);
 
 #endif // tstack_h

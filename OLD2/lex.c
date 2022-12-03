@@ -8,8 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "support.h"
-#include "token.h"
 #include "lex.h"
 
 #define SAVECHAR {\

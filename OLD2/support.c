@@ -10,10 +10,8 @@
 #include <stdarg.h>
 
 #include "support.h"
-#include "token.h"
 
 extern int srcLine;
-extern int prgPass;
 
 void* safe_malloc(size_t size)
 {
@@ -86,24 +84,6 @@ int dbgMsg(const char* fmt, ...)
     return 0;
     return (int)fmt[0]; // toto jen kvuli tomu aby prekladace nehazel warning ze je nepouzite fmt, kdyz jsou vypnute debug hlasky
 #endif
-}
-
-int dbgMsg2(const char* fmt, ...)
-{
-    if (prgPass == 2)
-    {
-#if DEBUG_MSG == 1
-        va_list args;
-        va_start(args, fmt);
-        int ret = vfprintf(stderr, fmt, args);
-        va_end(args);
-        return ret;
-#else
-        return 0;
-        return (int)fmt[0]; // toto jen kvuli tomu aby prekladace nehazel warning ze je nepouzite fmt, kdyz jsou vypnute debug hlasky
-#endif
-    }
-    return 0;
 }
 
 tToken token;

@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "support.h"
-#include "token.h"
 #include "symtable.h"
 
 extern char* tokenName[tMaxToken];

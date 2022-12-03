@@ -10,28 +10,17 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include "token.h"
-#include "support.h"
 #include "generator.h"
-#include "symtable.h"
 
 tCodeLine* codeFirst = NULL;
 tCodeLine* codeLast = NULL;
-tCodeLine* funcCodeFirst = NULL;
-tCodeLine* funcCodeLast = NULL;
 
-const char tmpExpResultName[] = "tmpRes"; // tmpExpResultGigachad
 const char expResultName[] = "tmpRes"; // tmpExpResultGigachad
-//const char tmpFuncResultName[] = "tmpFnRes"; // tmpExpResultGigachad
-const char funcPrefixName[] = "$func_";
-const char funcRetValName[] = "%retval1";
-
 extern int prgPass;
-extern tSymTableItem* actFunc; // active function if processing function definition body
 
 char* ifjCodeStr(char *outStr, char* str)
 {
-    char tmpStr[5];
+    char tmpStr[6];
 
     if (outStr == NULL)
         return NULL;
@@ -114,7 +103,7 @@ char* ifjCodeReal(char* outStr, double val)
 {
     if (outStr == NULL)
         return NULL;
-    
+
     sprintf(outStr, "float@%a", val);
     return outStr;
 }
@@ -135,43 +124,13 @@ int addCode(const char* fmt, ...)
     item->code = safe_malloc(strlen(code) + 1);
     item->next = NULL;
     strcpy(item->code, code);
-    if (actFunc == NULL)
-    {
-        if (codeFirst == NULL)
-            codeFirst = item;
-        else
-            codeLast->next = item;
-        codeLast = item;
-    }
+    if (codeFirst == NULL)
+        codeFirst = item;
     else
-    {
-        if (funcCodeFirst == NULL)
-            funcCodeFirst = item;
-        else
-            funcCodeLast->next = item;
-        funcCodeLast = item;
-    }
+        codeLast->next = item;
+    codeLast = item;
 
     return ret;
-}
-
-void genCodeProlog(FILE* f)
-{
-    fprintf(f, "# Gigachad PHP compiler generated code\n");
-    fprintf(f, ".IFJcode22\n");
-    fprintf(f, "JUMP $$main\n");
-    fprintf(f, "\n");
-}
-
-void genCodeMain(FILE* f)
-{
-    fprintf(f, "LABEL $$main\n");
-    fprintf(f, "CREATEFRAME\n");
-    fprintf(f, "PUSHFRAME\n");
-    fprintf(f, "CREATEFRAME\n");
-    //fprintf(f, "DEFVAR TF@tmpRes\n");
-    // addCode("DEFVAR LF@%s", tmpExpResultName);
-    fprintf(f, "\n");
 }
 
 void generateCode(FILE* f)
@@ -185,40 +144,4 @@ void generateCode(FILE* f)
         safe_free(item);
         item = nxt;
     }
-}
-
-void generateFuncCode(FILE* f)
-{
-    tCodeLine* item = funcCodeFirst;
-    while (item != NULL)
-    {
-        fprintf(f, "%s\n", item->code);
-        tCodeLine* nxt = item->next;
-        safe_free(item->code);
-        safe_free(item);
-        item = nxt;
-    }
-    fprintf(f, "\n");
-}
-
-void generateEmbeddedFunctions(FILE* f)
-{
-    fprintf(f, "LABEL $func_readi\n");
-    //fprintf(f, "PUSHFRAME\n");
-    //fprintf(f, "CREATEFRAME\n");
-    fprintf(f, "DEFVAR TF@%%retval1\n");
-    fprintf(f, "READ TF@%%retval1 int\n");
-    //fprintf(f, "POPFRAME\n");
-    fprintf(f, "RETURN\n");
-    fprintf(f, "\n");
-    fprintf(f, "LABEL $func_readf\n");
-    fprintf(f, "DEFVAR TF@%%retval1\n");
-    fprintf(f, "READ TF@%%retval1 float\n");
-    fprintf(f, "RETURN\n");
-    fprintf(f, "\n");
-    fprintf(f, "LABEL $func_reads\n");
-    fprintf(f, "DEFVAR TF@%%retval1\n");
-    fprintf(f, "READ TF@%%retval1 string\n");
-    fprintf(f, "RETURN\n");
-    fprintf(f, "\n");
 }

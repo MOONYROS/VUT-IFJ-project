@@ -16,12 +16,13 @@
 #include "symtable.h"
 #include "lex.h"
 #include "parser.h"
+#include "generator.h"
+#include "expression.h"
 
 FILE* inf;
 
 int main(int argc, const char * argv[]) {
     dbgMsg("Gigachad compiler\n");
-
 
     if (argc > 1)
         inf = fopen(argv[1], "r");

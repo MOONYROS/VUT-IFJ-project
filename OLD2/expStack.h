@@ -32,12 +32,12 @@ typedef struct expStack {
     int size;
 } tExpStack;
 
-unsigned int expStackLength(tExpStack *stack);
+unsigned int stackLength(tExpStack *stack);
 void expStackInit(tExpStack *stack);
 void expStackDispose(tExpStack *stack);
 void expStackPush(tExpStack *stack, tExpression exp);
 void expStackTop(tExpStack *stack, tExpression *exp);
 bool expStackPop(tExpStack *stack, tExpression *exp);
-bool expIsEmpty(tExpStack *stack);
+bool isEmpty(tExpStack *stack);
 
 #endif // expstack_h
