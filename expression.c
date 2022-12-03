@@ -343,6 +343,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     // For knowledge of final type of result that is being returned to
     tTokenType resultType;
 
+    addCode("#EXPRESSION START");
     rearrangeStack(expStack);
     
     // Always pop and push first
@@ -365,7 +366,17 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         }
         else
         {
-            addCode("MOVE %s int@%s", tgtVar, inputexp.data);
+            // Todle by mela byt hotovka, Jondo (jsem si to schvalne udelal, 
+            // abych si zkusil, jak funguji ty fce v generatoru)
+            if (isString(table, &inputexp))
+                addCode("MOVE %s %s", tgtVar, ifjCodeStr(tmpStr, inputexp.data));
+            else if (isReal(table, &inputexp))
+                // je potrbea to prepsat do hexadecimalniho, jinak to funguje docela dobre
+                addCode("MOVE %s %s", tgtVar, ifjCodeReal(tmpStr, convertToDouble(&inputexp)));
+            else if (isInt(table, &inputexp))
+                addCode("MOVE %s %s", tgtVar, ifjCodeInt(tmpStr, convertToInt(&inputexp))); 
+            else 
+                errorExit("Podminka u jen jedne veci na inputstacku neco chybne\n", CERR_INTERNAL);
             return inputexp.type;
         }
     }
@@ -377,7 +388,6 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     inputexp.type = popexp.type;
     inputexp.isNonTerminal = false;
 
-    addCode("#EXPRESSION START");
     //addCode("CREATEFRAME");
     //addCode("DEFVAR TF@%s", expResultName);
     
@@ -400,11 +410,14 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             }
         }
         
-        if (tstack_isEmpty(expStack))
+        // Uz nemame co shiftovatS
+        if (tstack_isEmpty(expStack) && inputexp.data == NULL)
             precedence = '>';
         else if (isNonTerminal(evalStack->top))
             precedence = prdTable[typeToIndex(second.type)][typeToIndex(inputexp.type)];
-        else 
+        else if (isConst(&inputexp) || (isConst(&stackTop) && isOperator(&inputexp)))
+            precedence = '<';
+        else
             precedence = prdTable[typeToIndex(stackTop.type)][typeToIndex(inputexp.type)];
         
         switch (precedence)
@@ -434,11 +447,19 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
 
             expStackPush(evalStack, inputexp);
 
-            tstack_pop(expStack, &popexp);
-            inputexp.isNonTerminal = false;
-            inputexp.type = popexp.type;
-            if (popexp.data != NULL)
-                strcpy(inputexp.data, popexp.data);
+            if (tstack_pop(expStack, &popexp))
+            {
+                inputexp.isNonTerminal = false;
+                inputexp.type = popexp.type;
+                if (popexp.data != NULL)
+                    strcpy(inputexp.data, popexp.data);
+            }
+            else
+            {
+                inputexp.type = tNone;
+                inputexp.data = NULL;
+                inputexp.isNonTerminal = false;
+            }
             
             break;  
 
@@ -533,7 +554,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                         strcat(code, tmpStr);
                         addCode(code);
                         code[0] = '\0';
-
+                        
                         // musime vytahnout hodnotu a udelat z ni int
                         tmpInt = convertToInt(&stackTop);
                         ifjCodeInt(tmpStr,tmpInt);
