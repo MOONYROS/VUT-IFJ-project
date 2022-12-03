@@ -16,6 +16,7 @@
                 "symtable.c",
                 "token.c",
                 "generator.c",
+                "expStack.c",
                 "-o",
                 "gigachad_compiler"
             ],
