@@ -10,8 +10,8 @@ function secti(int $prvni, int $druhy) : int
 */
 
 function prazdna() : void {}
-
-$a = 1+1;
+$b = 1+1;
+$a = 1+1+$b;
 // $aa = ;
 $b = 2;
 $c = $a+$b;

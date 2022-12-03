@@ -13,6 +13,7 @@
 #include "tstack.h"
 #include "token.h"
 #include "symtable.h"
+#include "expStack.h"
 
 
 // function to evaluate expression
@@ -23,20 +24,21 @@ tTokenType const2type(tTokenType ctype);
 
 
 // Auxiliary functions for semantic controls etc.
-bool isOperator(tToken *token);
-bool isNumberOp(tToken *token);
-bool isRelationalOp(tToken *token);
-bool isStringOp(tToken *token);
-bool isConst(tToken *token);
-bool isVar(tToken *token);
-bool isNumber(tSymTable *table, tToken *token);
-bool isString(tSymTable *table, tToken *token);
-bool isReal(tSymTable *table, tToken *token);
-bool isInt(tSymTable *table, tToken *token);
-tTokenType variableType(tSymTable *table, tToken *token);
-bool isDefined(tSymTable *table, tToken *token);
-bool checkOpDefinition(tSymTable *table, tToken *third, tToken *top);
-tTokenType getResultType(tSymTable *table, tToken *top, tToken *third, tTokenType operation);
+bool isOperator(tExpression *exp);
+bool isNumberOp(tExpression *exp);
+bool isRelationalOp(tExpression *exp);
+bool isStringOp(tExpression *exp);
+bool isConst(tExpression *exp);
+bool isVar(tSymTable *table, tExpression *exp);
+bool isNumber(tSymTable *table, tExpression *exp);
+bool isString(tSymTable *table, tExpression *exp);
+bool isReal(tSymTable *table, tExpression *exp);
+bool isInt(tSymTable *table, tExpression *exp);
+bool isNonTerminal(tExpStackItem *item);
+tTokenType variableType(tSymTable *table, tExpression *exp);
+bool isDefined(tSymTable *table, tExpression *exp);
+bool checkOpDefinition(tSymTable *table, tExpression *top, tExpression *third);
+tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third, tTokenType operation);
 
 
 // Functions actually doing something
