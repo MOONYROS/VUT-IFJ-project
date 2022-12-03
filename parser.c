@@ -203,13 +203,14 @@ void processFunctionDefinition()
     else
     {
         // on 2nd pass define function local variables to function code
+        addCodeVariableDefs(fce->localST);
         // and fill them with call values
         int par = 1;
         while (!tstack_isEmpty(tmpStack))
         {
             tstack_pop(tmpStack, &tmpToken); // pop type definition - not checking results as the 1st pass passed ok
             tstack_pop(tmpStack, &tmpToken); // pop var identifier
-            addCode("DEFVAR LF@%s # funcdef", tmpToken.data);
+            //addCode("DEFVAR LF@%s # funcdef", tmpToken.data);
             addCode("MOVE LF@%s LF@%%%d", tmpToken.data, par);
             par++;
             if (tstack_peek(tmpStack) != NULL)
@@ -254,7 +255,7 @@ void processFunctionDefinition()
     matchTokenAndNext(tLCurl);
     // parse function statements
     if (prgPass == 1)
-        parse_statements(NULL, NULL); // do not care about function body statements on the 1st pass
+        parse_statements(fce->localST, NULL); // do not care about function body statements on the 1st pass
     else
         parse_statements(fce->localST, NULL);
     // dbgMsg("Function local symbol table:\n");
@@ -313,6 +314,7 @@ void processIfStatement(tSymTable* st)
     addCode("LABEL $IFtrue%05d", condNr);
     dbgMsg2(" {\n");
     parse_statements(st, NULL);
+    //st_delete_scope(st, condNr);
     dbgMsg2("} ");
     addCode("JUMP $IFend%05d", condNr);
     matchTokenAndNext(tRCurl);
@@ -322,6 +324,7 @@ void processIfStatement(tSymTable* st)
     addCode("LABEL $IFelse%05d", condNr);
     dbgMsg2("{\n");
     parse_statements(st, NULL);
+    //st_delete_scope(st, condNr);
     dbgMsg2("} END IF\n");
     matchTokenAndNext(tRCurl);
     addCode("LABEL $IFend%05d", condNr);
@@ -354,8 +357,9 @@ void processWhileStatement(tSymTable* st)
     }
     else
     {
-        addCode("DEFVAR TF@%%condRes%05d", condNr);
         addCode("LABEL $WHILEstart%05d", condNr);
+        addCode("CREATEFRAME");
+        addCode("DEFVAR TF@%%condRes%05d", condNr);
         dbgMsg2(" ( ");
         sprintf(tmpStr, "TF@%%%%condRes%05d", condNr);
         expType = evalExp(tmpStr, tmpStack, st);
@@ -388,11 +392,12 @@ void processFunctionCall(tSymTable* st, tStack* stack)
     char* funcName = safe_malloc(MAX_TOKEN_LEN);
     tToken tmpToken = { 0,0 };
     tmpToken.data = safe_malloc(MAX_TOKEN_LEN);
-    int funcNr = funcVarCnt;
-    if (prgPass == 2)
-        funcVarCnt++;
 
     strcpy(funcName, token.data);
+
+    int funcNr = funcVarCnt;
+    if (strcmp(funcName, "write") != 0)
+        funcVarCnt++;
 
     //ulozime funkcni promennou misto funkce - aaa tohle je hodne temp a vubec to neni poradne zkontrolovany dal
     tmpToken.type = tIdentifier;
@@ -408,6 +413,20 @@ void processFunctionCall(tSymTable* st, tStack* stack)
     {
         // pri prvnim pruchodu nas parametry vubec nezajimaji
         tstack_deleteItems(tmpStack);
+        if (strcmp(funcName, "write") != 0)
+        {
+            char tmpStr[255];
+            tSymTableItem* sti = st_search(&gst, funcName);
+            sprintf(tmpStr, "%s%s%05d", funcPrefixName, funcName, funcNr);
+            tSymTableItem* stf = st_insert(st, tmpStr);
+            if (stf == NULL)
+            {
+                errorExit("cannot insert function return variable to symbol table", CERR_INTERNAL);
+                return;
+            }
+            if (sti != NULL)    // fce uz je deklarovana, tak dame jeji promenne i typ
+                stf->dataType = sti->dataType;
+        }
     }
     else
     {
@@ -474,8 +493,8 @@ void processFunctionCall(tSymTable* st, tStack* stack)
         else
         {
             // function call
-            addCode("DEFVAR LF@%s%s%05d", funcPrefixName, funcName, funcNr);
             addCode("CREATEFRAME");
+            // addCode("DEFVAR LF@%s%s%05d", funcPrefixName, funcName, funcNr);
             // zkontrolujeme parametry volane funkce s nadefinovanou v global symbol table
             int parcount = tstack_count(tmpStack);
             int estim = st_nr_func_params(&gst, sti->name);
@@ -502,9 +521,10 @@ void processFunctionCall(tSymTable* st, tStack* stack)
                 typ = evalExp(tmpStr, expStack, st);
                 if (!tstack_isEmpty(tmpStack))
                     dbgMsg(", ");
-                if (param->dataType != typ)
+                // jestlize nejsou predavane typy ani na jednu stranu kompatibilni, tak chyba, jinak to proste zkusime
+                // bbb je otazka jestli nebyt chytrejsi pri predavani potencionalniho null
+                if (!typeIsCompatible(param->dataType, typ) && !typeIsCompatible(typ, param->dataType))
                 {
-                    // aaa tady musi byt trochu chytrejsi, co tam pustime
                     char msg[255];
                     sprintf(msg, "function argument type %s does not match declaration type %s", tokenName[typ], tokenName[param->dataType]);
                     errorExit(msg, CERR_SEM_ARG);
@@ -585,6 +605,8 @@ void processReturn(tSymTable* st, tStack* stack)
             actFunc->hasReturn++;
         }
         // addCode("MOVE LF@%s TF@%s", funcRetValName, tmpExpResultName);
+        addCode("POPFRAME");
+        addCode("RETURN");
     }
     matchTokenAndNext(tSemicolon);
 
@@ -604,26 +626,28 @@ void processAssignment(tSymTable* st)
     tStack* tmpStack = tstack_init();
     tTokenType expType = tNone;
     parse_expression(st, tmpStack);
+    on_stack_state_error(tmpStack, isEmpty, "assignment with an empty expression", CERR_SYNTAX); //aaa
+    tSymTableItem* sti;
     if (prgPass == 1)
     {
         tstack_deleteItems(tmpStack);
+        sti = st_searchinsert(st, assignId.data);
+        if (sti == NULL)
+        {
+            errorExit("assignment variable cannot be inserted to the symbol table", CERR_INTERNAL);
+            return; // prevent C6011
+        }
     }
     else
     {
-        on_stack_state_error(tmpStack, isEmpty, "assignment with an empty expression", CERR_SYNTAX); //aaa
         // tstack_print(tmpStack);
         sprintf(tmpStr, "LF@%s", assignId.data);
-        tSymTableItem* sti = st_search(st, assignId.data);
+        sti = st_search(st, assignId.data);
         if (sti == NULL)
-        { // variable not found in symbol table yet, so it shoold be defined in code too
-            addCode("DEFVAR %s # assign", tmpStr);
-            // and add it to the symbol table
-            sti = st_insert(st, assignId.data);
-            if (sti == NULL)
-            {
-                errorExit("assignment variable cannot be inserted to the symbol table", CERR_INTERNAL);
-                return; // prevent C6011
-            }
+        {  
+            // addCode("DEFVAR %s # assign", tmpStr);
+            errorExit("assignment variable cannot be found in the symbol table", CERR_INTERNAL);
+            return; // prevent C6011
         }
         dbgMsg("expression [ ");
         //int cnt = tstack_count(tmpStack);
@@ -660,11 +684,13 @@ void parse()
     // second pass
     prgPass = 2;
     srcLine = 1;
+    funcVarCnt = 1;
     fseek(inf, 0, SEEK_SET);
     if (SkipProlog(inf))
         dbgMsg("PASS 2 - PROLOG OK\n");
     else
         errorExit("Invalid PROLOG", CERR_SYNTAX);  // tohle by nemelo nastat, kdyz to pri prvnim pruchodu proslo, ale pro jistotu
+    addCodeVariableDefs(&gst);
     nextToken();
     parse_program();
     //dbgMsg("Global symbol table after the second pass:\n");

@@ -30,7 +30,7 @@ typedef struct SymTableItem {
     char name[255];             // name of variable or function
     tTokenType dataType;        // data type variable or function
     int isFunction;             // 1 (true) if name is function
-    int isDefined;               // 1 if function is defined, 0 if only delcared by function call
+    int isDefined;              // 1 if function is defined, 0 if only delcared by function call
     int hasReturn;              // function only: info if the function has correctly returned
     struct SymTable* localST;   // function only: pointer to local symbol table for funcion
     tFuncParam* params;         // function only : list of function paramaters
@@ -52,6 +52,7 @@ int st_nr_func_params(tSymTable* table, char* key);
 tTokenType st_get_type(tSymTable* table, char* key);
 void st_delete(tSymTable*table, char *key);
 void st_delete_all(tSymTable* table);
+void st_delete_scope(tSymTable* table, int scope);
 void st_print(tSymTable* table);
 
 #endif /* symtable_h */

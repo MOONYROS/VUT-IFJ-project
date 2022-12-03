@@ -264,8 +264,6 @@ void st_delete(tSymTable *table, char *key) {
     }
 }
 
-
-
 void st_delete_all(tSymTable *table) {
     tSymTableItem* toDelete;
     if (table == NULL)
@@ -293,6 +291,32 @@ void st_delete_all(tSymTable *table) {
         
     }
 }
+
+/*
+void st_delete_scope(tSymTable* table, int scope)
+{
+    if (table == NULL)
+        return;
+
+    tSymTableItem* item;
+    for (int i = 0; i < ST_SIZE; i++)
+    {
+        item = table->items[i];
+        if (item != NULL)
+        {
+            tSymTableItem* ptr = item->next;
+            while (ptr != NULL)
+            {
+                tSymTableItem* p = ptr;
+                ptr = ptr->next;
+                if (p->scope == scope)
+                    st_delete(table, p->name);
+            }
+            if (item->scope == scope)
+                st_delete(table, item->name);
+        }
+    }
+} */
 
 void st_print(tSymTable* table)
 {

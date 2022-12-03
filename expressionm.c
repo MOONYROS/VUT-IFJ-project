@@ -55,6 +55,7 @@ tTokenType evalExp(char* tgtVar, tStack* exp, tSymTable* st)
     tTokenType typ = tNone;
     char code[MAX_IFJC_LEN];
     char tmpStr[MAX_IFJC_LEN];
+    int notResult = 0;
 
     if ((exp == NULL) || (exp->top == NULL))
         errorExit("empty expression to process", CERR_INTERNAL);
@@ -120,10 +121,19 @@ tTokenType evalExp(char* tgtVar, tStack* exp, tSymTable* st)
                                 errorExit("expression with different variable data types", CERR_SEM_TYPE); // tady to vypise chybu exitne program uplne
                         }
                     }
-                    sprintf(tmpStr, "LF@%s", token.data);
+                    if (strstr(token.data, funcPrefixName) != NULL)
+                        sprintf(tmpStr, "LF@%s", token.data);
+                    else
+                        sprintf(tmpStr, "LF@%s", token.data);
                     strcat(code, tmpStr);
                     addCode(code);
                     code[0] = '\0';
+                    if (notResult) 
+                    {
+                        sprintf(tmpStr, "NOT %s %s", tgtVar, tgtVar);
+                        addCode(tmpStr);
+                        notResult = 0;
+                    }
                 }
                 else
                 {
@@ -143,6 +153,12 @@ tTokenType evalExp(char* tgtVar, tStack* exp, tSymTable* st)
                 strcat(code, ifjCodeInt(tmpStr, tmpi));
                 addCode(code);
                 code[0] = '\0';
+                if (notResult)
+                {
+                    sprintf(tmpStr, "NOT %s %s", tgtVar, tgtVar);
+                    addCode(tmpStr);
+                    notResult = 0;
+                }
                 if (typ == tNone)
                     // konstanty prevest na typ nebo primo typ
                     typ = const2type(token.type);
@@ -157,6 +173,12 @@ tTokenType evalExp(char* tgtVar, tStack* exp, tSymTable* st)
                 strcat(code, ifjCodeReal(tmpStr, tmpd));
                 addCode(code);
                 code[0] = '\0';
+                if (notResult)
+                {
+                    sprintf(tmpStr, "NOT %s %s", tgtVar, tgtVar);
+                    addCode(tmpStr);
+                    notResult = 0;
+                }
                 if (typ == tNone)
                     // konstanty prevest na typ nebo primo typ
                     typ = const2type(token.type);
@@ -169,6 +191,12 @@ tTokenType evalExp(char* tgtVar, tStack* exp, tSymTable* st)
                 strcat(code, ifjCodeStr(tmpStr, token.data));
                 addCode(code);
                 code[0] = '\0';
+                if (notResult)
+                {
+                    sprintf(tmpStr, "NOT %s %s", tgtVar, tgtVar);
+                    addCode(tmpStr);
+                    notResult = 0;
+                }
                 // nasledujici if krmici typ je jen dummy, aby mi to neco delalo, vyhodnoceni vyrazu to pak musi vratit samozrejme spravne
                 // delaji to i predhozi case tInt a TReal...
                 // navratovy typ nastvim podle prvniho konstany se smysluplnym typem, ktery mi prijde pod ruku ;-)
@@ -184,10 +212,16 @@ tTokenType evalExp(char* tgtVar, tStack* exp, tSymTable* st)
                 addCode(code);
                 // WOJEB jeslti bylo EQ na NOT EQ
                 //sprintf(tmpStr, "%s", tgtVar);
-                strcpy(tmpStr, "TF@%condRes00002");
+                //strcpy(tmpStr, "TF@%condRes00002");
                 //if (strncmp(code, "EQ", 2) == 0)
                 //    addCode("NOT %s %s", tmpStr, tmpStr);
                 code[0] = '\0';
+                if (notResult)
+                {
+                    sprintf(tmpStr, "NOT %s %s", tgtVar, tgtVar);
+                    addCode(tmpStr);
+                    notResult = 0;
+                }
                 if (typ == tNone)
                     typ = tNullType;
             }
@@ -197,7 +231,8 @@ tTokenType evalExp(char* tgtVar, tStack* exp, tSymTable* st)
                 dbgMsg("%s", token.data);
                 sprintf(tmpStr, "ADD %s %s ", tgtVar, tgtVar);
                 strcpy(code, tmpStr);
-            }
+                notResult = 0;
+        }
             break;
         case tMinus:
             {
@@ -249,12 +284,13 @@ tTokenType evalExp(char* tgtVar, tStack* exp, tSymTable* st)
             }
             break;
         case tNotIdentical:
-        {
-            dbgMsg("%s", token.data);
-            sprintf(tmpStr, "EQ %s %s ", tgtVar, tgtVar);
-            strcpy(code, tmpStr);
-        }
-        break;
+            {
+                dbgMsg("%s", token.data);
+                sprintf(tmpStr, "EQ %s %s ", tgtVar, tgtVar);
+                strcpy(code, tmpStr);
+                notResult = 1;
+            }
+            break;
 
         case tLessEq:
         case tMoreEq:

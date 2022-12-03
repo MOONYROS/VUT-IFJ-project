@@ -155,6 +155,31 @@ int addCode(const char* fmt, ...)
     return ret;
 }
 
+void addCodeVariableDefs(tSymTable* table)
+{
+    if (table == NULL)
+        return;
+
+    tSymTableItem* item;
+    for (int i = 0; i < ST_SIZE; i++)
+    {
+        item = table->items[i];
+        if (item != NULL)
+        {
+            if (!item->isFunction)
+            {
+                addCode("DEFVAR LF@%s", item->name);
+            }
+            while (item->next != NULL)
+            {
+                addCode("DEFVAR LF@%s", item->next->name);
+                item = item->next;
+            }
+        }
+    }
+    addCode("");
+}
+
 void genCodeProlog(FILE* f)
 {
     fprintf(f, "# Gigachad PHP compiler generated code\n");
@@ -211,14 +236,27 @@ void generateEmbeddedFunctions(FILE* f)
     //fprintf(f, "POPFRAME\n");
     fprintf(f, "RETURN\n");
     fprintf(f, "\n");
+
     fprintf(f, "LABEL $func_readf\n");
     fprintf(f, "DEFVAR TF@%%retval1\n");
     fprintf(f, "READ TF@%%retval1 float\n");
     fprintf(f, "RETURN\n");
     fprintf(f, "\n");
+
     fprintf(f, "LABEL $func_reads\n");
     fprintf(f, "DEFVAR TF@%%retval1\n");
     fprintf(f, "READ TF@%%retval1 string\n");
+    fprintf(f, "RETURN\n");
+    fprintf(f, "\n");
+
+    fprintf(f, "LABEL $func_strlen\n");
+    fprintf(f, "PUSHFRAME\n");
+    fprintf(f, "CREATEFRAME\n");
+    fprintf(f, "DEFVAR LF@s\n");
+    fprintf(f, "MOVE LF@s LF@%%1\n");
+    fprintf(f, "DEFVAR LF@%%retval1\n");
+    fprintf(f, "STRLEN LF@%%retval1 LF@s\n");
+    fprintf(f, "POPFRAME\n");
     fprintf(f, "RETURN\n");
     fprintf(f, "\n");
 }
