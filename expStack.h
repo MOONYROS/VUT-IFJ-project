@@ -33,7 +33,7 @@ typedef struct expStack {
 } tExpStack;
 
 unsigned int expStackLength(tExpStack *stack);
-void expStackInit(tExpStack *stack);
+void expStackInit(tExpStack **stack);
 void expStackDispose(tExpStack *stack);
 void expStackPush(tExpStack *stack, tExpression exp);
 void expStackTop(tExpStack *stack, tExpression *exp);

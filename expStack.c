@@ -28,10 +28,10 @@ unsigned int expStackLength(tExpStack *stack)
     return count;
 }
 
-void expStackInit(tExpStack *stack)
+void expStackInit(tExpStack **stack)
 {
-    stack = safe_malloc(sizeof(tExpStack));
-    stack->top = NULL;
+    *stack = safe_malloc(sizeof(tExpStack));
+    (*stack)->top = NULL;
 }
 
 void expStackDispose(tExpStack *stack)

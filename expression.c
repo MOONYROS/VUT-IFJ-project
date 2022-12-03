@@ -313,7 +313,7 @@ tTokenType const2type(tTokenType ctype)
 tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
 {
     tExpStack *evalStack = NULL;
-    expStackInit(evalStack);
+    expStackInit(&evalStack);
 
     char code[MAX_IFJC_LEN];
     char tmpStr[MAX_IFJC_LEN];
