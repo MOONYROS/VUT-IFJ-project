@@ -557,201 +557,67 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             case tDiv:
                 addCode("DIVS");
                 break;
-            case tConcat: //TODO
+            case tConcat:
                 addCode("POPS TF@otoc");
                 addCode("POPS TF@tmp");
                 addCode("CONCAT TF@tmp TF@tmp TF@otoc");
                 addCode("PUSHS TF@tmp");
                 break;
             case tMore:
-                addCode("GT TF@%s TF@%s ", expResultName, expResultName);
+                addCode("GTS");
                 break;
             case tLess:
-                addCode("LT TF@%s TF@%s ", expResultName, expResultName);
+                addCode("LTS");
                 break;
             case tMoreEq:
-                addCode("JUMPIFEQ %s TF@%s TF@%s", expResultName, expResultName, expResultName);
-                addCode("GT TF@%s TF@%s ", expResultName, expResultName);
-                addCode("LABEL %s", expResultName);
+                addCode("POPS TF@otoc");
+                addCode("POPS TF@tmp");
+                addCode("JUMPIFEQ rovno TF@tmp TF@otoc");
+                addCode("GT TF@tmp TF@tmp TF@otoc");
+                addCode("JUMPIFEQ rovno TF@tmp bool@true");
+                addCode("JUMP mene");
+                addCode("LABEL rovno");
+                addCode("PUSHS int@1");
+                addCode("JUMP done");
+                addCode("LABEL mene");
+                addCode("PUSHS int@0");
+                addCode("LABEL done");
                 break;
             case tLessEq:
-                addCode("JUMPIFEQ %s TF@%s TF@%s", expResultName, expResultName, expResultName);
-                addCode("LT TF@%s TF@%s ", expResultName, expResultName);
-                addCode("LABEL %s", expResultName);
+                addCode("POPS TF@otoc");
+                addCode("POPS TF@tmp");
+                addCode("JUMPIFEQ rovno TF@tmp TF@otoc");
+                addCode("LT TF@tmp TF@tmp TF@otoc");
+                addCode("JUMPIFEQ rovno TF@tmp bool@true");
+                addCode("JUMP vice");
+                addCode("LABEL rovno");
+                addCode("PUSHS int@1");
+                addCode("JUMP done");
+                addCode("LABEL vice");
+                addCode("PUSHS int@0");
+                addCode("LABEL done");
                 break;
             case tIdentical:
-                addCode("JUMPIFEQ %s TF@%s TF@%s", expResultName, expResultName, expResultName);
-                addCode("MOVE TF@%s int@0", expResultName);
-                addCode("JUMP %s", expResultName);
-                addCode("LABEL %s", expResultName);
-                addCode("MOVE TF@%s int@1", expResultName);
-                addCode("LABEL %s", expResultName);
+                addCode("JUMPIFEQS iden");
+                addCode("PUSHS int@0");
+                addCode("JUMP notiden");
+                addCode("LABEL iden");
+                addCode("PUSHS int@1");
+                addCode("LABEL notiden");
                 break;
             case tNotIdentical:
-                addCode("JUMPIFNEQ %s TF@%s TF@%s", expResultName, expResultName, expResultName);
-                addCode("MOVE TF@%s 0", expResultName);
-                addCode("JUMP %s", expResultName);
-                addCode("LABEL %s", expResultName);
-                addCode("MOVE TF@%s 1", expResultName);
-                addCode("LABEL %s", expResultName);
+                addCode("JUMPIFNEQS notiden");
+                addCode("PUSHS int@0");
+                addCode("JUMP iden");
+                addCode("LABEL notiden");
+                addCode("PUSHS int@1");
+                addCode("LABEL iden");
                 break;
             default:
                 errorExit("Syntax Error: Wrong operator.\n", CERR_SYNTAX);
                 break;
             }
 
-            /*
-            if (isConst(&stackTop) && isConst(&third))
-            {
-                if (isInt(table, &stackTop))
-                {
-                    addCode("MOVE TF@%s %s", tmpNonTerminal, ifjCodeInt(tmpStr, convertToInt(&third)));
-                    addCode("MOVE TF@%s %s", tmp2, ifjCodeInt(tmpStr, convertToInt(&stackTop)));
-                }
-                else if (isReal(table, &stackTop))
-                {
-                    addCode("MOVE TF@%s %s", tmp1, ifjCodeReal(tmpStr, convertToDouble(&third)));
-                    addCode("MOVE TF@%s %s", tmp2, ifjCodeReal(tmpStr, convertToDouble(&stackTop)));
-                }
-                else if (isString(table, &stackTop))
-                {
-                    addCode("MOVE TF@%s %s", tmp1, ifjCodeStr(tmpStr, third.data));
-                    addCode("MOVE TF@%s %s", tmp2, ifjCodeStr(tmpStr, stackTop.data));
-                }
-                else
-                {
-                    errorExit("Different operand types\n", CERR_INTERNAL);
-                }
-            }
-            else if (isConst(&stackTop) && isVar(table, &third))
-            {
-                if (isInt(table, &stackTop) )
-                {
-                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
-                    addCode("MOVE TF@%s %s", tmp2, ifjCodeInt(tmpStr, convertToInt(&stackTop)));
-                }
-                else if (isReal(table, &stackTop))
-                {
-                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
-                    addCode("MOVE TF@%s %s", tmp2, ifjCodeReal(tmpStr, convertToDouble(&stackTop)));
-                }
-                else if (isString(table, &stackTop))
-                {
-                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
-                    addCode("MOVE TF@%s %s", tmp2, ifjCodeStr(tmpStr, stackTop.data));
-                }
-                else
-                {
-                    errorExit("Different operand types\n", CERR_INTERNAL);
-                }
-            }
-            else if (isConst(&stackTop) && isVar(table, &third))
-            {
-                if (isInt(table, &stackTop) )
-                {
-                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
-                    addCode("MOVE TF@%s %s", tmp2, ifjCodeInt(tmpStr, convertToInt(&stackTop)));
-                }
-                else if (isReal(table, &stackTop))
-                {
-                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
-                    addCode("MOVE TF@%s %s", tmp2, ifjCodeReal(tmpStr, convertToDouble(&stackTop)));
-                }
-                else if (isString(table, &stackTop))
-                {
-                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
-                    addCode("MOVE TF@%s %s", tmp2, ifjCodeStr(tmpStr, stackTop.data));
-                }
-                else
-                {
-                    errorExit("Different operand types\n", CERR_INTERNAL);
-                }
-            }
-            else if (isVar(table, &stackTop) && isConst(&third))
-            {
-                if (isInt(table, &stackTop) )
-                {
-                    addCode("MOVE TF@%s %s", tmp1, ifjCodeInt(tmpStr, convertToInt(&third)));
-                    addCode("MOVE TF@%s LF@%s", tmp2, stackTop.data);
-                }
-                else if (isReal(table, &stackTop))
-                {
-                    addCode("MOVE TF@%s %s", tmp1, ifjCodeInt(tmpStr, convertToDouble(&third)));
-                    addCode("MOVE TF@%s LF@%s", tmp2, stackTop.data);
-                }
-                else if (isString(table, &stackTop))
-                {
-                    addCode("MOVE TF@%s %s", tmp1, third.data);
-                    addCode("MOVE TF@%s LF@%s", tmp2, stackTop.data);
-                }
-                else
-                {
-                    errorExit("Different operand types\n", CERR_INTERNAL);
-                }
-            }
-            else if (isVar(table, &stackTop) && isVar(table, &third))
-            {
-                addCode("MOVE TF@%s LF@%s", tmp1, third.data);
-                addCode("MOVE TF@%s LF@%s", tmp2, stackTop.data);
-            }
-
-            switch (second.type)
-            {
-            case tPlus:
-                addCode("ADD TF@%s TF@%s TF@%s", tmpNonTerminal, tmp1, tmp2);
-                break;
-            case tMinus:
-                addCode("SUB TF@%s TF@%s TF@%s", tmpNonTerminal, tmp1, tmp2);
-                break;
-            case tMul:
-                addCode("MUL TF@%s TF@%s TF@%s", tmpNonTerminal, tmp1, tmp2);
-                break;
-            case tDiv:
-                if (isInt(table, &stackTop))
-                    addCode("IDIV TF@%s TF@%s TF@%s ", tmpNonTerminal, tmp1, tmp2);
-                else
-                    addCode("DIV TF@%s TF@%s TF@%s ", tmpNonTerminal, tmp1, tmp2);
-                break;
-            case tConcat:
-                addCode("CONCAT TF@%s TF@%s TF@%s ", tmpNonTerminal, tmp1, tmp2);
-                break;
-            case tMore:
-                addCode("GT TF@%s TF@%s ", expResultName, expResultName);
-                break;
-            case tLess:
-                addCode("LT TF@%s TF@%s ", expResultName, expResultName);
-                break;
-            case tMoreEq:
-                addCode("JUMPIFEQ %s TF@%s TF@%s", expResultName, expResultName, expResultName);
-                addCode("GT TF@%s TF@%s ", expResultName, expResultName);
-                addCode("LABEL %s", expResultName);
-                break;
-            case tLessEq:
-                addCode("JUMPIFEQ %s TF@%s TF@%s", expResultName, expResultName, expResultName);
-                addCode("LT TF@%s TF@%s ", expResultName, expResultName);
-                addCode("LABEL %s", expResultName);
-                break;
-            case tIdentical:
-                addCode("JUMPIFEQ %s TF@%s TF@%s",  expResultName, expResultName, expResultName);
-                addCode("MOVE TF@%s int@0", expResultName);
-                addCode("JUMP %s", expResultName);
-                addCode("LABEL %s", expResultName);
-                addCode("MOVE TF@%s int@1", expResultName);
-                addCode("LABEL %s", expResultName);
-                break;
-            case tNotIdentical:
-                addCode("JUMPIFNEQ %s TF@%s TF@%s",  expResultName, expResultName, expResultName);
-                addCode("MOVE TF@%s 0", expResultName);
-                addCode("JUMP %s", expResultName);
-                addCode("LABEL %s", expResultName);
-                addCode("MOVE TF@%s 1", expResultName);
-                addCode("LABEL %s", expResultName);
-                break;
-            default:
-                errorExit("Syntax Error: Wrong operator.\n", CERR_SYNTAX);
-                break;
-            }
-            */
             expStackPop(evalStack, &uselessExp);
             expStackPop(evalStack, &uselessExp);
             expStackPop(evalStack, &uselessExp);
@@ -771,146 +637,3 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     safe_free(nonTerminal.data);
     return nonTerminal.type;
 }
-
-/*
-texpType evalExp(tStack* expStack, tSymTable* symTable)
-{
-    texp exp = { 0, NULL };
-    // i kdyz je exp lokalni promenna, tak jeji data jsou dymaicky alokovane
-    exp.data = safe_malloc(MAX_TOKEN_LEN); //??
-    texpType typ = tNone;
-    char code[MAX_IFJC_LEN];
-    char tmpStr[MAX_IFJC_LEN];
-
-    addCode("# expression START");
-    addCode("CREATEFRAME");
-    addCode("DEFVAR TF@%s", expResultName);
-
-    // projdu vsechny expy co mam na stacku a vypisu je pres dbgMsg (printf, ale da se vypnout v support.h pres DEBUG_MSG)
-    // u identifikatoru (promennych) zkontroluju jestli jsou v symbol table
-    // prvni rozumny datovy typ si vratim jako datovy typ celeho vyrazu
-    // jinak to nic uziteneho nedela ;-)
-
-    sprintf(code, "MOVE TF@%s ", expResultName); // pripravim si naplneni docasne promenne prvnim expem, ktery by nemel byt operace
-
-    while (!tstack_isEmpty(expStack))
-    {
-        tstack_pop(expStack, &exp);
-
-        switch (exp.type)
-        {
-        case tIdentifier:
-            {
-                tSymTableItem* sti = st_search(symTable, exp.data);
-                if (sti != NULL)
-                {
-                    dbgMsg("%s", exp.data);
-                    // navratovy typ vyrazu nastvim podle prvni promenne, ktera mi prijde pod ruku ;-)
-                    if (typ == tNone)
-                        typ = sti->dataType;
-                    else
-                    { // a pokud uz typ mame a prisla promenna, ktera je jineho typu, tak prozatim semanticka chybe, nez poradne dodelame evalExp()
-                        if (typ != sti->dataType)
-                            errorExit("expression with different variable data types", CERR_SEM_TYPE); // tady to vypise chybu exitne program uplne
-                    }
-                    sprintf(tmpStr, "LF@%s", exp.data);
-                    strcat(code, tmpStr);
-                    addCode(code);
-                    code[0] = '\0';
-                }
-                else
-                {
-                    char errMsg[200];
-                    sprintf(errMsg, "variable '%s' not defined before use", exp.data);
-                    errorExit(errMsg, CERR_SEM_UNDEF); // tady to vypise chybu exitne program uplne
-                }
-            }
-            break;
-        case tInt:
-        case tInt2:
-            {
-                dbgMsg("%s", exp.data);
-                int tmpi;
-                if (sscanf(exp.data, "%d", &tmpi) != 1)
-                    errorExit("wrong integer constant", CERR_INTERNAL);
-                strcat(code, ifjCodeInt(tmpStr, tmpi));
-                addCode(code);
-                code[0] = '\0';
-                if (typ == tNone)
-                    // konstanty prevest na typ nebo primo typ
-                    typ = const2type(exp.type);
-            } 
-            break;
-        case tReal:
-        case tReal2:
-            {
-                double tmpd;
-                if (sscanf(exp.data, "%lf", &tmpd) != 1)
-                    errorExit("wrong integer constant", CERR_INTERNAL);
-                strcat(code, ifjCodeReal(tmpStr, tmpd));
-                addCode(code);
-                code[0] = '\0';
-                if (typ == tNone)
-                    // konstanty prevest na typ nebo primo typ
-                    typ = const2type(exp.type);
-
-            } 
-            break;
-        case tLiteral:
-            {
-                strcat(code, ifjCodeStr(tmpStr, exp.data));
-                addCode(code);
-                code[0] = '\0';
-                // nasledujici if krmici typ je jen dummy, aby mi to neco delalo, vyhodnoceni vyrazu to pak musi vratit samozrejme spravne
-                // delaji to i predhozi case tInt a TReal...
-                // navratovy typ nastvim podle prvniho konstany se smysluplnym typem, ktery mi prijde pod ruku ;-)
-                if (typ == tNone)
-                    // konstanty prevest na typ nebo primo typ
-                    typ = const2type(exp.type);
-            }
-            break;
-        case tPlus:
-            {
-                sprintf(tmpStr, "ADD TF@%s TF@%s ", expResultName, expResultName);
-                strcpy(code, tmpStr);
-            }
-            break;
-        case tMinus:
-            {
-                sprintf(tmpStr, "SUB TF@%s TF@%s ", expResultName, expResultName);
-                strcpy(code, tmpStr);
-            }
-            break;
-        case tMul:
-            {
-                sprintf(tmpStr, "MUL TF@%s TF@%s ", expResultName, expResultName);
-                strcpy(code, tmpStr);
-            }
-            break;
-        case tDiv:
-            {
-                sprintf(tmpStr, "DIV TF@%s TF@%s ", expResultName, expResultName);
-                strcpy(code, tmpStr);
-            }
-            break;
-        case tConcat:
-            {
-                sprintf(tmpStr, "CONCAT TF@%s TF@%s ", expResultName, expResultName);
-                strcpy(code, tmpStr);
-            }
-            break;
-        default:
-            errorExit("unknown exp in expression", CERR_SYNTAX); // tohle by se nemelo stat, pokud to projde syntaktickou analyzou, ale pro sichr
-            break;
-        }
-    }
-    if (strlen(code) != 0)
-        errorExit("partial instruction in expression evaluation exit", CERR_INTERNAL); // this should not happe if everything properly parsed
-    addCode("# expression END");
-    free(exp.data);
-    return typ;
-}*/
-
-
-
-
