@@ -111,7 +111,7 @@ void nextToken()
     ReadTokenPRINT(inf, &token);
     if (token.type == tInvalid)
     {
-        char tmpStr[255];
+        char tmpStr[MAX_TOKEN_LEN];
         sprintf(tmpStr, "invalid token '%s'", token.data);
         errorExit(tmpStr, CERR_LEX);
     }
@@ -121,7 +121,7 @@ void matchTokenAndNext(tTokenType tokType)
 {
     if (token.type != tokType)
     {
-        char tmpStr[255];
+        char tmpStr[MAX_TOKEN_LEN];
         sprintf(tmpStr, "unexpected token '%s'", token.data);
         errorExit(tmpStr, CERR_SYNTAX);
     }
@@ -260,7 +260,7 @@ void processFunctionDefinition()
         parse_statements(fce->localST, NULL);
     // dbgMsg("Function local symbol table:\n");
     // st_print(fce->localST);
-    // free(fce->localST); neuvolnovat, jeste ji budou potrebovat dalsi
+    // safe_free(fce->localST); neuvolnovat, jeste ji budou potrebovat dalsi
     matchTokenAndNext(tRCurl);
 
     if (prgPass == 2)
@@ -275,7 +275,7 @@ void processFunctionDefinition()
     }
 
     actFunc = NULL;
-    free(tmpToken.data);
+    safe_free(tmpToken.data);
     tstack_free(&tmpStack);
 }
 
@@ -302,9 +302,11 @@ void processIfStatement(tSymTable* st)
     else
     {
         dbgMsg2(" ( ");
-        sprintf(tmpStr, "TF@%%%%condRes%05d", condNr);
         addCode("DEFVAR TF@%%condRes%05d", condNr);
+        sprintf(tmpStr, "TF@%%%%condRes%05d", condNr);
         expType = evalExp(tmpStr, tmpStack, st);
+        if (expType == tNone) // bbb asi by bylo dobre ten vyraz vic zkontrolovat
+            errorExit("vysledek vyrazu nelze vyhodnotit", CERR_SEM_TYPE);
         dbgMsg2(" ) ");
         addCode("JUMPIFEQ $IFelse%05d TF@%%condRes%05d bool@false", condNr, condNr);
     }
@@ -363,6 +365,8 @@ void processWhileStatement(tSymTable* st)
         dbgMsg2(" ( ");
         sprintf(tmpStr, "TF@%%%%condRes%05d", condNr);
         expType = evalExp(tmpStr, tmpStack, st);
+        if (expType == tNone) // bbb asi by bylo dobre ten vyraz vic zkontrolovat
+            errorExit("vysledek vyrazu nelze vyhodnotit", CERR_SEM_TYPE);
         dbgMsg2(" ) ");
         addCode("JUMPIFEQ $WHILEend%05d TF@%%condRes%05d bool@false", condNr, condNr);
     }
@@ -378,7 +382,7 @@ void processWhileStatement(tSymTable* st)
     addCode("");
 
     safe_free(tmpStr);
-    free(funcName);
+    safe_free(funcName);
     tstack_free(&tmpStack);
 }
 
@@ -388,7 +392,7 @@ void processFunctionCall(tSymTable* st, tStack* stack)
 
     tStack* tmpStack = tstack_init();
     tStack* expStack = tstack_init();
-    tTokenType expType = tNone;
+    // tTokenType expType = tNone;
     char* funcName = safe_malloc(MAX_TOKEN_LEN);
     tToken tmpToken = { 0,0 };
     tmpToken.data = safe_malloc(MAX_TOKEN_LEN);
@@ -401,7 +405,6 @@ void processFunctionCall(tSymTable* st, tStack* stack)
 
     //ulozime funkcni promennou misto funkce - aaa tohle je hodne temp a vubec to neni poradne zkontrolovany dal
     tmpToken.type = tIdentifier;
-    tmpToken.data = safe_malloc(MAX_TOKEN_LEN);
     sprintf(tmpToken.data, "%s%s%05d", funcPrefixName, funcName, funcNr);
     tstack_pushl(stack, tmpToken);
 
@@ -415,7 +418,7 @@ void processFunctionCall(tSymTable* st, tStack* stack)
         tstack_deleteItems(tmpStack);
         if (strcmp(funcName, "write") != 0)
         {
-            char tmpStr[255];
+            char tmpStr[MAX_TOKEN_LEN];
             tSymTableItem* sti = st_search(&gst, funcName);
             sprintf(tmpStr, "%s%s%05d", funcPrefixName, funcName, funcNr);
             tSymTableItem* stf = st_insert(st, tmpStr);
@@ -448,7 +451,7 @@ void processFunctionCall(tSymTable* st, tStack* stack)
                     errorExit("stack error processing function parameters", CERR_INTERNAL);
                 if (tmpToken.type != tComma)
                 {
-                    char c[255], tmpStr[255];
+                    char c[MAX_TOKEN_LEN], tmpStr[MAX_TOKEN_LEN];
                     strcpy(c, "WRITE ");
                     switch (tmpToken.type) {
                     case tLiteral:
@@ -477,9 +480,17 @@ void processFunctionCall(tSymTable* st, tStack* stack)
                         }
                     break;
                     case tIdentifier:
-                        dbgMsg(" %s", tmpToken.data);
-                        strcat(c, "LF@");
-                        strcat(c, tmpToken.data);
+                        {
+                            tSymTableItem* stp = st_search(st, tmpToken.data);
+                            if (stp == NULL)
+                            {
+                                errorExit("function parameter not defined", CERR_SEM_UNDEF);
+                                return;
+                            }
+                            dbgMsg(" %s", tmpToken.data);
+                            strcat(c, "LF@");
+                            strcat(c, tmpToken.data);
+                        }
                         break;
                     default:
                         errorExit("unknow write() parameter", CERR_INTERNAL);
@@ -496,12 +507,17 @@ void processFunctionCall(tSymTable* st, tStack* stack)
             addCode("CREATEFRAME");
             // addCode("DEFVAR LF@%s%s%05d", funcPrefixName, funcName, funcNr);
             // zkontrolujeme parametry volane funkce s nadefinovanou v global symbol table
-            int parcount = tstack_count(tmpStack);
-            int estim = st_nr_func_params(&gst, sti->name);
+            // int parcount = tstack_count(tmpStack);
+            // int estim = st_nr_func_params(&gst, sti->name);
             /* ten pocet se ted uz neda kontrolovat, protoze je to oddelene carkami a navic jsou to vyrazy, mozna by to slo pres carky ??? aaa
             if (tstack_count(tmpStack) != st_nr_func_params(&gst, sti->name))
                 errorExit("wrong number of function parameters", CERR_SEM_ARG); */
             tFuncParam* param = sti->params;
+            if (!tstack_isEmpty(tmpStack) && param == NULL)
+            {
+                errorExit("more function parameters than expected", CERR_SEM_ARG);
+                return;
+            }
             int parnr = 1;
             while (!tstack_isEmpty(tmpStack))
             {
@@ -515,7 +531,7 @@ void processFunctionCall(tSymTable* st, tStack* stack)
                         tstack_pushl(expStack, tmpToken);
                 }
                 tTokenType typ;
-                char tmpStr[255];
+                char tmpStr[MAX_TOKEN_LEN];
                 addCode("DEFVAR TF@%%%d", parnr);
                 sprintf(tmpStr, "TF@%%%%%d", parnr);
                 typ = evalExp(tmpStr, expStack, st);
@@ -525,7 +541,7 @@ void processFunctionCall(tSymTable* st, tStack* stack)
                 // bbb je otazka jestli nebyt chytrejsi pri predavani potencionalniho null
                 if (!typeIsCompatible(param->dataType, typ) && !typeIsCompatible(typ, param->dataType))
                 {
-                    char msg[255];
+                    char msg[MAX_TOKEN_LEN];
                     sprintf(msg, "function argument type %s does not match declaration type %s", tokenName[typ], tokenName[param->dataType]);
                     errorExit(msg, CERR_SEM_ARG);
                 }
@@ -557,7 +573,7 @@ void processFunctionCall(tSymTable* st, tStack* stack)
     tstack_free(&tmpStack);
 }
 
-void processReturn(tSymTable* st, tStack* stack)
+void processReturn(tSymTable* st)
 {
     // tReturn returnValue tSemicolon
 
@@ -577,7 +593,7 @@ void processReturn(tSymTable* st, tStack* stack)
     }
     else
     {
-        char tmpStr[255];
+        char tmpStr[MAX_TOKEN_LEN];
         sprintf(tmpStr, "LF@%%%s", funcRetValName);
         dbgMsg(" expression [ ");
         int cnt = tstack_count(tmpStack);
@@ -610,7 +626,7 @@ void processReturn(tSymTable* st, tStack* stack)
     }
     matchTokenAndNext(tSemicolon);
 
-    free(funcName);
+    safe_free(funcName);
     tstack_free(&tmpStack);
 }
 
@@ -665,12 +681,17 @@ void processAssignment(tSymTable* st)
     tstack_free(&tmpStack);
 }
 
+extern size_t totAllocs;
+extern size_t memAlloc;
+extern size_t totDeAllocs;
+extern size_t memDeAlloc;
+
 void parse()
 {
     if (SkipProlog(inf))
         dbgMsg("PASS 1 - PROLOG OK\n");
     else
-        errorExit("Invalid PROLOG", CERR_SYNTAX);
+        errorExit("Invalid PROLOG", CERR_LEX);
     // preparation
     token.data = safe_malloc(MAX_TOKEN_LEN);
     assignId.data = safe_malloc(MAX_TOKEN_LEN);
@@ -689,7 +710,7 @@ void parse()
     if (SkipProlog(inf))
         dbgMsg("PASS 2 - PROLOG OK\n");
     else
-        errorExit("Invalid PROLOG", CERR_SYNTAX);  // tohle by nemelo nastat, kdyz to pri prvnim pruchodu proslo, ale pro jistotu
+        errorExit("Invalid PROLOG", CERR_LEX);  // tohle by nemelo nastat, kdyz to pri prvnim pruchodu proslo, ale pro jistotu
     addCodeVariableDefs(&gst);
     nextToken();
     parse_program();
@@ -697,8 +718,8 @@ void parse()
     //st_print(&gst);
     // release all not needed structures
     st_delete_all(&gst);
-    free(assignId.data);
-    free(token.data);
+    safe_free(assignId.data);
+    safe_free(token.data);
     // execute generated code - for test purposes only
     dbgMsg("..... code execution .....\n");
     FILE* outf = fopen("temp.ifjcode", "w");
@@ -713,6 +734,10 @@ void parse()
 #else
     system("./ic22int temp.ifjcode");
 #endif
+    dbgMsg("\nTotal memory allocated % d in %d chunks.\n" , memAlloc, totAllocs);
+    dbgMsg("Total memory deallocated % d in %d chunks.\n", memDeAlloc, totDeAllocs);
+    dbgMsg("Delete rest: ");
+    safe_free_all();
 }
 
 /*
@@ -862,7 +887,7 @@ void parse_statement(tSymTable* st, tStack* stack)
     case tReturn:
         // return from function
         // tReturn returnValue tSemicolon
-        processReturn(st, stack);
+        processReturn(st);
         break;
 
     case tMinus:

@@ -47,6 +47,14 @@ char* ifjCodeStr(char *outStr, char* str)
             sprintf(tmpStr, "\\%03d", (int)str[i]);
             strcat(outStr, tmpStr);
         }
+        else if (str[i] == 36)
+        {
+            strcat(outStr, "$");
+        }
+        else if (str[i] == 37)
+        {
+            strcat(outStr, "%%");
+        }
         else if (str[i] == 92) // '\'
         {
             if (i + 1 < srcLen)
@@ -84,7 +92,16 @@ char* ifjCodeStr(char *outStr, char* str)
                 case '\\':
                     strcat(outStr, "\\092");
                     break;
+                case '$':
+                    strcat(outStr, "\\036");
+                    break;
+                case '\"':
+                    strcat(outStr, "\\034");
+                    break;
                 default:
+                    strcat(outStr, "\\");
+                    outStr[len + 1] = str[i];
+                    outStr[len + 2] = '\0';
                     break;
                 }
             }

@@ -23,8 +23,17 @@
 #define CERR_SEM_OTHER  8
 #define CERR_INTERNAL   99
 
+extern int srcLine;
+extern int prgPass;
+
+typedef struct AllocatedMemory {
+    void* ptr;
+    struct AllocatedMemory* next;
+} tAllocatedMemory;
+
 void *safe_malloc(size_t size);
 void safe_free(void* ptr);
+void safe_free_all();
 void errorExit(char* msg, int errCode);
 int dbgMsg(const char* fmt, ...);
 int dbgMsg2(const char* fmt, ...);

@@ -8,7 +8,7 @@
 #ifndef token_h
 #define token_h
 
-#define MAX_TOKEN_LEN   1024
+#define MAX_TOKEN_LEN 1024
 
 typedef enum {
     tNone,

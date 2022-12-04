@@ -229,8 +229,8 @@ void st_delete_params(tFuncParam **paramToDelete)
     {
         tFuncParam* tmpParam = param->next;
         if(param->name!=NULL)
-            free(param->name);
-        free(param);
+            safe_free(param->name);
+        safe_free(param);
         param = tmpParam;
     }
     *paramToDelete = NULL;
@@ -254,7 +254,7 @@ void st_delete(tSymTable *table, char *key) {
 
                 st_delete_params(&(toDelete->params)); // smazat parametry
                 st_delete_all(toDelete->localST); // smazat lokalni tabulku symbolu, pokud existuje
-                free(toDelete);
+                safe_free(toDelete);
 
                 return;
             }
@@ -279,13 +279,13 @@ void st_delete_all(tSymTable *table) {
                 tmpItem = tmpItem->next;
                 st_delete_params(&(toDelete->params));
                 st_delete_all(toDelete->localST); // smazat lokalni tabulku symbolu, pokud existuje
-                free(toDelete);
+                safe_free(toDelete);
             }
             toDelete = table->items[i];
             st_delete_params(&(toDelete->params));
             st_delete_all(toDelete->localST); // smazat lokalni tabulku symbolu, pokud existuje
-            free(toDelete->localST);
-            free(table->items[i]);
+            safe_free(toDelete->localST);
+            safe_free(table->items[i]);
             table->items[i] = NULL;
         }
         

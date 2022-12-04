@@ -57,7 +57,6 @@ void expStackPush(tExpStack *stack, tExpression exp)
         return;
 
     tExpStackItem *newItem = safe_malloc(sizeof(tExpStackItem));
-    newItem->exp = safe_malloc(sizeof(tExpression));
     newItem->exp->data = safe_malloc(sizeof(MAX_TOKEN_LEN));
     newItem->exp->type = exp.type;
     strcpy(newItem->exp->data, exp.data);

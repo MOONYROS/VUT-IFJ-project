@@ -16,6 +16,17 @@
     *pos = ch;\
     pos++;\
     *pos = 0;\
+    if (strlen(token->data) > (MAX_TOKEN_LEN - CHAR_RESERVE))\
+    { \
+        token->type = tInvalid; \
+        return 1; \
+    } \
+}
+
+#define SAVECHARP {\
+    *pos = ch;\
+    pos++;\
+    *pos = 0;\
 }
 
 typedef enum{   // strings for Keywords
@@ -33,6 +44,24 @@ char *nullType[] = {"int", "float", "string"};
 tTokenType nullTypeToken[] = {tNullTypeInt, tNullTypeFloat, tNullTypeString};
 
 int srcLine = 1;
+
+char upCase(char ch)
+{
+    if (ch >= 'a' && ch <= 'z')
+        return ch - 32;
+    else
+        return ch;
+}
+
+int hexToDec(char ch)
+{
+    if (ch >= '0' && ch <= '9')
+        return ch - '0';
+    else if (ch >= 'A' && ch <= 'F')
+        return ch - 55;
+    else
+        return 0;
+}
 
 char nextChar(FILE* stream)
 {
@@ -102,7 +131,7 @@ void skipWhites(FILE* f, char* ch)
 int SkipProlog(FILE *f)
 {
     char ch;
-    char line[255]="";
+    char line[MAX_TOKEN_LEN] = "";
     char *pos;
     line[0] = 0;
     pos = &line[0];
@@ -111,32 +140,91 @@ int SkipProlog(FILE *f)
     ch = nextChar(f);
     for (int i = 0; i < 4; i++)
     {
-        SAVECHAR;
+        SAVECHARP;
         ch = nextChar(f);
         if (feof(f))
             return 0;
         if (isWhiteChar(ch))
             return 0;
     }
-    SAVECHAR;
+    SAVECHARP;
     if (strcmp(line, "<?php") != 0)
         return 0;
     ch = nextChar(f);
-    skipWhites(f, &ch);
-    if (feof(f))
-        return 0;
     // tady je potreba jeste osetrit komentare uprostred prologu
+    skipWhites(f, &ch);
+    while (ch != 'd')
+    {
+        skipWhites(f, &ch);
+        if (feof(f))
+            return 0;
+        if (ch == 'd')
+            break;
+        else if (ch == '/')
+        {
+            ch = nextChar(f);
+            if (ch == '/')   // Single line comment
+            {
+                while (!feof(f) && (ch != '\n'))
+                {
+                    ch = nextChar(f);
+                }
+                if (feof(f))
+                {
+                    dbgMsg("EOF in comment in prolog\n");
+                    return 0;
+                }                
+            }
+            else if (ch == '*')  // Start of block comment
+            {
+                while (!feof(f))
+                {
+                    ch = nextChar(f);
+                    if (ch == '*')
+                    {
+                        ch = nextChar(f);
+                        if (feof(f))
+                        {
+                            dbgMsg("EOF in multiline comment in prolog\n");                            
+                            return 0;
+                        }
+                        else if (ch == '/')
+                        {
+                            break;
+                        }
+                    }
+                }
+                if (feof(f))
+                {
+                    dbgMsg("EOF in multiline comment in prolog\n");
+                    return 0;
+                }
+            }
+            else
+            {
+                dbgMsg("/ without next / or * in prolog\n");
+                return 0;
+            }
+        }
+        else
+        {
+            dbgMsg("unexpected character in prolog between <?php and declare\n");
+            return 0;
+        }
+        ch = nextChar(f);
+
+    }
     pos = &line[0];
     for (int i = 0; i < 23; i++)
     {
-        SAVECHAR;
+        SAVECHARP;
         ch = nextChar(f);
         if(feof(f))
             return 0;
         if (isWhiteChar(ch))
             return 0;
     }
-    SAVECHAR;
+    SAVECHARP;
     if (strcmp(line, "declare(strict_types=1);") != 0)
         return 0;
     ch = nextChar(f);
@@ -357,6 +445,7 @@ int ReadToken(FILE *f, tToken *token)
                             // SAVECHAR;
                             if (ch == '/')   // Single line comment
                             {
+                                SAVECHAR;
                                 while (!feof(f) && (ch != '\n'))
                                 {
                                     ch = nextChar(f);
@@ -365,9 +454,9 @@ int ReadToken(FILE *f, tToken *token)
                                 }
                                 if (feof(f))
                                 {
-                                    dbgMsg("EOF COMMENT: %s\n", token->data);
+                                    //dbgMsg("EOF COMMENT: %s\n", token->data);
                                     state = sFinish;
-                                    token->type = tInvalid;
+                                    token->type = tEpilog;
                                     return 1;
                                 }
                                 //dbgMsg("COMMENT: %s\n", token->data);
@@ -430,20 +519,20 @@ int ReadToken(FILE *f, tToken *token)
                 {
                     SAVECHAR;
                     state = sEsc;
-                }
-                else if (ch >= 32) // (ch <= 255) je vzdycky TRUE, takze neni treba zapisovat
-                {
-                    SAVECHAR;
-                }
-                //else if ((ch < 32) && (ch >= 0))    // pokud prijde jiny znak z ASCII tabulky, nez z intervalu <32; 255>, jdeme do tInvalid
-                //{
-                //    state = sFinish;
-                //    token->type = tInvalid;
-                //}
-                else if (ch == '%')
+                }             
+                /*else if (ch == '%')
                 {
                     SAVECHAR;
                     state = sPercent;
+                }*/
+                else if (ch >= 32) // (ch <= 255) je vzdycky TRUE, takze neni treba zapisovat
+                {
+                    SAVECHAR;
+                    if (ch == '$')
+                    {
+                        state = sFinish;
+                        token->type = tInvalid;
+                    }                        
                 }
                 else    // jakykoliv jiny znak (napriklad EOF) je nepripustny
                 {
@@ -452,7 +541,7 @@ int ReadToken(FILE *f, tToken *token)
                 }
                 break;
             case sEsc:
-                if ((ch >= 48) && (ch <= 55))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o oktalove cislo
+                if ((ch >= '0') && (ch <= '9'))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o oktalove cislo
                 {
                     SAVECHAR;
                     state = sOcta1;
@@ -462,7 +551,7 @@ int ReadToken(FILE *f, tToken *token)
                     SAVECHAR;
                     state = sHexa1;
                 }
-                else if ((ch == '"') || (ch == 'n') || (ch == 't') || (ch == '$') || (ch == '\\') || (ch == '%'))   // prisel jeden z techto znaku
+                else if ((ch == '"') || (ch == 'n') || (ch == 't') || (ch == '$') || (ch == '\\'))// || (ch == '%')   // prisel jeden z techto znaku
                 {
                     SAVECHAR;
                     state = sLiteral;
@@ -474,7 +563,7 @@ int ReadToken(FILE *f, tToken *token)
                 }
                 break;
             case sOcta1:
-                if ((ch >= 48) && (ch <= 55))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o KOMPLETNI oktalove cislo
+                if ((ch >= '0') && (ch <= '9'))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o KOMPLETNI oktalove cislo
                 {
                     SAVECHAR;
                     state = sOcta2;
@@ -486,9 +575,19 @@ int ReadToken(FILE *f, tToken *token)
                 }
                 break;
             case sOcta2:
-                if ((ch >= 48) && (ch <= 55))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o KOMPLETNI oktalove cislo, vracime se zpet do retezce
+                if ((ch >= '0') && (ch <= '9'))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o KOMPLETNI oktalove cislo, vracime se zpet do retezce
                 {
                     SAVECHAR;
+                    int len = strlen(token->data);
+                    int octNum = (token->data[len - 3] - '0') * 100;
+                    octNum += (token->data[len - 2] - '0') * 10;
+                    octNum += (token->data[len - 1] - '0') * 1;
+                    if (octNum < 0 || octNum > 255)
+                    {
+                        state = sFinish;
+                        token->type = tInvalid;
+                        break;
+                    }
                     state = sLiteral;
                 }
                 else    // cokoliv jine je tInvalid
@@ -498,8 +597,9 @@ int ReadToken(FILE *f, tToken *token)
                 }
                 break;
             case sHexa1:
-                if(((ch >= 48) && (ch <= 57)) || ((ch >= 65) && (ch <= 70)))    // prvni cislo musi byt bud 0-9 (prvni podminka) nebo A-F (druha podminka)
+                if(((ch >= '0') && (ch <= '9')) || ((upCase(ch) >= 'A') && (upCase(ch) <= 'F')))    // prvni cislo musi byt bud 0-9 (prvni podminka) nebo A-F (druha podminka)
                 {
+                    ch = upCase(ch);
                     SAVECHAR;
                     state = sHexa2;
                 }
@@ -510,9 +610,18 @@ int ReadToken(FILE *f, tToken *token)
                 }
                 break;
             case sHexa2:
-                if(((ch >= 48) && (ch <= 57)) || ((ch >= 65) && (ch <= 70)))    // druhe cislo musi byt bud 0-9 (prvni podminka) nebo A-F (druha podminka)
+                if (((ch >= '0') && (ch <= '9')) || ((upCase(ch) >= 'A') && (upCase(ch) <= 'F')))    // druhe cislo musi byt bud 0-9 (prvni podminka) nebo A-F (druha podminka)
                 {
+                    ch = upCase(ch);
                     SAVECHAR;
+                    int len = strlen(token->data);
+                    int hexNum = hexToDec(token->data[len - 2]) * 16;
+                    hexNum += hexToDec(token->data[len - 1]) * 1;
+                    char tmp[10];
+                    sprintf(tmp, "%03d", hexNum);
+                    token->data[len - 3] = tmp[0];
+                    token->data[len - 2] = tmp[1];
+                    token->data[len - 1] = tmp[2];
                     state = sLiteral;
                 }
                 else    // cokoliv jine je tInvalid
@@ -521,7 +630,7 @@ int ReadToken(FILE *f, tToken *token)
                     token->type = tInvalid;
                 }
                 break;
-            case sPercent:
+            /*case sPercent:
                 if ((ch == 'a') || (ch == 'd'))
                 {
                     SAVECHAR;
@@ -532,7 +641,7 @@ int ReadToken(FILE *f, tToken *token)
                     state = sFinish;
                     token->type = tInvalid;
                 }
-                break;
+                break;*/
             case sFunctionName:
                 while ((isAlpha(ch)) || (isDigit(ch)) || (ch == '_'))
                 {
@@ -586,7 +695,6 @@ int ReadToken(FILE *f, tToken *token)
                     ungetc(ch, f);
                     state = sFinish;
                     token->type = tInt;
-                    // dbgMsg("PRVNI CISLO\n");
                 }
                 break;
             case sFloat:    // Co kdyz prijde jenom 234.? je to 234.0 nebo tInvalid?
@@ -619,7 +727,6 @@ int ReadToken(FILE *f, tToken *token)
                     ungetc(ch, f);
                     state = sFinish;
                     token->type = tReal;
-                    // dbgMsg("DRUHE CISLO\n");
                 }
                 break;
             case sRexp:
@@ -699,13 +806,22 @@ int ReadToken(FILE *f, tToken *token)
                 ch = ungetc(ch, f); // neprislo cislo, tento znak vratime a jsme v koncovem stavu
                 state = sFinish;
                 token->type = tInt2;
-                // dbgMsg("TRETI CISLO\n");
                 break;
             case sDollar:
-                while ((isAlpha(ch)) || (isDigit(ch)) || (ch == '_'))
+                if ((isAlpha(ch)) || (ch == '_'))
+                {
+                    while ((isAlpha(ch)) || (isDigit(ch)) || (ch == '_')) // promenna musi zacinat pismenem nebo podtrzitkem
+                    {
+                        SAVECHAR;
+                        ch = nextChar(f);
+                    }
+                }
+                else
                 {
                     SAVECHAR;
-                    ch = nextChar(f);
+                    state = sFinish;
+                    token->type = tInvalid;
+                    break;
                 }
                 ungetc(ch, f);
                 state = sFinish;

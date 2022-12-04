@@ -10,6 +10,8 @@
 
 #include <stdio.h>
 
+#define CHAR_RESERVE 80
+
 int SkipProlog(FILE *f);
 int ReadToken(FILE *f, tToken *token);
 

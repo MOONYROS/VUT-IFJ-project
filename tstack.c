@@ -35,7 +35,7 @@ void tstack_free(tStack** stack)
     if (*stack != NULL)
     {
         tstack_deleteItems(*stack);
-        free(*stack);
+        safe_free(*stack);
     }
     *stack = NULL;
 }
@@ -48,8 +48,8 @@ void tstack_deleteItems(tStack* stack)
         while (item != NULL)
         {
             tStackItem* next = item->next;
-            free(item->token.data);
-            free(item);
+            safe_free(item->token.data);
+            safe_free(item);
             item = next;
         }
         stack->top = NULL;
@@ -113,11 +113,11 @@ bool tstack_pop(tStack* stack, tToken *token)
             if (toDelete->token.data != NULL)
             {
                 strcpy(token->data, toDelete->token.data);
-                free(toDelete->token.data);
+                safe_free(toDelete->token.data);
             }
             
             stack->top = toDelete->next;
-            free(toDelete);
+            safe_free(toDelete);
         }
         else
             return false;

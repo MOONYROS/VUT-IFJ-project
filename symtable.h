@@ -27,7 +27,7 @@ typedef struct FuncParam {
 typedef struct SymTable tSymTable;
 
 typedef struct SymTableItem {
-    char name[255];             // name of variable or function
+    char name[MAX_TOKEN_LEN];             // name of variable or function
     tTokenType dataType;        // data type variable or function
     int isFunction;             // 1 (true) if name is function
     int isDefined;              // 1 if function is defined, 0 if only delcared by function call
