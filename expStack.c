@@ -51,15 +51,17 @@ void expStackDispose(tExpStack *stack)
     stack->top = NULL;
 }
 
-void expStackPush(tExpStack *stack, tExpression exp)
+void expStackPush(tExpStack* stack, tExpression* exp)
 {
     if (stack == NULL)
         return;
 
-    tExpStackItem *newItem = safe_malloc(sizeof(tExpStackItem));
-    newItem->exp->data = safe_malloc(sizeof(MAX_TOKEN_LEN));
-    newItem->exp->type = exp.type;
-    strcpy(newItem->exp->data, exp.data);
+    tExpStackItem* newItem = safe_malloc(sizeof(tExpStackItem));
+    newItem->exp = safe_malloc(sizeof(tExpression));
+    newItem->exp->data = safe_malloc(MAX_TOKEN_LEN);
+    newItem->exp->type = exp->type;
+    strcpy(newItem->exp->data, exp->data);
+    newItem->exp->isNonTerminal = exp->isNonTerminal;
     newItem->next = stack->top;
     stack->top = newItem;
 }
