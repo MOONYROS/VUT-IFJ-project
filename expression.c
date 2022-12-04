@@ -88,7 +88,7 @@ bool isNumber(tSymTable *table, tExpression *exp)
 bool isString(tSymTable *table, tExpression *exp)
 {   
     if (isVar(table, exp))
-        return (variableType(table, exp) == tTypeString || variableType(table, exp) == tNullTypeString);
+        return (variableType(table, exp) == tLiteral);
     else 
         return exp->type == tLiteral;
 }
@@ -96,7 +96,7 @@ bool isString(tSymTable *table, tExpression *exp)
 bool isReal(tSymTable *table, tExpression *exp)
 {
     if (isVar(table, exp))
-        return (variableType(table, exp) == tTypeFloat || variableType(table, exp) == tNullTypeFloat);
+        return (variableType(table, exp) == tReal || variableType(table, exp) == tReal2);
     else 
         return (exp->type == tReal || exp->type == tReal2);
 }
@@ -104,14 +104,14 @@ bool isReal(tSymTable *table, tExpression *exp)
 bool isInt(tSymTable *table, tExpression *exp)
 {
     if (isVar(table, exp))
-        return (variableType(table, exp) == tTypeInt || variableType(table, exp) == tNullTypeInt);
+        return (variableType(table, exp) == tInt || variableType(table, exp) == tInt2);
     else 
         return (exp->type == tInt || exp->type == tInt2);
 }
 
-bool isNonTerminal(tExpStackItem *item)
+bool isNonTerminal(tExpression *exp)
 {
-    return item->exp->isNonTerminal == true;
+    return exp->isNonTerminal;
 }
 
 tTokenType variableType(tSymTable *table, tExpression *exp)
@@ -226,9 +226,6 @@ void rearrangeStack(tStack *stack)
         }
         tmp = tmp->next;
     }
-    
-    if (numOp.data != NULL)
-        safe_free(numOp.data);
 }
 
 double convertToDouble(tExpression *exp)
@@ -319,6 +316,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     char tmpStr[MAX_IFJC_LEN];
     int tmpInt;
     double tmpReal;
+    const char tmpNonTerminal[] = "nonTerminal";
     const char tmp1[] = "tmp1";
     const char tmp2[] = "tmp2";
 
@@ -329,7 +327,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     second.data = safe_malloc(MAX_TOKEN_LEN);
     tExpression third = {NULL, 0, false};
     third.data = safe_malloc(MAX_TOKEN_LEN);
-    tExpression nonTerminal = {NULL, 0, false};
+    tExpression nonTerminal = {NULL, 0, true};
     nonTerminal.data = safe_malloc(MAX_TOKEN_LEN);
     tExpression inputexp = {NULL, 0, false}; 
     inputexp.data = safe_malloc(MAX_TOKEN_LEN);
@@ -339,6 +337,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     // exp struct for storing popped data from evalStack (and is kinda useless)
     tExpression uselessExp = {NULL, 0, false};
     uselessExp.data = safe_malloc(MAX_TOKEN_LEN);
+
 
     // Precedence of evaluation stack's top exp and input exp.
     char precedence;
@@ -393,6 +392,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     addCode("CREATEFRAME");
     addCode("DEFVAR TF@%s", tmp1);
     addCode("DEFVAR TF@%s", tmp2);
+    addCode("DEFVAR TF@%s", tmpNonTerminal);
     //addCode("MOVE %s", tgtVar);
 
     // The 'finishing symbol' is empty evaluation stack.
@@ -413,11 +413,16 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 third.type = tmp->exp->type;
             }
         }
+        else
+        {
+            second.type = tNone;
+            third.type = tNone;
+        }
         
         // Uz nemame co shiftovatS
-        if (tstack_isEmpty(expStack) && inputexp.data == NULL)
+        if (inputexp.data == NULL)
             precedence = '>';
-        else if (isNonTerminal(evalStack->top) || (isConst(&stackTop) && isOperator(&inputexp)))
+        else if (isNonTerminal(evalStack->top->exp) || ((isConst(&stackTop) || isVar(table, &stackTop)) && isOperator(&inputexp)))
             precedence = prdTable[typeToIndex(second.type)][typeToIndex(inputexp.type)];
         else if (isConst(&inputexp))
             precedence = '<';
@@ -427,6 +432,8 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         switch (precedence)
         {
         case '=':
+
+            break;
         
         case '<':
             // evaluating expression
@@ -451,18 +458,19 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
 
             expStackPush(evalStack, inputexp);
 
-            if (tstack_pop(expStack, &popexp))
+            if (tstack_isEmpty(expStack))
             {
+                inputexp.data = NULL;
+                inputexp.isNonTerminal = false;
+                inputexp.type = tNone;
+            }
+            else
+            {
+                tstack_pop(expStack, &popexp);
                 inputexp.isNonTerminal = false;
                 inputexp.type = popexp.type;
                 if (popexp.data != NULL)
                     strcpy(inputexp.data, popexp.data);
-            }
-            else
-            {
-                inputexp.type = tNone;
-                inputexp.data = NULL;
-                inputexp.isNonTerminal = false;
             }
             
             break;  
@@ -482,7 +490,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             {
                 if (isInt(table, &stackTop))
                 {
-                    addCode("MOVE TF@%s %s", tmp1, ifjCodeInt(tmpStr, convertToInt(&third)));
+                    addCode("MOVE TF@%s %s", tmpNonTerminal, ifjCodeInt(tmpStr, convertToInt(&third)));
                     addCode("MOVE TF@%s %s", tmp2, ifjCodeInt(tmpStr, convertToInt(&stackTop)));
                 }
                 else if (isReal(table, &stackTop))
@@ -504,17 +512,17 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             {
                 if (isInt(table, &stackTop) )
                 {
-                    addCode("MOVE TF@%s %s", tmp1, third.data);
+                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
                     addCode("MOVE TF@%s %s", tmp2, ifjCodeInt(tmpStr, convertToInt(&stackTop)));
                 }
                 else if (isReal(table, &stackTop))
                 {
-                    addCode("MOVE TF@%s %s", tmp1, third.data);
+                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
                     addCode("MOVE TF@%s %s", tmp2, ifjCodeReal(tmpStr, convertToDouble(&stackTop)));
                 }
                 else if (isString(table, &stackTop))
                 {
-                    addCode("MOVE TF@%s %s", tmp1, ifjCodeStr(tmpStr, third.data));
+                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
                     addCode("MOVE TF@%s %s", tmp2, ifjCodeStr(tmpStr, stackTop.data));
                 }
                 else
@@ -522,26 +530,75 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                     errorExit("Different operand types\n", CERR_INTERNAL);
                 }
             }
+            else if (isConst(&stackTop) && isVar(table, &third))
+            {
+                if (isInt(table, &stackTop) )
+                {
+                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
+                    addCode("MOVE TF@%s %s", tmp2, ifjCodeInt(tmpStr, convertToInt(&stackTop)));
+                }
+                else if (isReal(table, &stackTop))
+                {
+                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
+                    addCode("MOVE TF@%s %s", tmp2, ifjCodeReal(tmpStr, convertToDouble(&stackTop)));
+                }
+                else if (isString(table, &stackTop))
+                {
+                    addCode("MOVE TF@%s LF@%s", tmp1, third.data);
+                    addCode("MOVE TF@%s %s", tmp2, ifjCodeStr(tmpStr, stackTop.data));
+                }
+                else
+                {
+                    errorExit("Different operand types\n", CERR_INTERNAL);
+                }
+            }
+            else if (isVar(table, &stackTop) && isConst(&third))
+            {
+                if (isInt(table, &stackTop) )
+                {
+                    addCode("MOVE TF@%s %s", tmp1, ifjCodeInt(tmpStr, convertToInt(&third)));
+                    addCode("MOVE TF@%s LF@%s", tmp2, stackTop.data);
+                }
+                else if (isReal(table, &stackTop))
+                {
+                    addCode("MOVE TF@%s %s", tmp1, ifjCodeInt(tmpStr, convertToDouble(&third)));
+                    addCode("MOVE TF@%s LF@%s", tmp2, stackTop.data);
+                }
+                else if (isString(table, &stackTop))
+                {
+                    addCode("MOVE TF@%s %s", tmp1, third.data);
+                    addCode("MOVE TF@%s LF@%s", tmp2, stackTop.data);
+                }
+                else
+                {
+                    errorExit("Different operand types\n", CERR_INTERNAL);
+                }
+            }
+            else if (isVar(table, &stackTop) && isVar(table, &third))
+            {
+                addCode("MOVE TF@%s LF@%s", tmp1, third.data);
+                addCode("MOVE TF@%s LF@%s", tmp2, stackTop.data);
+            }
 
             switch (second.type)
             {
             case tPlus:
-                addCode("ADD %s TF@%s TF@%s", tgtVar, tmp1, tmp2);
+                addCode("ADD TF@%s TF@%s TF@%s", tmpNonTerminal, tmp1, tmp2);
                 break;
             case tMinus:
-                addCode("SUB %s TF@%s TF@%s ", tgtVar, tmp1, tmp2);
+                addCode("SUB TF@%s TF@%s TF@%s", tmpNonTerminal, tmp1, tmp2);
                 break;
             case tMul:
-                addCode("MUL %s TF@%s TF@%s", tgtVar, tmp1, tmp2);
+                addCode("MUL TF@%s TF@%s TF@%s", tmpNonTerminal, tmp1, tmp2);
                 break;
             case tDiv:
                 if (isInt(table, &stackTop))
-                    addCode("IDIV %s TF@%s TF@%s ", tgtVar, tmp1, tmp2);
+                    addCode("IDIV TF@%s TF@%s TF@%s ", tmpNonTerminal, tmp1, tmp2);
                 else
-                    addCode("DIV %s TF@%s TF@%s ", tgtVar, tmp1, tmp2);
+                    addCode("DIV TF@%s TF@%s TF@%s ", tmpNonTerminal, tmp1, tmp2);
                 break;
             case tConcat:
-                addCode("CONCAT %s TF@%s TF@%s ", tgtVar, tmp1, tmp2);
+                addCode("CONCAT TF@%s TF@%s TF@%s ", tmpNonTerminal, tmp1, tmp2);
                 break;
             case tMore:
                 addCode("GT TF@%s TF@%s ", expResultName, expResultName);
@@ -583,15 +640,15 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             expStackPop(evalStack, &uselessExp);
             expStackPop(evalStack, &uselessExp);
             expStackPush(evalStack, nonTerminal);
-            tstack_pop(expStack, &popexp);
+            
 
             // If there's last item on our stack, it shall be the last nonterminal,
             // we pop it so the while loop breaks.
-            if (evalStack->top->next == NULL)
+            if (evalStack->top->next == NULL && inputexp.data == NULL)
                 expStackPop(evalStack, &uselessExp);
         }            
-        
     } 
+    addCode("MOVE %s TF@%s", tgtVar, tmpNonTerminal);
     safe_free(second.data);
     safe_free(popexp.data);
     safe_free(nonTerminal.data);
