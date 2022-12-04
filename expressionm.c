@@ -84,7 +84,7 @@ tTokenType evalExp(char* tgtVar, tStack* exp, tSymTable* st)
         case tIdentifier:
             {
                 tSymTableItem* sti;
-                char varName[255];
+                char varName[MAX_TOKEN_LEN];
                 if (strncmp(token.data, funcPrefixName, strlen(funcPrefixName)) == 0)
                 {
                     char* zacatek = token.data + strlen(funcPrefixName);
@@ -304,6 +304,6 @@ tTokenType evalExp(char* tgtVar, tStack* exp, tSymTable* st)
     //addCode("# expression END");
     addCode("");
 
-    free(token.data);
+    safe_free(token.data);
     return typ;
 }
