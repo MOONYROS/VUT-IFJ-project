@@ -125,7 +125,7 @@ bool isDefined(tSymTable *table, tExpression *exp)
 {
     tSymTableItem *item = st_search(table, exp->data);
     if (item != NULL)
-        return item->isDefined;
+        return true;
     else
         return false;
 }
@@ -319,6 +319,8 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     char tmpStr[MAX_IFJC_LEN];
     int tmpInt;
     double tmpReal;
+    const char tmp1[] = "tmp1";
+    const char tmp2[] = "tmp2";
 
     //Auxiliary variables for easier work with stacks and reducing.
     tExpression stackTop = {NULL, 0, false};
@@ -388,9 +390,11 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     inputexp.type = popexp.type;
     inputexp.isNonTerminal = false;
 
-    //addCode("CREATEFRAME");
-    //addCode("DEFVAR TF@%s", expResultName);
-    
+    addCode("CREATEFRAME");
+    addCode("DEFVAR TF@%s", tmp1);
+    addCode("DEFVAR TF@%s", tmp2);
+    //addCode("MOVE %s", tgtVar);
+
     // The 'finishing symbol' is empty evaluation stack.
     while (!expIsEmpty(evalStack)) 
     {
@@ -413,9 +417,9 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         // Uz nemame co shiftovatS
         if (tstack_isEmpty(expStack) && inputexp.data == NULL)
             precedence = '>';
-        else if (isNonTerminal(evalStack->top))
+        else if (isNonTerminal(evalStack->top) || (isConst(&stackTop) && isOperator(&inputexp)))
             precedence = prdTable[typeToIndex(second.type)][typeToIndex(inputexp.type)];
-        else if (isConst(&inputexp) || (isConst(&stackTop) && isOperator(&inputexp)))
+        else if (isConst(&inputexp))
             precedence = '<';
         else
             precedence = prdTable[typeToIndex(stackTop.type)][typeToIndex(inputexp.type)];
@@ -470,159 +474,74 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 errorExit("Semantic error: Empty stack in expression while trying to reduce.\n", CERR_SEM_OTHER);
 
             // Print whats being reduced on stack
-            dbgMsg("%s %s %s\n", stackTop.data, tokenName[second.type], third.data);
+            dbgMsg("%s %s %s\n", third.data, tokenName[second.type], stackTop.data);
             
-            resultType = getResultType(table, &stackTop, &third, second.type);
+            nonTerminal.type = getResultType(table, &stackTop, &third, second.type);
 
-            if (isNumber(table, &stackTop) && isNumber(table, &third))
+            if (isConst(&stackTop) && isConst(&third))
             {
-                if (isVar(table, &stackTop) && isVar(table, &third))
+                if (isInt(table, &stackTop))
                 {
-                    nonTerminal.type = resultType;
-                    // generate code
-                    sprintf(tmpStr, "LF@%s", third.data);
-                    strcat(code, tmpStr);
-                    addCode(code);
-                    code[0] = '\0';
-
-                    sprintf(tmpStr, "LF@%s", stackTop.data);
-                    strcat(code, tmpStr);
-                    addCode(code);
-                    code[0] = '\0';
+                    addCode("MOVE TF@%s %s", tmp1, ifjCodeInt(tmpStr, convertToInt(&third)));
+                    addCode("MOVE TF@%s %s", tmp2, ifjCodeInt(tmpStr, convertToInt(&stackTop)));
                 }
-                else if (isConst(&stackTop) && isVar(table, &third))
+                else if (isReal(table, &stackTop))
                 {
-                    nonTerminal.type = resultType;
-                    // generate code
-                    sprintf(tmpStr, "LF@%s", third.data);
-                    strcat(code, tmpStr);
-                    addCode(code);
-                    code[0] = '\0';
-
-                    if (isInt(NULL, &stackTop))
-                    {
-                        // musime vytahnout hodnotu a udelat z ni int
-                        tmpInt = convertToInt(&stackTop);
-                        ifjCodeInt(tmpStr,tmpInt);
-                    }
-                    else
-                    {
-                        // musime vytahnout hodnotu a udelat z ni double
-                        tmpReal = convertToDouble(&stackTop);
-                        ifjCodeReal(tmpStr, tmpReal);
-                    }
-
-                    strcat(code, tmpStr);
-                    addCode(code);
-                    code[0] = '\0';
+                    addCode("MOVE TF@%s %s", tmp1, ifjCodeReal(tmpStr, convertToDouble(&third)));
+                    addCode("MOVE TF@%s %s", tmp2, ifjCodeReal(tmpStr, convertToDouble(&stackTop)));
                 }
-                else if (isVar(table, &stackTop) && isConst(&third))
+                else if (isString(table, &stackTop))
                 {
-                    nonTerminal.type = resultType;
-                    // generate code
-                    sprintf(tmpStr, "LF@%s", stackTop.data);
-                    strcat(code, tmpStr);
-                    addCode(code);
-                    code[0] = '\0';
-
-                    if (isInt(NULL,&third))
-                    {
-                        // musime vytahnout hodnotu a udelat z ni int
-                        tmpInt = convertToInt(&third);
-                        ifjCodeInt(tmpStr,tmpInt);
-                    }
-                    else
-                    {
-                        // musime vytahnout hodnotu a udelat z ni double
-                        tmpReal = convertToDouble(&third);
-                        ifjCodeReal(tmpStr, tmpReal);
-                    }
-
-                    strcat(code, tmpStr);
-                    addCode(code);
-                    code[0] = '\0';
+                    addCode("MOVE TF@%s %s", tmp1, ifjCodeStr(tmpStr, third.data));
+                    addCode("MOVE TF@%s %s", tmp2, ifjCodeStr(tmpStr, stackTop.data));
                 }
-                else if (isConst(&stackTop) && isConst(&third))
+                else
                 {
-                    nonTerminal.type = resultType;
-
-                    if(isInt(NULL,&third) && isInt(NULL, &stackTop))
-                    {
-                        // musime vytahnout hodnotu a udelat z ni int
-                        tmpInt = convertToInt(&third);
-                        ifjCodeInt(tmpStr,tmpInt);
-                        strcat(code, tmpStr);
-                        addCode(code);
-                        code[0] = '\0';
-                        
-                        // musime vytahnout hodnotu a udelat z ni int
-                        tmpInt = convertToInt(&stackTop);
-                        ifjCodeInt(tmpStr,tmpInt);
-                        strcat(code, tmpStr);
-                        addCode(code);
-                        code[0] = '\0';
-                    }
-                    else if(isReal(NULL,&third) && isReal(NULL, &stackTop))
-                    {
-                        // musime vytahnout hodnotu a udelat z ni double
-                        tmpReal = convertToDouble(&third);
-                        ifjCodeReal(tmpStr,tmpReal);
-                        strcat(code, tmpStr);
-                        addCode(code);
-                        code[0] = '\0';
-
-                        // musime vytahnout hodnotu a udelat z ni double
-                        tmpReal = convertToDouble(&stackTop);
-                        ifjCodeReal(tmpStr,tmpReal);
-                        strcat(code, tmpStr);
-                        addCode(code);
-                        code[0] = '\0';
-                    }
-                    else
-                        errorExit("Semantic error: Operands of different type.\n", CERR_SEM_TYPE);
+                    errorExit("Different operand types\n", CERR_INTERNAL);
                 }
             }
-            else if (isNumber(table, &stackTop) && isString(table, &third))
+            else if (isConst(&stackTop) && isVar(table, &third))
             {
-                if (second.type != tIdentical && second.type != tNotIdentical)
-                    errorExit("Semantic error: Numbers and string can only be compared with \"===\" and \"!===\".\n", CERR_SEM_TYPE);
-            }
-            else if (isString(table, &stackTop) && isNumber(table, &third))
-            {
-                if (second.type != tIdentical && second.type != tNotIdentical)
-                    errorExit("Semantic error: Numbers and string can only be compared with \"===\" and \"!===\".\n", CERR_SEM_TYPE);
-
-            }
-            else // if (isString(table, &stackTop) && isString(table, &third))
-            {
-                strcat(code, ifjCodeStr(tmpStr, stackTop.data));
-                addCode(code);
-                code[0] = '\0';
-
-                strcat(code, ifjCodeStr(tmpStr, third.data));
-                addCode(code);
-                code[0] = '\0';
+                if (isInt(table, &stackTop) )
+                {
+                    addCode("MOVE TF@%s %s", tmp1, third.data);
+                    addCode("MOVE TF@%s %s", tmp2, ifjCodeInt(tmpStr, convertToInt(&stackTop)));
+                }
+                else if (isReal(table, &stackTop))
+                {
+                    addCode("MOVE TF@%s %s", tmp1, third.data);
+                    addCode("MOVE TF@%s %s", tmp2, ifjCodeReal(tmpStr, convertToDouble(&stackTop)));
+                }
+                else if (isString(table, &stackTop))
+                {
+                    addCode("MOVE TF@%s %s", tmp1, ifjCodeStr(tmpStr, third.data));
+                    addCode("MOVE TF@%s %s", tmp2, ifjCodeStr(tmpStr, stackTop.data));
+                }
+                else
+                {
+                    errorExit("Different operand types\n", CERR_INTERNAL);
+                }
             }
 
             switch (second.type)
             {
             case tPlus:
-                addCode("ADD TF@%s TF@%s ", expResultName, expResultName);
+                addCode("ADD %s TF@%s TF@%s", tgtVar, tmp1, tmp2);
                 break;
             case tMinus:
-                addCode("SUB TF@%s TF@%s ", expResultName, expResultName);
+                addCode("SUB %s TF@%s TF@%s ", tgtVar, tmp1, tmp2);
                 break;
             case tMul:
-                addCode("MUL TF@%s TF@%s ", expResultName, expResultName);
+                addCode("MUL %s TF@%s TF@%s", tgtVar, tmp1, tmp2);
                 break;
             case tDiv:
                 if (isInt(table, &stackTop))
-                    addCode("IDIV TF@%s TF@%s ", expResultName, expResultName);
+                    addCode("IDIV %s TF@%s TF@%s ", tgtVar, tmp1, tmp2);
                 else
-                    addCode("DIV TF@%s TF@%s ", expResultName, expResultName);
+                    addCode("DIV %s TF@%s TF@%s ", tgtVar, tmp1, tmp2);
                 break;
             case tConcat:
-                addCode("CONCAT TF@%s TF@%s ", expResultName, expResultName);
+                addCode("CONCAT %s TF@%s TF@%s ", tgtVar, tmp1, tmp2);
                 break;
             case tMore:
                 addCode("GT TF@%s TF@%s ", expResultName, expResultName);
