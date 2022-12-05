@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
-
-$y="a"."b";
-write($y);
+$b = 6;
+$c = 7;
+$a = 2*($c-(3*$b)/($c-2));
+write($a);

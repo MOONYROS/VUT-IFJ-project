@@ -50,3 +50,10 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Linux versions of interpreter compiler executable
+gigachad_compiler
+ic22int
+
+# Generated pseudoassembler
+*.ifjcode

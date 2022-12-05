@@ -35,6 +35,7 @@ bool isString(tSymTable *table, tExpression *exp);
 bool isReal(tSymTable *table, tExpression *exp);
 bool isInt(tSymTable *table, tExpression *exp);
 bool isNonTerminal(tExpression *exp);
+bool isNullTypeVar(tSymTable *table, tExpression *exp);
 tTokenType variableType(tSymTable *table, tExpression *exp);
 bool isDefined(tSymTable *table, tExpression *exp);
 bool checkOpDefinition(tSymTable *table, tExpression *top, tExpression *third);

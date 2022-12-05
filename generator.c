@@ -1,9 +1,16 @@
-//
-//  generator.c
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 15.10.2022.
-//
+/*****************************************************************//**
+ * \file   generator.c
+ * Implementace prekladace imperativniho jazyka IFJ22
+ *
+ * \brief  This file is responsible for generating the code.
+ *
+ * \author Ondrej Lukasek (xlukas15)
+ * \author Ondrej Koumar (xkouma02)
+ * \author Jonas Morkus (xmorku03)
+ * \author Milan Menc (xmencm00)
+ *
+ * \date   November 2022
+ *********************************************************************/
 
 #include <stdio.h>
 #include <string.h>
@@ -29,6 +36,13 @@ const char funcRetValName[] = "%retval1";
 extern int prgPass;
 extern tSymTableItem* actFunc; // active function if processing function definition body
 
+/**
+ * \brief Function, that "translates" strings into processable form.
+ * 
+ * \param outStr output string
+ * \param str input string
+ * \return char*
+ */
 char* ifjCodeStr(char *outStr, char* str)
 {
     char tmpStr[5];
@@ -118,6 +132,13 @@ char* ifjCodeStr(char *outStr, char* str)
     return outStr;
 }
 
+/**
+ * \brief 
+ * 
+ * \param outStr output string
+ * \param val value
+ * \return char*
+ */
 char* ifjCodeInt(char* outStr, int val)
 {
     if (outStr == NULL)
@@ -127,6 +148,13 @@ char* ifjCodeInt(char* outStr, int val)
     return outStr;
 }
 
+/**
+ * \brief
+ * 
+ * \param outStr output string
+ * \param val value
+ * \return char*
+ */
 char* ifjCodeReal(char* outStr, double val)
 {
     if (outStr == NULL)
@@ -136,6 +164,13 @@ char* ifjCodeReal(char* outStr, double val)
     return outStr;
 }
 
+/**
+ * \brief
+ * 
+ * \param fmt
+ * \param 
+ * \return int
+ */
 int addCode(const char* fmt, ...)
 {
     if (prgPass != 2)
@@ -172,6 +207,11 @@ int addCode(const char* fmt, ...)
     return ret;
 }
 
+/**
+ * \brief
+ * 
+ * \param table symbol table
+ */
 void addCodeVariableDefs(tSymTable* table)
 {
     if (table == NULL)
@@ -197,6 +237,11 @@ void addCodeVariableDefs(tSymTable* table)
     addCode("");
 }
 
+/**
+ * \brief Function that generates prolog code.
+ * 
+ * \param f file
+ */
 void genCodeProlog(FILE* f)
 {
     fprintf(f, "# Gigachad PHP compiler generated code\n");
@@ -205,17 +250,28 @@ void genCodeProlog(FILE* f)
     fprintf(f, "\n");
 }
 
+/**
+ * \brief 
+ * 
+ * \param f file
+ */
 void genCodeMain(FILE* f)
 {
     fprintf(f, "LABEL $$main\n");
     fprintf(f, "CREATEFRAME\n");
     fprintf(f, "PUSHFRAME\n");
     fprintf(f, "CREATEFRAME\n");
-    //fprintf(f, "DEFVAR TF@tmpRes\n");
-    // addCode("DEFVAR LF@%s", tmpExpResultName);
+    fprintf(f, "DEFVAR LF@otoc\n");
+    fprintf(f, "DEFVAR LF@tmp\n");
+    
     fprintf(f, "\n");
 }
 
+/**
+ * \brief
+ * 
+ * \param f
+ */
 void generateCode(FILE* f)
 {
     tCodeLine* item = codeFirst;
@@ -229,6 +285,11 @@ void generateCode(FILE* f)
     }
 }
 
+/**
+ * \brief
+ * 
+ * \param f file
+ */
 void generateFuncCode(FILE* f)
 {
     tCodeLine* item = funcCodeFirst;
@@ -243,6 +304,11 @@ void generateFuncCode(FILE* f)
     fprintf(f, "\n");
 }
 
+/**
+ * \brief Function, that generates embedded functions.
+ *
+ * \param f file
+ */
 void generateEmbeddedFunctions(FILE* f)
 {
     fprintf(f, "LABEL $func_readi\n");

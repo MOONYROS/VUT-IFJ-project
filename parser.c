@@ -1,9 +1,17 @@
-//
-//  parser.c
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 02.11.2022.
-//
+/*****************************************************************//**
+ * \file   parser.c
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * \brief  This file does all the parsing for the compiler, works woth symbol table, controls semantics and generates code.
+ * 
+ * \author Ondrej Lukasek (xlukas15)
+ * \author Ondrej Koumar (xkouma02)
+ * \author Jonas Morkus (xmorku03)
+ * \author Milan Menc (xmencm00)
+ * 
+ * \date   November 2022
+ *********************************************************************/
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -36,6 +44,11 @@ typedef enum {
     isEmpty, notEmpty
 } tStackState;
 
+/**
+ * \brief Does inserting of all embedded functions.
+ * 
+ * \param st symbol table
+ */
 void insert_embedded_functions(tSymTable* st)
 {
     if( (st_insert_function(st, "reads", tNullTypeString) == 0) ||
@@ -59,6 +72,14 @@ void insert_embedded_functions(tSymTable* st)
         errorExit("cannot insert function parameters to function in symbol table", CERR_INTERNAL);
 }
 
+/**
+ * /brief Function handles errors on stack
+ * 
+ * \param stack stack
+ * \param cond condition
+ * \param msg string with a message
+ * \param errCode error code number
+ */
 void on_stack_state_error(tStack* stack, tStackState cond, char* msg, int errCode)
 {
     switch (cond)
@@ -77,6 +98,13 @@ void on_stack_state_error(tStack* stack, tStackState cond, char* msg, int errCod
     }
 }
 
+/**
+ * \brief Functions reads token and then prints its data.
+ * 
+ * \param f file from which tokens are read
+ * \param token token with it's type and data
+ * \return 1 or 0 depending on whether reading was successful
+ */
 int ReadTokenPRINT(FILE *f, tToken *token)
 {
     int ret;
@@ -90,6 +118,11 @@ int ReadTokenPRINT(FILE *f, tToken *token)
     return ret;
 }
 
+/**
+ * \brief
+ * 
+ * \param tokenStr
+ */
 tTokenType strToToken(const char *tokenStr)
 {
     for (int t = tTypeInt; t <= tEpilog; t++) {
@@ -99,6 +132,11 @@ tTokenType strToToken(const char *tokenStr)
     return tInvalid;
 }
 
+/**
+ * \brief
+ * 
+ * \param str string
+ */
 void prl(char* str)
 {
     level++;
@@ -106,6 +144,9 @@ void prl(char* str)
     dbgMsg("%*s%s\n", level*2, "", str);
 }
 
+/**
+ * \brief
+ */
 void nextToken()
 {
     ReadTokenPRINT(inf, &token);
@@ -117,6 +158,11 @@ void nextToken()
     }
 }
 
+/**
+ * \brief Function matches desired token and then reads another one.
+ * 
+ * \param tokType desired token type to match
+ */
 void matchTokenAndNext(tTokenType tokType)
 {
     if (token.type != tokType)
@@ -128,6 +174,9 @@ void matchTokenAndNext(tTokenType tokType)
     nextToken();
 }
 
+/**
+ * \brief Function that processes function definition
+ */
 void processFunctionDefinition()
 {
     // tFunction tFuncName tLPar arguments tRPar tColon type tLCurl statements tRCurl
@@ -224,6 +273,8 @@ void processFunctionDefinition()
         }
     }
     on_stack_state_error(tmpStack, notEmpty, "stack should be empty after processsing arguments", CERR_INTERNAL);
+    addCode("DEFVAR LF@otoc\n");
+    addCode("DEFVAR LF@tmp\n");
 
     matchTokenAndNext(tRPar);
     matchTokenAndNext(tColon);
@@ -279,6 +330,11 @@ void processFunctionDefinition()
     tstack_free(&tmpStack);
 }
 
+/**
+ * \brief Function that processes if statement (with else).
+ * 
+ * \param st symbol table
+ */
 void processIfStatement(tSymTable* st)
 {
     // tIf tLPar expression tRPar tLCurl statements tRCurl tElse tLCurl statements tRCurl
@@ -303,12 +359,12 @@ void processIfStatement(tSymTable* st)
     {
         dbgMsg2(" ( ");
         addCode("DEFVAR TF@%%condRes%05d", condNr);
-        sprintf(tmpStr, "TF@%%%%condRes%05d", condNr);
+        sprintf(tmpStr, "TF@%%condRes%05d", condNr);
         expType = evalExp(tmpStr, tmpStack, st);
         if (expType == tNone) // bbb asi by bylo dobre ten vyraz vic zkontrolovat
             errorExit("vysledek vyrazu nelze vyhodnotit", CERR_SEM_TYPE);
         dbgMsg2(" ) ");
-        addCode("JUMPIFEQ $IFelse%05d TF@%%condRes%05d bool@false", condNr, condNr);
+        addCode("JUMPIFEQ $IFelse%05d TF@%%condRes%05d int@0", condNr, condNr);
     }
     on_stack_state_error(tmpStack, notEmpty, "stack should be empty after processsing assignment expression", CERR_INTERNAL);
     matchTokenAndNext(tRPar);
@@ -337,6 +393,11 @@ void processIfStatement(tSymTable* st)
     tstack_free(&tmpStack);
 }
 
+/**
+ * \brief Function that processes while statement.
+ * 
+ * \param st symbol table
+ */
 void processWhileStatement(tSymTable* st)
 {
     // tWhile tLPar expression tRPar tLCurl statements tRCurl
@@ -363,12 +424,12 @@ void processWhileStatement(tSymTable* st)
         addCode("CREATEFRAME");
         addCode("DEFVAR TF@%%condRes%05d", condNr);
         dbgMsg2(" ( ");
-        sprintf(tmpStr, "TF@%%%%condRes%05d", condNr);
+        sprintf(tmpStr, "TF@%%condRes%05d", condNr);
         expType = evalExp(tmpStr, tmpStack, st);
         if (expType == tNone) // bbb asi by bylo dobre ten vyraz vic zkontrolovat
             errorExit("vysledek vyrazu nelze vyhodnotit", CERR_SEM_TYPE);
         dbgMsg2(" ) ");
-        addCode("JUMPIFEQ $WHILEend%05d TF@%%condRes%05d bool@false", condNr, condNr);
+        addCode("JUMPIFEQ $WHILEend%05d TF@%%condRes%05d int@0", condNr, condNr);
     }
     on_stack_state_error(tmpStack, notEmpty, "stack should be empty after processsing assignment expression", CERR_INTERNAL);
     matchTokenAndNext(tRPar);
@@ -386,6 +447,12 @@ void processWhileStatement(tSymTable* st)
     tstack_free(&tmpStack);
 }
 
+/**
+ * \brief Function that processes call of a function.
+ *
+ * \param st symbol table
+ * \param stack stack
+ */
 void processFunctionCall(tSymTable* st, tStack* stack)
 {
     // tFuncName tLPar parameters tRPar
@@ -533,8 +600,8 @@ void processFunctionCall(tSymTable* st, tStack* stack)
                 tTokenType typ;
                 char tmpStr[MAX_TOKEN_LEN];
                 addCode("DEFVAR TF@%%%d", parnr);
-                sprintf(tmpStr, "TF@%%%%%d", parnr);
-                typ = evalExp(tmpStr, expStack, st);
+                sprintf(tmpStr, "TF@%%%d", parnr);
+                typ = const2type(evalExp(tmpStr, expStack, st)); // aaa tohle by se melo testvat jinak
                 if (!tstack_isEmpty(tmpStack))
                     dbgMsg(", ");
                 // jestlize nejsou predavane typy ani na jednu stranu kompatibilni, tak chyba, jinak to proste zkusime
@@ -573,6 +640,11 @@ void processFunctionCall(tSymTable* st, tStack* stack)
     tstack_free(&tmpStack);
 }
 
+/**
+ * \brief Function that processes return
+ *
+ * \param st symbol table
+ */
 void processReturn(tSymTable* st)
 {
     // tReturn returnValue tSemicolon
@@ -594,11 +666,11 @@ void processReturn(tSymTable* st)
     else
     {
         char tmpStr[MAX_TOKEN_LEN];
-        sprintf(tmpStr, "LF@%%%s", funcRetValName);
+        sprintf(tmpStr, "LF@%s", funcRetValName);
         dbgMsg(" expression [ ");
         int cnt = tstack_count(tmpStack);
         if (cnt > 0)
-            expType = evalExp(tmpStr, tmpStack, st);
+            expType = const2type(evalExp(tmpStr, tmpStack, st)); // aaa tohle osetrit na realny typ nezobecnovat
         else
             expType = tNone;
         dbgMsg(" ] : %s\n", tokenName[expType]);
@@ -630,6 +702,11 @@ void processReturn(tSymTable* st)
     tstack_free(&tmpStack);
 }
 
+/**
+ * \brief Function that processes assignments
+ *
+ * \param st symbol table
+ */
 void processAssignment(tSymTable* st)
 {
     // tAssign expression tSemicolon
@@ -686,6 +763,9 @@ extern size_t memAlloc;
 extern size_t totDeAllocs;
 extern size_t memDeAlloc;
 
+/**
+ * \brief Main function for parser, basically handles whole parsing, semantic analysis and code generation.
+ */
 void parse()
 {
     if (SkipProlog(inf))
@@ -782,6 +862,9 @@ void parse_programs()
     level--;
 } */
 
+/**
+ * \brief Function that processes program (non-terminal).
+ */
 void parse_program()
 {
     prl("program");
@@ -822,7 +905,12 @@ void parse_program()
 
     level--;
 }
-
+/**
+ * \brief Function that processes statements.
+ *
+ * \param st symbol table
+ * \param stack stack
+ */
 void parse_statements(tSymTable *st, tStack* stack)
 {
     prl("statements");
@@ -855,6 +943,12 @@ void parse_statements(tSymTable *st, tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that processes statement.
+ *
+ * \param st symbol table
+ * \param stack stack
+ */
 void parse_statement(tSymTable* st, tStack* stack)
 {
     prl("statement");
@@ -910,6 +1004,12 @@ void parse_statement(tSymTable* st, tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses function call.
+ *
+ * \param st symbol table
+ * \param stack stack
+ */
 void parse_functionCall(tSymTable* st, tStack* stack)
 {
     prl("functionCall");
@@ -930,6 +1030,12 @@ void parse_functionCall(tSymTable* st, tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses returnValue non-terminal.
+ *
+ * \param st symbol table
+ * \param stack stack
+ */
 void parse_returnValue(tSymTable* st, tStack* stack)
 {
     prl("returnValue");
@@ -957,6 +1063,11 @@ void parse_returnValue(tSymTable* st, tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses nextTerminla non-terminal.
+ *
+ * \param st symbol table
+ */
 void parse_nextTerminal(tSymTable* st)
 {
     prl("nextTerminal");
@@ -993,6 +1104,12 @@ void parse_nextTerminal(tSymTable* st)
     level--;
 }
 
+/**
+ * \brief Function that parses preExpression non-terminal.
+ *
+ * \param st symbol table
+ * \param stack stack
+ */
 void parse_preExpression(tSymTable* st, tStack* stack)
 {
     prl("preExpresssion");
@@ -1039,6 +1156,12 @@ void parse_preExpression(tSymTable* st, tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses expression non-terminal.
+ *
+ * \param st symbol table
+ * \param stack stack
+ */
 void parse_expression(tSymTable* st, tStack* stack)
 {
     prl("expression");
@@ -1059,8 +1182,10 @@ void parse_expression(tSymTable* st, tStack* stack)
         break;
     
     case tLPar:
+        tstack_pushl(stack, token);
         matchTokenAndNext(tLPar);
         parse_expression(st, stack);
+        tstack_pushl(stack, token);
         matchTokenAndNext(tRPar);
         parse_expression2(st, stack);
         break;
@@ -1073,6 +1198,12 @@ void parse_expression(tSymTable* st, tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses expression2 non-terminal.
+ *
+ * \param st symbol table
+ * \param stack stack
+ */
 void parse_expression2(tSymTable* st, tStack* stack)
 {
     prl("expression2");
@@ -1103,6 +1234,11 @@ void parse_expression2(tSymTable* st, tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses arguments non-terminal.
+ *
+ * \param stack stack
+ */
 void parse_arguments(tStack* stack)
 {
     prl("arguments");
@@ -1130,6 +1266,11 @@ void parse_arguments(tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses argumentVars non-terminal.
+ *
+ * \param stack stack
+ */
 void parse_argumentVars(tStack* stack)
 {
     prl("argumentVars");
@@ -1153,6 +1294,12 @@ void parse_argumentVars(tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses parameters non-terminal.
+ *
+ * \param st symbol table
+ * \param stack stack
+ */
 void parse_parameters(tSymTable* st, tStack* stack)
 {
     prl("parameters");
@@ -1181,6 +1328,12 @@ void parse_parameters(tSymTable* st, tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses parameters2 non-terminal.
+ *
+ * \param st symbol table
+ * \param stack stack
+ */
 void parse_parameters2(tSymTable* st, tStack* stack)
 {
     prl("parameters2");
@@ -1202,6 +1355,12 @@ void parse_parameters2(tSymTable* st, tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses term non-terminal.
+ *
+ * \param st symbol table
+ * \param stack stack
+ */
 void parse_term(tSymTable* st, tStack* stack)
 {
     prl("term");
@@ -1239,6 +1398,11 @@ void parse_term(tSymTable* st, tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses minusTerm non-terminal.
+ *
+ * \param stack stack
+ */
 void parse_minusTerm(tStack* stack)
 {
     prl("minusTerm");
@@ -1270,6 +1434,11 @@ void parse_minusTerm(tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses const non-terminal.
+ *
+ * \param stack stack
+ */
 void parse_const(tStack* stack)
 {
     prl("const");
@@ -1294,6 +1463,11 @@ void parse_const(tStack* stack)
     level--;
 }
 
+/**
+ * \brief Function that parses type non-terminal.
+ *
+ * \param stack stack
+ */
 void parse_type(tStack* stack)
 {
     prl("type");
