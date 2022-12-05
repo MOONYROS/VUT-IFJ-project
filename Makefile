@@ -12,11 +12,12 @@ CFLAGS := -std=c99 -Wall -Wextra -Wpedantic -c
 
 all: $(EXEC)
 
+# MOONY: prozatim jsem smazal presmerovani ze stdin, pozdeji bude potreba 
 $(EXEC): $(OBJS)
 	$(CC) $^ -o $@
 	
 run: $(EXEC)
-	./$(EXEC) < $(RUN_FILE)
+	./$(EXEC) $(RUN_FILE)
 	
 clean:
 	rm -vf *.o
