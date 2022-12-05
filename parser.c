@@ -1117,6 +1117,7 @@ void parse_preExpression(tSymTable* st, tStack* stack)
     switch (token.type)
     {
     case tMinus:
+        tstack_pushl(stack, token);
         matchTokenAndNext(tMinus);
         parse_minusTerm(stack);
         parse_expression2(st, stack);
@@ -1368,6 +1369,7 @@ void parse_term(tSymTable* st, tStack* stack)
     switch (token.type)
     {
     case tMinus:
+        tstack_pushl(stack, token);
         matchTokenAndNext(tMinus);
         parse_minusTerm(stack);
         break;
