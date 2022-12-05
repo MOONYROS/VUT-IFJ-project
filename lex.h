@@ -1,9 +1,15 @@
-//
-//  lex.h
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 15.10.2022.
-//
+/**
+ * @file lex.h
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This file is responsible for lexical analysis. Reads characters and saves them to tokens.
+ * @date 2022-11
+ */
 
 #ifndef lex_h
 #define lex_h

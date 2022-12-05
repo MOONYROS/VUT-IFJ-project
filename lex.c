@@ -1,9 +1,15 @@
-//
-//  lex.c
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 15.10.2022.
-//
+/**
+ * @file lex.c
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This file is responsible for lexical analysis. Reads characters and saves them to tokens.
+ * @date 2022-11
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -36,7 +42,7 @@ typedef enum{   // strings for Keywords
 } tState;
 
 #define KEYWORDS 10
-char *keyword[] = {"if", "else", "while", "function", "return", "null", "int", "float", "string", "void"}; // seznam vsech keywordu a typu naseho jazyka
+char *keyword[] = {"if", "else", "while", "function", "return", "null", "int", "float", "string", "void"}; // list of all keywords and types
 tTokenType keywordToken[] = {tIf, tElse, tWhile, tFunction, tReturn, tNull, tTypeInt, tTypeFloat, tTypeString, tVoid};
 
 #define NULLTYPES 3
@@ -45,6 +51,12 @@ tTokenType nullTypeToken[] = {tNullTypeInt, tNullTypeFloat, tNullTypeString};
 
 int srcLine = 1;
 
+/**
+ * @brief Function turns character in string to upper case.
+ * 
+ * @param ch character
+ * @return char in upper case
+ */
 char upCase(char ch)
 {
     if (ch >= 'a' && ch <= 'z')
@@ -53,6 +65,12 @@ char upCase(char ch)
         return ch;
 }
 
+/**
+ * @brief Function turns hexadecimal number do decadic.
+ * 
+ * @param ch character
+ * @return decadic number
+ */
 int hexToDec(char ch)
 {
     if (ch >= '0' && ch <= '9')
@@ -63,6 +81,12 @@ int hexToDec(char ch)
         return 0;
 }
 
+/**
+ * @brief Function reads next character from file.
+ * 
+ * @param stream file to read from
+ * @return read character
+ */
 char nextChar(FILE* stream)
 {
     char ch = fgetc(stream);
@@ -71,7 +95,12 @@ char nextChar(FILE* stream)
     return ch;
 }
 
-// porovna, jestli je retezec stejny s nekterym z klicovych slov
+/**
+ * @brief Function compares whether string is the same as any keyword.
+ * 
+ * @param str string to compare
+ * @return 1 or 0
+ */
 int isKeyword(char *str)
 {
     for (int i = 0; i < KEYWORDS; i++)
@@ -80,6 +109,12 @@ int isKeyword(char *str)
     return 0;
 }
 
+/**
+ * @brief Function checks if parameter is null type.
+ * 
+ * @param str string
+ * @return Returns 0 on fail.
+ */
 int isNullType(char *str)
 {
     for (int i = 0; i < NULLTYPES; i++)
@@ -88,7 +123,12 @@ int isNullType(char *str)
     return 0;
 }
 
-// kotroluje, jestli je znak alpha znakem
+/**
+ * @brief Function checks if character is a regular alpha character.
+ * 
+ * @param ch character
+ * @return 1 or 0
+ */
 int isAlpha(char ch)
 {
     if ((ch >= 'A') && (ch <= 'Z'))
@@ -98,7 +138,12 @@ int isAlpha(char ch)
     return 0;
 }
 
-// kotroluje, jestli je znak cislem
+/**
+ * @brief Function checks if character is a number character.
+ *
+ * @param ch character
+ * @return 1 or 0
+ */
 int isDigit(char ch)
 {
     if ((ch >= '0') && (ch <= '9'))
@@ -106,7 +151,12 @@ int isDigit(char ch)
     return 0;
 }
 
-// kotroluje, jestli je znak bilym znakem
+/**
+ * @brief Function checks if character is a white character.
+ * 
+ * @param ch character
+ * @return 1 or 0
+ */
 int isWhiteChar(char ch)
 {
     switch (ch) {
@@ -119,6 +169,12 @@ int isWhiteChar(char ch)
     return 0;
 }
 
+/**
+ * @brief Function skips white characters.
+ * 
+ * @param f file
+ * @param ch character
+ */
 void skipWhites(FILE* f, char* ch)
 {
     while (!feof(f) && isWhiteChar(*ch))
@@ -128,6 +184,12 @@ void skipWhites(FILE* f, char* ch)
 
 }
 
+/**
+ * @brief Function handles loading and checking prolog.
+ * 
+ * @param f file
+ * @return 1 is successful 0 on fail
+ */
 int SkipProlog(FILE *f)
 {
     char ch;
@@ -151,7 +213,6 @@ int SkipProlog(FILE *f)
     if (strcmp(line, "<?php") != 0)
         return 0;
     ch = nextChar(f);
-    // tady je potreba jeste osetrit komentare uprostred prologu
     skipWhites(f, &ch);
     while (ch != 'd')
     {
@@ -235,6 +296,13 @@ int SkipProlog(FILE *f)
     return 1;
 }
 
+/**
+ * @brief Function checks characters and assigns them to tokens.
+ * 
+ * @param f source file
+ * @param token token
+ * @return 
+ */
 int ReadToken(FILE *f, tToken *token)
 {
     char ch;
@@ -249,17 +317,17 @@ int ReadToken(FILE *f, tToken *token)
         if (feof(f))
         {
             token->type = tEpilog;
-            return 0;   // Osetrit potencialne nactena data pred EOF
+            return 0;   // Take care of potencially unwanted data read before EOF.
         }
             
         switch (state) {
             case sInit:
-                if (isAlpha(ch) || (ch == '_'))     // Pokud prisel alpha znak nebo podtrzitko
+                if (isAlpha(ch) || (ch == '_'))     // On alpha char or undescore
                 {
                     state = sFunctionName;
                     SAVECHAR;
                 }
-                else if (isDigit(ch))   // TODO
+                else if (isDigit(ch))
                 {
                     state = sInt;
                     SAVECHAR;
@@ -330,7 +398,7 @@ int ReadToken(FILE *f, tToken *token)
                             break;
                         case '?':
                             ch = nextChar(f);
-                            if (ch == '>')   // Kontrola rovnosti
+                            if (ch == '>')   // equality control
                             {
                                 while (!feof(f))
                                 {
@@ -357,18 +425,18 @@ int ReadToken(FILE *f, tToken *token)
                         case '$':
                             state = sDollar;
                             break;
-                        case '=':   // Kontrola prirazeni
+                        case '=':   // assigment control
                             ch = nextChar(f);
-                            if (ch == '=')   // Kontrola rovnosti
+                            if (ch == '=')   // equality control
                             {
                                 ch = nextChar(f);
-                                if (ch == '=')  // Kontrola identicnosti
+                                if (ch == '=')  // identicality control
                                 {
                                     state = sFinish;
                                     strcpy(token->data, "===");
                                     token->type = tIdentical;
                                 }
-                                else    // pokud prisly pouze 2 symboly =, jdeme do tInvalid, protoze to nas jazyk nepodporuje
+                                else    // if only 2 symbols (==) came, go to tInvalid, because our language does not support it
                                 {
                                     state = sFinish;
                                     token->type = tInvalid;
@@ -393,7 +461,7 @@ int ReadToken(FILE *f, tToken *token)
                                     strcpy(token->data, "!=");
                                     token->type = tNotIdentical;
                                 }
-                                else    // pokud prisly pouze 2 symboly (!=), jdeme do tInvalid, protoze to nas jazyk nepodporuje
+                                else    // if only 2 symbols (!=) came, go to tInvalid, because our language does not support it
                                 {
                                     state = sFinish;
                                     token->type = tInvalid;
@@ -442,7 +510,6 @@ int ReadToken(FILE *f, tToken *token)
                         case '/':
                             SAVECHAR;
                             ch = nextChar(f);
-                            // SAVECHAR;
                             if (ch == '/')   // Single line comment
                             {
                                 SAVECHAR;
@@ -454,12 +521,10 @@ int ReadToken(FILE *f, tToken *token)
                                 }
                                 if (feof(f))
                                 {
-                                    //dbgMsg("EOF COMMENT: %s\n", token->data);
                                     state = sFinish;
                                     token->type = tEpilog;
                                     return 1;
                                 }
-                                //dbgMsg("COMMENT: %s\n", token->data);
                                 pos = token->data;
                             }
                             else if (ch == '*')  // Start of block comment
@@ -479,7 +544,6 @@ int ReadToken(FILE *f, tToken *token)
                                         }
                                         else if (ch == '/')
                                         {
-                                            //dbgMsg("MULTILINE COMMENT\n");
                                             pos = token->data;
                                             *pos = '\0';
                                             break;
@@ -506,76 +570,68 @@ int ReadToken(FILE *f, tToken *token)
                     }
                 }
                 break;
-            /* SPATNE NASTAVENE PODMINKY A PROBIHA SPATNE VYHODNOCOVANI ZNAKU */
-            // aaa OPRAVIT aaa
-            case sLiteral:  // prisla nam uvozovka
-                if (ch == '\"') // prisla dalsi uvozovka - ukoncujeme retezec
+            case sLiteral:  // quotation mark was read
+                if (ch == '\"') // another quotation mark was read - end of string
                 {
                     state = sFinish;
                     token->type = tLiteral;
                 }
-                // aaa tohle je jen temporary fix, je potreba to opravit aaa
-                else if (ch == '\\')    // pokud prisel backslash, presouvame se do sEsc
+                else if (ch == '\\')    // with backslash we move to sEsc
                 {
                     SAVECHAR;
                     state = sEsc;
-                }             
-                /*else if (ch == '%')
+                }
+                else if (ch >= 32) // (ch <= 255) is alway true
                 {
                     SAVECHAR;
-                    state = sPercent;
-                }*/
-                else if (ch >= 32) // (ch <= 255) je vzdycky TRUE, takze neni treba zapisovat
-                {
-                    SAVECHAR;
-                    if (ch == '$')
+                    if (ch == '$') // we cannot read dollar sign normally
                     {
                         state = sFinish;
                         token->type = tInvalid;
                     }                        
                 }
-                else    // jakykoliv jiny znak (napriklad EOF) je nepripustny
+                else    // any other character is invalid
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
                 break;
             case sEsc:
-                if ((ch >= '0') && (ch <= '9'))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o oktalove cislo
+                if ((ch >= '0') && (ch <= '9'))   // if it's a number from interval <0; 7>, it has to be an octal number
                 {
                     SAVECHAR;
                     state = sOcta1;
                 }
-                else if (ch == 'x') // prislo x, takze se bude jednat o hexadecimalni cislo
+                else if (ch == 'x') // on x, we'll definitely have hexadecimal number
                 {
                     SAVECHAR;
                     state = sHexa1;
                 }
-                else if ((ch == '"') || (ch == 'n') || (ch == 't') || (ch == '$') || (ch == '\\'))// || (ch == '%')   // prisel jeden z techto znaku
+                else if ((ch == '"') || (ch == 'n') || (ch == 't') || (ch == '$') || (ch == '\\')) // any one of these characters was read
                 {
                     SAVECHAR;
                     state = sLiteral;
                 }
-                else    // do escape sekvece prisel neplatny znak
+                else    // invalid character in sequence
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
                 break;
             case sOcta1:
-                if ((ch >= '0') && (ch <= '9'))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o KOMPLETNI oktalove cislo
+                if ((ch >= '0') && (ch <= '9'))   // if it's a number from interval <0; 7>, it is a COMPLETE octal number
                 {
                     SAVECHAR;
                     state = sOcta2;
                 }
-                else    // cokoliv jine je tInvalid
+                else    // anything else is invalid
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
                 break;
             case sOcta2:
-                if ((ch >= '0') && (ch <= '9'))   // jestlize se jedna o cislo z intervalu <0; 7>, jedna se o KOMPLETNI oktalove cislo, vracime se zpet do retezce
+                if ((ch >= '0') && (ch <= '9'))   // if it's a number from interval <0; 7>, it is a COMPLETE octal number, we'll get back to literal
                 {
                     SAVECHAR;
                     int len = strlen(token->data);
@@ -590,14 +646,14 @@ int ReadToken(FILE *f, tToken *token)
                     }
                     state = sLiteral;
                 }
-                else    // cokoliv jine je tInvalid
+                else    // anything else is invalid
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
                 break;
             case sHexa1:
-                if(((ch >= '0') && (ch <= '9')) || ((upCase(ch) >= 'A') && (upCase(ch) <= 'F')))    // prvni cislo musi byt bud 0-9 (prvni podminka) nebo A-F (druha podminka)
+                if(((ch >= '0') && (ch <= '9')) || ((upCase(ch) >= 'A') && (upCase(ch) <= 'F')))    // first character has to either be from interval <0; 9> or <A; F>
                 {
                     ch = upCase(ch);
                     SAVECHAR;
@@ -610,7 +666,7 @@ int ReadToken(FILE *f, tToken *token)
                 }
                 break;
             case sHexa2:
-                if (((ch >= '0') && (ch <= '9')) || ((upCase(ch) >= 'A') && (upCase(ch) <= 'F')))    // druhe cislo musi byt bud 0-9 (prvni podminka) nebo A-F (druha podminka)
+                if (((ch >= '0') && (ch <= '9')) || ((upCase(ch) >= 'A') && (upCase(ch) <= 'F')))    // second character has the same condition
                 {
                     ch = upCase(ch);
                     SAVECHAR;
@@ -624,24 +680,12 @@ int ReadToken(FILE *f, tToken *token)
                     token->data[len - 1] = tmp[2];
                     state = sLiteral;
                 }
-                else    // cokoliv jine je tInvalid
+                else    // anything else is invalid
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
                 break;
-            /*case sPercent:
-                if ((ch == 'a') || (ch == 'd'))
-                {
-                    SAVECHAR;
-                    state = sLiteral;
-                }
-                else
-                {
-                    state = sFinish;
-                    token->type = tInvalid;
-                }
-                break;*/
             case sFunctionName:
                 while ((isAlpha(ch)) || (isDigit(ch)) || (ch == '_'))
                 {
@@ -672,57 +716,53 @@ int ReadToken(FILE *f, tToken *token)
     
                 state = sFinish;
                 break;
-            case sInt:
-                // if (isDigit(ch))    // jestlize je znak cislo, ulozime ho
-                //     SAVECHAR
-                while (isDigit(ch))
+            case sInt:             
+                while (isDigit(ch)) // we'll save all the numbers
                 {
                     SAVECHAR;
                     ch = nextChar(f);
                 }
-                if (ch == '.') // jetlize prijde tecka, ulozime ji a presouvame se do sFloat
+                if (ch == '.') // on dot, we save and move to sFloat
                 {
                     SAVECHAR;
                     state = sFloat;
                 }
-                else if ((ch == 'e') || (ch == 'E'))    // jestlize prijde e nebo E, jdeme do sIexp
+                else if ((ch == 'e') || (ch == 'E'))    // on e or E, we move to sIexp
                 {
                     SAVECHAR;
                     state = sIexp;
                 }
-                else    // Pokud ani jedna z podminek nevyhovuje, vracime znak zpatky a cislo (int) je nacteno
+                else    // If any of the above conditions do not match, we stay wit tInt
                 {
                     ungetc(ch, f);
                     state = sFinish;
                     token->type = tInt;
                 }
                 break;
-            case sFloat:    // Co kdyz prijde jenom 234.? je to 234.0 nebo tInvalid?
+            case sFloat:
                 if (isDigit(ch))
                 {
                     SAVECHAR;
                     state = sReal;
                 }
-                else    // Zatim za teckou ocekavam cislo, takze pokud neprijde, hazim tInvalid
+                else    // There has to be number behind dot
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
                 break;
-            case sReal: // Za teckou prislo cislo, takze ted urcite mame realne cislo
-                //if (isDigit(ch))
-                //    SAVECHAR
-                while (isDigit(ch)) // Za tecku prislo dalsi cislo, to ulozime
+            case sReal: // There is a number after the dot, se we definitely have real number
+                while (isDigit(ch)) // We'll save all the other numbers
                 {
                     SAVECHAR;
                     ch = nextChar(f);
                 }
-                if ((ch == 'e') || (ch == 'E')) // Realne exponencialni
+                if ((ch == 'e') || (ch == 'E')) // Real exponential
                 {
                     SAVECHAR;
                     state = sRexp;
                 }
-                else    // Za cislem za desetinnou teckou prisel neocekavany znak, tak ho vratime zpatky a ulozime nastavime stav sFinish
+                else    // Unexpected character after number, so we're done reading real number
                 {
                     ungetc(ch, f);
                     state = sFinish;
@@ -730,87 +770,88 @@ int ReadToken(FILE *f, tToken *token)
                 }
                 break;
             case sRexp:
-                if (isDigit(ch))    // Prislo cislo, takze rovnou presouvame do sReal2
+                if (isDigit(ch))    // Number was read, we move straight to sReal2
                 {
                     SAVECHAR;
                     state = sReal2;
                 }
-                else if ((ch == '+') || (ch == '-'))    // prislo + nebo -, takze se presouvame do sRexpS
+                else if ((ch == '+') || (ch == '-'))    //  + or - was read, so we move to sRexpS
                 {
                     SAVECHAR;
                     state = sRexpS;
                 }
-                else    // ocekavali jsme cislo nebo znak, ani jeden neprisel, takze konec a stav je tInvalid
+                else    // unexpected character
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
                 break;
             case sRexpS:
-                if(isDigit(ch)) // Prislo cislo, takze se presouvame do stavu sReal2
+                if(isDigit(ch)) // Number was read, we move to sReal2
                 {
                     SAVECHAR;
                     state = sReal2;
                 }
-                else    // Ocekavali jsme cislo, ktere neprislo, takze stav je tInvalid
+                else    // unexpected character
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
                 break;
-            case sReal2:    // jedno cislo nam uz prislo, takze cele cislo je urcite validni
-                while (isDigit(ch)) // dokud prichazeji cisla, ukladame je
+            case sReal2:    // We already have one number, so it's definitely already a valid number
+                while (isDigit(ch)) // we save all the coming numbers
                 {
                     SAVECHAR;
                     ch = nextChar(f);
                 }
-                ungetc(ch, f);  // prislo nam neco jineho nez cislo, takze se o znak vratime a dame se do stavu sFinish a typ tokenu je tReal2
+                ungetc(ch, f);  // unexpected character finishes reading
                 state = sFinish;
                 token->type = tReal2;
                 break;
-            case sIexp:    // Prislo e nebo E
-                if (isDigit(ch))    // Prislo cislo, takze se presouvame do stavu sInt2
+            case sIexp:    // e or E was read
+                if (isDigit(ch))    // number was read, we move to sInt2
                 {
                     SAVECHAR;
                     state = sInt2;
                 }
-                else if ((ch == '+') || (ch == '-'))    // Prislo + nebo -, takze se presouvame do sIexpS
+                else if ((ch == '+') || (ch == '-')) // + or -was read, so we move to sRexpS
                 {
                     SAVECHAR;
                     state = sIexpS;
                 }
-                else    // ocekavali jsme cislo nebo znamenko, jinak tInvalid
+                else    // unexpected character
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
                 break;
-            case sIexpS:    // Prislo znamenko
-                if (isDigit(ch))    // Prislo cislo
+            case sIexpS:    // sign was read
+                if (isDigit(ch))    // number was read
                 {
                     SAVECHAR;
                     state = sInt2;
                 }
-                else    // ocekavali jsme cislo, konec, stav tInvalid
+                else    // unexpected character
                 {
                     state = sFinish;
                     token->type = tInvalid;
                 }
                 break;
             case sInt2:
-                while (isDigit(ch)) // dokud prichazeji cisla, ukladame je
+                while (isDigit(ch)) // we save all the oncoming numbers 
                 {
                     SAVECHAR;
                     ch = nextChar(f);
                 }
-                ch = ungetc(ch, f); // neprislo cislo, tento znak vratime a jsme v koncovem stavu
+                ch = ungetc(ch, f); // character was not a number, so we're finished reading
                 state = sFinish;
                 token->type = tInt2;
                 break;
             case sDollar:
                 if ((isAlpha(ch)) || (ch == '_'))
                 {
-                    while ((isAlpha(ch)) || (isDigit(ch)) || (ch == '_')) // promenna musi zacinat pismenem nebo podtrzitkem
+                    while ((isAlpha(ch)) || (isDigit(ch)) || (ch == '_')) // variable has to start with aplhabet character or with underscore
+
                     {
                         SAVECHAR;
                         ch = nextChar(f);
