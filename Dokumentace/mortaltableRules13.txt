@@ -1,7 +1,7 @@
 programs -> program programs
 programs -> epsilon 
 
-program -> tFunction tFuncName tLPar arguments tRPar tColon type tLCurl statements returnState tRCurl   
+program -> tFunction tFuncName tLPar arguments tRPar tColon type tLCurl statements tRCurl   
 program -> statement
 
 statements -> statement statements
@@ -9,13 +9,12 @@ statements -> epsilon
 
 statement -> tIf tLPar expression tRPar tLCurl statements tRCurl tElse tLCurl statements tRCurl
 statement -> tWhile tLPar expression tRPar tLCurl statements tRCurl
-statement -> tFuncName tLPar parameters tRPar tSemicolon
 statement -> tSemicolon
 statement -> tIdentifier nextTerminal
+statement -> tReturn returnValue tSemicolon
 statement -> preExpression
 
-returnState -> tReturn returnValue tSemicolon
-returnState -> epsilon 
+functionCall -> tFuncName tLPar parameters tRPar
 
 returnValue -> expression
 returnValue -> epsilon 
@@ -23,7 +22,9 @@ returnValue -> epsilon
 nextTerminal -> tAssign expression tSemicolon
 nextTerminal -> expression2 tSemicolon
 
+preExpression -> tMinus minusTerm expression2 tSemicolon
 preExpression -> const expression2 tSemicolon
+preExpression -> functionCall expression2 tSemicolon
 preExpression -> tLPar const expression2 tRPar tSemicolon
 		
 expression -> term expression2
@@ -48,14 +49,20 @@ arguments -> epsilon
 argumentVars -> tComma type tIdentifier argumentVars
 argumentVars -> epsilon  
                   
-parameters -> term parameters2
+parameters -> expression parameters2
 parameters -> epsilon 
 
-parameters2 -> tComma term parameters2
+parameters2 -> tComma expression parameters2
 parameters2 -> epsilon 
 
+term -> tMinus minusTerm
 term -> const
 term -> tIdentifier
+term -> functionCall
+
+minusTerm -> const
+minusTerm -> tIdentifier
+minusTerm -> functionCall
            
 const -> tInt 
 const -> tReal 
@@ -64,7 +71,7 @@ const -> tInt2
 const -> tNull 
 const -> tLiteral
 
-type ->  tNullTypeInt 
+type -> tNullTypeInt 
 type -> tNullTypeFloat 
 type -> tNullTypeString
 type -> tTypeInt 

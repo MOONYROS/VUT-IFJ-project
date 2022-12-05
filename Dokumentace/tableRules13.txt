@@ -1,0 +1,83 @@
+%token tTypeInt tTypeFloat tTypeString tNullTypeInt tNullTypeFloat tNullTypeString tIf tElse tWhile tFunction tReturn tVoid tNull tInvalid tIdentifier tFuncName tType tNullType tPlus tMinus tConcat tMul tDiv tLPar tRPar tLCurl tRCurl tColon tSemicolon tComma tAssign tIdentical tNotIdentical tLess tLessEq tMore tMoreEq tInt tReal tReal2 tInt2 tLiteral
+%%
+
+programs : program programs
+         |;
+
+program : tFunction tFuncName tLPar arguments tRPar tColon type tLCurl statements tRCurl   
+        | statement;
+
+statements : statement statements
+           |;
+
+statement : tIf tLPar expression tRPar tLCurl statements tRCurl tElse tLCurl statements tRCurl
+          | tWhile tLPar expression tRPar tLCurl statements tRCurl
+          | tSemicolon
+          | tIdentifier nextTerminal
+          | tReturn returnValue tSemicolon
+          | preExpression;
+
+functionCall : tFuncName tLPar parameters tRPar;
+
+returnValue : expression
+            |; 
+
+nextTerminal : tAssign expression tSemicolon
+             | expression2 tSemicolon;
+
+preExpression : tMinus minusTerm expression2 tSemicolon 
+		    | const expression2 tSemicolon
+              | functionCall expression2 tSemicolon
+              | tLPar const expression2 tRPar tSemicolon;
+		
+expression : term expression2
+           | tLPar expression tRPar expression2;
+                 
+expression2 : tPlus expression
+            | tMinus expression
+            | tMul expression
+            | tDiv expression
+            | tConcat expression
+            | tLess expression
+            | tLessEq expression
+            | tMore expression
+            | tMoreEq expression
+            | tIdentical expression
+            | tNotIdentical expression
+            |;
+
+arguments : type tIdentifier argumentVars
+          |;
+
+argumentVars : tComma type tIdentifier argumentVars
+             |;
+                  
+parameters : expression parameters2
+           |; 
+
+parameters2 : tComma expression parameters2
+            |;
+
+term : tMinus minusTerm
+	| const
+     | tIdentifier
+	| functionCall;
+
+minusTerm : const
+		| tIdentifier
+		| functionCall;
+           
+const : tInt 
+      | tReal 
+      | tReal2 
+      | tInt2 
+      | tNull 
+      | tLiteral;
+
+type : tNullTypeInt 
+     | tNullTypeFloat 
+     | tNullTypeString
+     | tTypeInt 
+     | tTypeFloat 
+     | tTypeString
+     | tVoid;
