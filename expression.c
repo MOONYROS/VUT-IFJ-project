@@ -205,13 +205,25 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
     }
 }
 
-void rearrangeStack(tStack *stack)
+void rearrangeStack(tSymTable *table, tStack *stack)
 {
     tStackItem *tmp = stack->top;
 
-    tToken zero = {tInt, NULL};
-    zero.data = safe_malloc(sizeof("0"));
-    strcpy(zero.data, "0");
+    tExpression aux;
+    aux.isNonTerminal = false;
+    if (tmp->next != NULL)
+        aux.type = tmp->next->token.type;
+        aux.data = safe_malloc(MAX_TOKEN_LEN);
+        if (tmp->next->token.data != NULL)
+            strcpy(aux.data, tmp->next->token.data);
+
+    tToken intZero = {tInt, NULL};
+    intZero.data = safe_malloc(sizeof("0"));
+    strcpy(intZero.data, "0");
+    tToken realZero = {tReal, NULL};
+    realZero.data = safe_malloc(sizeof("0.0"));
+    strcpy(realZero.data, "0.0");
+
     tToken leftPar = {tLPar, NULL};
     leftPar.data = safe_malloc(sizeof("("));
     strcpy(leftPar.data, "(");
@@ -221,7 +233,10 @@ void rearrangeStack(tStack *stack)
 
     if (tmp->token.type == tMinus)
     {
-        tstack_push(stack, zero);
+        if (isReal(table, &aux))
+            tstack_push(stack, realZero);
+        else
+            tstack_push(stack, intZero);
         tstack_push(stack, leftPar);
         tmp = tmp->next;
         tstack_insertAfter(stack, tmp, rightPar);
@@ -230,14 +245,19 @@ void rearrangeStack(tStack *stack)
     tStackItem *operator;
     tExpression numOp;
     numOp.isNonTerminal = false;
+    numOp.data = safe_malloc(MAX_TOKEN_LEN);
     while (tmp != NULL)
     {
+        if (tmp->next != NULL)
+        {
+            aux.type = tmp->next->token.type;
+            strcpy(aux.data, tmp->next->token.data);
+        }
+
         numOp.type = tmp->token.type;
         if (tmp->token.data != NULL)
-        {
-            numOp.data = safe_malloc(MAX_TOKEN_LEN);
             strcpy(numOp.data, tmp->token.data);
-        }
+
         if (isNumberOp(&numOp) || tmp->token.type == tLPar)
         {
             operator = tmp;
@@ -249,9 +269,18 @@ void rearrangeStack(tStack *stack)
                 leftPar.data = safe_malloc(sizeof("("));
                 strcpy(leftPar.data, "(");
 
-                tstack_insertAfter(stack, operator, zero);
-                zero.data = safe_malloc(sizeof("0"));
-                strcpy(zero.data, "0");
+                if (isReal(table, &aux))   
+                { 
+                    tstack_insertAfter(stack, operator, realZero);
+                    realZero.data = safe_malloc(sizeof("0.0"));
+                    strcpy(realZero.data, "0.0");
+                }
+                else
+                {
+                    tstack_insertAfter(stack, operator, intZero);
+                    intZero.data = safe_malloc(sizeof("0"));
+                    strcpy(intZero.data, "0");
+                }   
                 for (int i = 0; i < 3; i++)
                     operator = operator->next;
 
@@ -426,7 +455,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     uselessExp.data = safe_malloc(MAX_TOKEN_LEN);
 
     addCode("#EXPRESSION START");
-    rearrangeStack(expStack);
+    rearrangeStack(table, expStack);
     
     // Always pop and push first
     tstack_pop(expStack, &inputToken);

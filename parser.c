@@ -1421,6 +1421,7 @@ void parse_minusTerm(tStack* stack)
         break;
 
     case tIdentifier:
+        tstack_pushl(stack, token);
         matchTokenAndNext(tIdentifier);
         break;
 
