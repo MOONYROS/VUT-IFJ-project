@@ -1,0 +1,40 @@
+<?php
+declare(strict_types=1);
+$a1 = 
+2;
+$b1= 3
+;
+$c1
+= 4.0;
+
+$d = " Neskutecne!!!";
+
+$a  =        1   + 2 +($b1 * $a1
+)
+*(3 +3
+)
++(
+    1*2
+)     
+*3 +    $b1
+       ;
+$b=       
+  1.1   + (
+    2.0 *(1-
+       1         )
+  )
+        +
+  0.5
+  +
+  0.4 +
+  $c1
+    ;
+$c   
+   =   "Tento kod je opravdu odporny!"   .
+   " Velmi odporny!!"
+   .
+   $d
+   ===
+    "Tento kod je opravdu odporny! Velmi odporny!! Neskutecne!!!";
+
+write($a, "\n", $b, "\n", $c, "\n" );
