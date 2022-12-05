@@ -246,10 +246,18 @@ void rearrangeStack(tStack *stack)
             {
                 tstack_insertAfter(stack, operator, leftPar);
                 operator = operator->next;
+                leftPar.data = safe_malloc(sizeof("("));
+                strcpy(leftPar.data, "(");
+
                 tstack_insertAfter(stack, operator, zero);
+                zero.data = safe_malloc(sizeof("0"));
+                strcpy(zero.data, "0");
                 for (int i = 0; i < 3; i++)
                     operator = operator->next;
+
                 tstack_insertAfter(stack, operator, rightPar);
+                rightPar.data = safe_malloc(sizeof(")"));
+                strcpy(rightPar.data, ")");
             }
         }
         else
