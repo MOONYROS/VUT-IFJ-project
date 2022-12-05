@@ -211,13 +211,13 @@ void rearrangeStack(tStack *stack)
 
     tToken zero = {tInt, NULL};
     zero.data = safe_malloc(sizeof("0"));
-    zero.data = "0";
+    strcpy(zero.data, "0");
     tToken leftPar = {tLPar, NULL};
     leftPar.data = safe_malloc(sizeof("("));
-    leftPar.data = "(";
+    strcpy(leftPar.data, "(");
     tToken rightPar = {tRPar, NULL};
     rightPar.data = safe_malloc(sizeof(")"));
-    rightPar.data = ")";
+    strcpy(rightPar.data, ")");
 
     if (tmp->token.type == tMinus)
     {
@@ -230,14 +230,14 @@ void rearrangeStack(tStack *stack)
     tStackItem *operator;
     tExpression numOp;
     numOp.isNonTerminal = false;
-    numOp.type = tmp->token.type;
-    if (tmp->token.data != NULL)
-    {
-        numOp.data = safe_malloc(MAX_TOKEN_LEN);
-        strcpy(numOp.data, tmp->token.data);
-    }
     while (tmp != NULL)
     {
+        numOp.type = tmp->token.type;
+        if (tmp->token.data != NULL)
+        {
+            numOp.data = safe_malloc(MAX_TOKEN_LEN);
+            strcpy(numOp.data, tmp->token.data);
+        }
         if (isNumberOp(&numOp) || tmp->token.type == tLPar)
         {
             operator = tmp;
@@ -252,7 +252,8 @@ void rearrangeStack(tStack *stack)
                 tstack_insertAfter(stack, operator, rightPar);
             }
         }
-        tmp = tmp->next;
+        else
+            tmp = tmp->next;
     }
 }
 
@@ -533,16 +534,14 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             {
                 // The following expression has to be string compatible operator.
                 if (!isStringOp(&inputExp))
-                    errorExit("The following token after string literal or variable containing string has to be string operator.\n", CERR_SEM_TYPE);
+                    errorExit("Expected string operator.\n", CERR_SEM_TYPE);
             }
 
             // There's a string operator on top of stack
-            else if (isStringOp(&stackTop))
-            {
-                // The following expression has to be string literal or var containing string.
-                if (!(isString(table, &inputExp) || inputExp.type == tLPar))
-                    errorExit("The following token after string operator has to be string literal or variable containing string or left par.\n", CERR_SEM_TYPE);
-            }
+            else if (second.type != tNone && isString(table, &second) && \
+                    isStringOp(&stackTop) && !isString(table, &inputExp))
+                errorExit("Expected string variable or constant.\n", CERR_SEM_TYPE);
+
 
             // There's number on top of stack
             else if (isNumber(table, &stackTop))
@@ -553,13 +552,10 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             }
 
             // There's number operator on top of stack
-            else if ((isNumberOp(&stackTop) || isRelationalOp(&stackTop)))
-            { 
-                // Following expression has to be number or left Par.
-                if (!(isNumber(table, &inputExp) || inputExp.type == tLPar))
-                    errorExit("The following token after number operator has to be number constant or variable containing number or left par.\n", CERR_SEM_TYPE);
-            }
-
+            else if (isNumber(table, &second) && (isNumberOp(&stackTop) || isRelationalOp(&stackTop)) && \
+                    !(isNumber(table, &inputExp) || inputExp.type == tLPar))
+                    errorExit("Expected number variable or constant.", CERR_SEM_TYPE);
+    
             if (!isNullTypeVar(table, &inputExp) && isNull(table, &inputExp))
                 errorExit("NULL in variable that isn't NULL type.\n", CERR_SEM_TYPE);
 
@@ -605,6 +601,8 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 expStackPop(evalStack, &uselessExp);
                 expStackPop(evalStack, &uselessExp);
                 expStackPush(evalStack, &nonTerminal);
+                if (evalStack->top->next == NULL && inputExp.type == tNone)
+                    expStackPop(evalStack, &uselessExp);
                 break;
             }
             else if (third.isNonTerminal == false && stackTop.isNonTerminal == false)
