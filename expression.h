@@ -49,6 +49,8 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table);
 // Converts token type (e.g. tMul) to index of precedence table.
 int typeToIndex(tTokenType token);
 
-extern const char expResultName[];
+extern int prgPass;
+extern const char funcPrefixName[];
+extern tSymTable gst;
 
 #endif /* expression_h */

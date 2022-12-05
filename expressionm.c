@@ -16,7 +16,6 @@
 #include "generator.h"
 
 extern int prgPass;
-//extern const char tmpExpResultName[];
 extern const char funcPrefixName[];
 extern tSymTable gst;
 
@@ -102,7 +101,6 @@ tTokenType evalExp(char* tgtVar, tStack* exp, tSymTable* st)
                 {
                     strcpy(varName, token.data);
                     sti = st_search(st, varName); //token.data
-
                 }
                 if (sti != NULL)
                 {

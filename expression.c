@@ -122,8 +122,24 @@ bool isNonTerminal(tExpression *exp)
 
 tTokenType variableType(tSymTable *table, tExpression *exp)
 {
-    // kontrola, jestli je to definovany
-    tSymTableItem *item = st_search(table, exp->data);
+    tSymTableItem* item;
+    char varName[MAX_TOKEN_LEN];
+    if (strncmp(exp->data, funcPrefixName, strlen(funcPrefixName)) == 0)
+    {
+        char* zacatek = exp->data + strlen(funcPrefixName);
+        if (strlen(exp->data) > strlen(funcPrefixName) + 5)
+        {
+            int delka = (int)strlen(exp->data) - (int)strlen(funcPrefixName) - 5;
+            strncpy(varName, zacatek, delka);
+            varName[delka] = '\0';
+        }
+        else
+            errorExit("variable with function prefix, but incorrect lenght", CERR_INTERNAL);
+        item = st_search(&gst, varName); //token.data
+    }
+    else
+        item = st_search(table, exp->data);
+        
     return item->dataType;
 }
 
@@ -212,10 +228,12 @@ void rearrangeStack(tSymTable *table, tStack *stack)
     tExpression aux;
     aux.isNonTerminal = false;
     if (tmp->next != NULL)
+    {
         aux.type = tmp->next->token.type;
         aux.data = safe_malloc(MAX_TOKEN_LEN);
         if (tmp->next->token.data != NULL)
             strcpy(aux.data, tmp->next->token.data);
+    }
 
     tToken intZero = {tInt, NULL};
     intZero.data = safe_malloc(sizeof("0"));
@@ -472,6 +490,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         if (isVar(table, &inputExp))
         {
             addCode("MOVE %s LF@%s", tgtVar, inputExp.data);
+            dbgMsg("%s", tokenName[variableType(table, &inputExp)]);
             return variableType(table, &inputExp);
         }
         else
