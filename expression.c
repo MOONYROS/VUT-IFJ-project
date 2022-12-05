@@ -100,17 +100,19 @@ bool isString(tSymTable *table, tExpression *exp)
 bool isReal(tSymTable *table, tExpression *exp)
 {
     if (isVar(table, exp))
-        return (variableType(table, exp) == tReal || variableType(table, exp) == tReal2);
+        return (variableType(table, exp) == tReal || variableType(table, exp) == tReal2 || \
+                variableType(table, exp) == tTypeFloat || variableType(table, exp) == tNullTypeFloat);
     else 
-        return (exp->type == tReal || exp->type == tReal2);
+        return (exp->type == tReal || exp->type == tReal2 || exp->type == tTypeFloat || exp->type == tNullTypeFloat);
 }
 
 bool isInt(tSymTable *table, tExpression *exp)
 {
     if (isVar(table, exp))
-        return (variableType(table, exp) == tInt || variableType(table, exp) == tInt2);
+        return (variableType(table, exp) == tInt || variableType(table, exp) == tInt2 || \
+                variableType(table, exp) == tTypeInt || variableType(table, exp) == tNullTypeInt);
     else 
-        return (exp->type == tInt || exp->type == tInt2);
+        return (exp->type == tInt || exp->type == tInt2 || exp->type == tTypeInt || exp->type == tNullTypeInt);
 }
 
 bool isNonTerminal(tExpression *exp)
@@ -158,19 +160,35 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
         case tMinus:
         case tMul:
         case tDiv:
-            if (isNull(table, top) || isNull(table, third))
-                errorExit("Semantic error: NULL operand in arithmetic operation.\n", CERR_SEM_TYPE);
-            
-            if (isReal(table, top) && isReal(table, third))
-                return tReal;
-            else if (isInt(table, top) && isInt(table, third))
-                return tInt;
+            if (!isNullTypeVar(table, top) || !isNullTypeVar(table, third))
+            {
+                if (isNull(table, top) || isNull(table, third))
+                    errorExit("NULL operand in arithmetic operation.\n", CERR_SEM_TYPE);
+                
+                if (isReal(table, top) && isReal(table, third))
+                    return tTypeFloat;
+                else if (isInt(table, top) && isInt(table, third))
+                    return tTypeInt;
+                else
+                    errorExit("Operands have to be the same type when performing arithmetic operation.\n", CERR_SEM_TYPE);
+                return tNone;
+            }
             else 
-                errorExit("Semantic error: Operands have to be the same type when performing arithmetic operation.\n", CERR_SEM_TYPE);
-            return tNone;
+            {
+                if (isReal(table, top) && isReal(table, third))
+                    return tNullTypeFloat;
+                else if (isInt(table, top) && isInt(table, third))
+                    return tNullTypeInt;
+                else
+                    errorExit("Operands have to be the same type when performing arithmetic operation.\n", CERR_SEM_TYPE);
+                return tNone;
+            }
             
         case tConcat:
-            return tLiteral;
+            if (!isNullTypeVar(table, third) && !isNullTypeVar(table, top))\
+                return tTypeString;
+            else
+                return tNullTypeString;
 
         case tLess:
         case tLessEq:
@@ -179,7 +197,7 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
         case tIdentical:
         case tNotIdentical:
 
-            return tInt;
+            return tTypeInt;
 
         default:
             // Semka bysme se asi nemeli nikdy dostat.
@@ -436,7 +454,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             else
                 errorExit("Podminka u jen jedne veci na inputstacku neco chybne\n", CERR_INTERNAL);
 
-            return inputExp.type;
+            return const2type(inputExp.type);
         }
     }
 
@@ -577,6 +595,9 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 nonTerminal.type = second.type;
             else
                 nonTerminal.type = getResultType(table, &stackTop, &third, second.type);
+
+            if (nonTerminal.type == tNone)
+                errorExit("Should never get here (nonterminal type tNone).\n", CERR_INTERNAL);
 
             if (third.type == tLPar && stackTop.type == tRPar)
             {
