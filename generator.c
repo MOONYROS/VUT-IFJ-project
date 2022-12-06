@@ -166,7 +166,7 @@ char* ifjCodeReal(char* outStr, double val)
 char* ifjCodeNil(char* outStr)
 {
     if (outStr == NULL)
-        return;
+        return NULL;
     
     sprintf(outStr, "nil@nil");
     return outStr;

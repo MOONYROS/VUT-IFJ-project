@@ -3,7 +3,7 @@ function f // jmeno funkce
 ( int $x ) // seznam parametru
 :
 int /* deklarace soucasti definice funkce */ {
-    if($x<10) {return $x 1;} else {x=$x-1;
+    if($x<10) {return $x-1;} else {$x=$x-1;
         write("calling g with ", $x, "\n");
         $res=g($x);
         return$res;
