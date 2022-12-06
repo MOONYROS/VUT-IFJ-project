@@ -141,7 +141,7 @@ tTokenType variableType(tSymTable *table, tExpression *exp)
         }
         else
             errorExit("variable with function prefix, but incorrect lenght", CERR_INTERNAL);
-        item = st_search(&gst, varName); //token.data
+        item = st_search(&gst, varName);
     }
     else
         item = st_search(table, exp->data);
@@ -174,44 +174,68 @@ bool isNull(tSymTable *table, tExpression *exp)
         return exp->type == tNull;
 }
 
+tTokenType intOrFloat(tSymTable *table, tExpression *top, tExpression *third)
+{
+    if (isReal(table, top) && isReal(table, third))
+        return tTypeInt;
+    else if (isReal(table, top) && isInt(table, third))
+    {
+        convertIntToFloat(table, third);
+        return tTypeFloat;
+    }
+    else if (isInt(table, top) && isReal(table, third))
+    {
+        convertIntToFloat(table, top);
+        return tTypeFloat;
+    }
+    else if (isInt(table, top) && isInt(table, third))
+        return tTypeInt;
+    else
+    {
+        errorExit("Should never get here, func intOrFloat.\n", CERR_INTERNAL);
+        return tNone;
+    }
+}
+
 tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third, tTokenType operation)
 {
+    tTokenType retType;
     switch (operation)
     {
         case tPlus:
         case tMinus:
-        case tMul:
         case tDiv:
+        case tMul:
+            // One of the variable is not null type
             if (!isNullTypeVar(table, top) || !isNullTypeVar(table, third))
             {
                 if (isNull(table, top) || isNull(table, third))
-                    errorExit("NULL operand in arithmetic operation.\n", CERR_SEM_TYPE);
-                
-                if (isReal(table, top) && isReal(table, third))
-                    return tTypeFloat;
-                else if (isInt(table, top) && isInt(table, third))
-                    return tTypeInt;
-                else
-                    errorExit("Operands have to be the same type when performing arithmetic operation.\n", CERR_SEM_TYPE);
-                return tNone;
+                    errorExit("NULL operand in arithmetic operation.\n", CERR_INTERNAL);
+
+                return intOrFloat(table, top, third);
             }
             else 
             {
-                if (isReal(table, top) && isReal(table, third))
-                    return tNullTypeFloat;
-                else if (isInt(table, top) && isInt(table, third))
-                    return tNullTypeInt;
+                if (isNull(table, top) || isNull(table, third))
+                {
+                    // Todo udelat aritmeticke operace pro null
+                    if (intOrFloat(table, top, third) == tTypeInt)
+                        return tNullTypeInt;
+                    else if (intOrFloat(table, top, third) == tTypeFloat)
+                        return tTypeFloat;
+                    else 
+                        errorExit("Should never get here, function getResType.\n", CERR_INTERNAL);
+                }
                 else
-                    errorExit("Operands have to be the same type when performing arithmetic operation.\n", CERR_SEM_TYPE);
-                return tNone;
-            }
-            
+                    return intOrFloat(table, top, third);
+            }     
         case tConcat:
             if (!isNullTypeVar(table, third) && !isNullTypeVar(table, top))\
-                return tTypeString;
+                retType = tTypeString;
             else
-                return tNullTypeString;
+                retType = tNullTypeString;
 
+            break;
         case tLess:
         case tLessEq:
         case tMore:
@@ -219,12 +243,14 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
         case tIdentical:
         case tNotIdentical:
 
-            return tTypeInt;
+            retType = tTypeInt;
+            break;
 
         default:
             // Semka bysme se asi nemeli nikdy dostat.
-            return tNone;
+            retType = tNone;
     }
+    return retType;
 }
 
 void rearrangeStack(tSymTable *table, tStack *stack)
@@ -318,18 +344,45 @@ void rearrangeStack(tSymTable *table, tStack *stack)
     }
 }
 
-double convertToDouble(tExpression *exp)
+double getFloatValue(tExpression *exp)
 {
     double tmp;
     sscanf(exp->data, "%lf", &tmp);
     return tmp;
 }
 
-int convertToInt(tExpression *exp)
+int getIntValue(tExpression *exp)
 {
     int tmp;
     sscanf(exp->data, "%d", &tmp);
     return tmp;
+}
+
+void convertFloatToInt(tSymTable *table, tExpression *exp)
+{
+    char intValue[MAX_TOKEN_LEN];
+    for (int i = 0; exp->data[i] != '.'; i++)
+    {
+        if (exp->data[i] == '\0')
+            errorExit("Removing numbers after decimal point.\n", CERR_INTERNAL);
+        intValue[i] = exp->data[i];
+    }
+    exp->data = "";
+    strcpy(intValue, exp->data);
+    if (isNullTypeVar(table, exp))
+        exp->type = tNullTypeFloat;
+    else 
+        exp->type = tTypeFloat;
+}
+
+void convertIntToFloat(tSymTable *table, tExpression *exp)
+{
+    char afterDPoint[] = ".0";
+    strcat(exp->data, afterDPoint);
+    if (isNullTypeVar(table, exp))
+        exp->type = tNullTypeFloat;
+    else 
+        exp->type = tTypeFloat;
 }
 
 int typeToIndex(tTokenType tokenType)
@@ -418,6 +471,8 @@ char *typeToString(char *tmpStr, tExpression *exp)
             break;
         case tInt: // aaa osetrit jestli jsou to spravne typu INT
         case tInt2:
+        case tTypeInt:
+        case tNullTypeInt:
         {
             int tmpi;
             if (sscanf(exp->data, "%d", &tmpi) != 1)
@@ -427,6 +482,8 @@ char *typeToString(char *tmpStr, tExpression *exp)
         break;
         case tReal: // aaa osetrit spravne type real
         case tReal2:
+        case tTypeFloat:
+        case tNullTypeFloat:
         {   
             double tmpd;
             if (sscanf(exp->data, "%lf", &tmpd) != 1)
@@ -504,9 +561,9 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             if (isString(table, &inputExp))
                 addCode("MOVE %s %s", tgtVar, ifjCodeStr(tmpStr, inputExp.data));
             else if (isReal(table, &inputExp))
-                addCode("MOVE %s %s", tgtVar, ifjCodeReal(tmpStr, convertToDouble(&inputExp)));
+                addCode("MOVE %s %s", tgtVar, ifjCodeReal(tmpStr, getFloatValue(&inputExp)));
             else if (isInt(table, &inputExp))
-                addCode("MOVE %s %s", tgtVar, ifjCodeInt(tmpStr, convertToInt(&inputExp))); 
+                addCode("MOVE %s %s", tgtVar, ifjCodeInt(tmpStr, getIntValue(&inputExp))); 
             else if (isNull(table, &inputExp))
             {
                 if (!isNullTypeVar(table, &inputExp))
