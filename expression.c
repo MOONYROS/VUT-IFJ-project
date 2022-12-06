@@ -695,11 +695,8 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         
         case '<':
 
-            if (isNull(table, &stackTop) && !isRelationalOp(&inputExp))
-                errorExit("Expected different operator after NULL constant.\n", CERR_SEM_TYPE);
-
             // String is on top of stack, next has to be string operator.
-            else if (isString(table, &stackTop) && !isStringOp(&inputExp))
+            if (isString(table, &stackTop) && !isStringOp(&inputExp))
                     errorExit("Expected string operator.\n", CERR_SEM_TYPE);
 
             // String and string operator are on top of stack. The next expression has to be string/NULL.
@@ -715,10 +712,6 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             else if (isNumber(table, &second) && (isNumberOp(&stackTop) || isRelationalOp(&stackTop)) && \
                     !(isNumber(table, &inputExp) || inputExp.type == tLPar || isNull(table, &inputExp)))
                     errorExit("Expected number variable or constant.", CERR_SEM_TYPE);
-    
-            // Incoming variable cannot be NULL if it's not NULL type.
-            if (!isNullTypeVar(table, &inputExp) && isNull(table, &inputExp))
-                errorExit("NULL in variable that isn't NULL type.\n", CERR_SEM_TYPE);
 
             expStackPush(evalStack, &inputExp);
 
@@ -781,9 +774,12 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 addCode("PUSHS %s", typeToString(tmpStr, &third));
                 addCode("PUSHS LF@otoc");
             }
-            // E operator E --> E
+            // E operator i --> E
             else if (third.isNonTerminal == true && stackTop.isNonTerminal == false)
                 addCode("PUSHS %s", typeToString(tmpStr, &stackTop));
+
+            // E operator E --> E
+            // It's not necessary to write any code, both results are on the stack.
 
             // Code generation for operators.
             switch (second.type)
