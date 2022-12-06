@@ -8,8 +8,8 @@ $tmpnull = null;
 $a = $tmp1>$tmp0;
 $b = $tmp1<$tmp0;
 $c = $tmp1>$tmp1;
-$d = $tmp1>=$tmp0;
-$e = $tmp1>=$tmp1;
+//$d = $tmp1>=$tmp0;
+//$e = $tmp1>=$tmp1;
 $f = $tmp1<=$tmp1;
 $g = $tmp1<=$tmp0;
 $h = $tmp1>=$tmpnull;
@@ -32,8 +32,8 @@ write(
 $a, " 1>0\n", 
 $b, " 1<0\n", 
 $c, " 1>1\n",
-$d, " 1>=0\n",
-$e, " 1>=1\n",
+//$d, " 1>=0\n",
+//$e, " 1>=1\n",
 $f, " 1<=1\n",
 $g, " 1<=0\n",
 $h, " 1>=null\n",
