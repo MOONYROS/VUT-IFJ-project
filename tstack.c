@@ -272,7 +272,9 @@ void tstack_insertAfter(tStack* stack, tStackItem* active, tToken inserted)
         while (tmp != active)
             tmp = tmp->next;
         tStackItem* newItem = safe_malloc(sizeof(tStackItem));
-        newItem->token = inserted;
+        newItem->token.data = safe_malloc(MAX_TOKEN_LEN);
+        newItem->token.type = inserted.type;
+        strcpy(newItem->token.data, inserted.data);
         // can be null
         newItem->next = tmp->next;
         tmp->next = newItem;

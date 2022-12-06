@@ -180,12 +180,16 @@ tTokenType intOrFloat(tSymTable *table, tExpression *top, tExpression *third)
         return tTypeFloat;
     else if (isReal(table, top) && isInt(table, third))
     {
-        convertIntToFloat(table, third);
+        if (!isNonTerminal(third))
+            convertIntToFloat(table, third);
+
         return tTypeFloat;
     }
     else if (isInt(table, top) && isReal(table, third))
     {
-        convertIntToFloat(table, top);
+        if (!isNonTerminal(top))
+            convertIntToFloat(table, top);
+            
         return tTypeFloat;
     }
     else if (isInt(table, top) && isInt(table, third))
@@ -208,9 +212,9 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
                 errorExit("Division by zero.\n", CERR_SEM_OTHER);
             if (isNull(table, third))
                 convertNullToFloat(table, third);
-            if (isInt(table, top))
+            if (isInt(table, top) && !isNonTerminal(top))
                 convertIntToFloat(table, top);
-            if (isInt(table, third))
+            if (isInt(table, third) && !isNonTerminal(third))
                 convertIntToFloat(table, third); 
     
             retType = tTypeFloat;
@@ -277,17 +281,17 @@ void rearrangeStack(tSymTable *table, tStack *stack)
     }
 
     tToken intZero = {tInt, NULL};
-    intZero.data = safe_malloc(sizeof("0"));
+    intZero.data = safe_malloc(strlen("0"));
     strcpy(intZero.data, "0");
     tToken realZero = {tReal, NULL};
-    realZero.data = safe_malloc(sizeof("0.0"));
+    realZero.data = safe_malloc(strlen("0.0"));
     strcpy(realZero.data, "0.0");
 
     tToken leftPar = {tLPar, NULL};
-    leftPar.data = safe_malloc(sizeof("("));
+    leftPar.data = safe_malloc(strlen("("));
     strcpy(leftPar.data, "(");
     tToken rightPar = {tRPar, NULL};
-    rightPar.data = safe_malloc(sizeof(")"));
+    rightPar.data = safe_malloc(strlen(")"));
     strcpy(rightPar.data, ")");
 
     if (tmp->token.type == tMinus)
@@ -325,27 +329,27 @@ void rearrangeStack(tSymTable *table, tStack *stack)
             {
                 tstack_insertAfter(stack, operator, leftPar);
                 operator = operator->next;
-                leftPar.data = safe_malloc(sizeof("("));
-                strcpy(leftPar.data, "(");
+                //leftPar.data = safe_malloc(strlen("("));
+                //strcpy(leftPar.data, "(");
 
                 if (isReal(table, &aux))   
                 { 
                     tstack_insertAfter(stack, operator, realZero);
-                    realZero.data = safe_malloc(sizeof("0.0"));
-                    strcpy(realZero.data, "0.0");
+                    //realZero.data = safe_malloc(strlen("0.0"));
+                    //strcpy(realZero.data, "0.0");
                 }
                 else
                 {
                     tstack_insertAfter(stack, operator, intZero);
-                    intZero.data = safe_malloc(sizeof("0"));
-                    strcpy(intZero.data, "0");
+                    //intZero.data = safe_malloc(strlen("0"));
+                    //strcpy(intZero.data, "0");
                 }   
                 for (int i = 0; i < 3; i++)
                     operator = operator->next;
 
                 tstack_insertAfter(stack, operator, rightPar);
-                rightPar.data = safe_malloc(sizeof(")"));
-                strcpy(rightPar.data, ")");
+                //rightPar.data = safe_malloc(strlen(")"));
+                //strcpy(rightPar.data, ")");
             }
         }
         else
@@ -750,6 +754,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             if (nonTerminal.type == tNone)
                 errorExit("Should never get here (nonterminal type tNone).\n", CERR_INTERNAL);
 
+    
             // (E) --> E
             if (third.type == tLPar && stackTop.type == tRPar)
             {
@@ -777,11 +782,22 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             // E operator i --> E
             else if (third.isNonTerminal == true && stackTop.isNonTerminal == false)
                 addCode("PUSHS %s", typeToString(tmpStr, &stackTop));
+            
 
             // E operator E --> E
             // It's not necessary to write any code, both results are on the stack.
 
             // Code generation for operators.
+
+            if (isInt(table, &stackTop) && isReal(table, &third))
+                addCode("INT2FLOATS");
+            else if (isInt(table, &third) && isReal(table, &stackTop))
+            {
+                addCode("POPS LF@otoc");
+                addCode("INT2FLOATS");
+                addCode("PUSHS LF@otoc");
+            }
+
             switch (second.type)
             {
             case tPlus:
@@ -794,6 +810,13 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 addCode("MULS");
                 break;
             case tDiv:
+                if (isInt(table, &third) && isInt(table, &stackTop))
+                {
+                    addCode("INT2FLOATS");
+                    addCode("POPS LF@otoc");
+                    addCode("INT2FLOATS");
+                    addCode("PUSHS LF@otoc");
+                }
                 addCode("DIVS");
                 break;
             case tConcat:
@@ -803,52 +826,94 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 addCode("PUSHS LF@tmp");
                 break;
             case tMore:
-                addCode("GTS");
-                addCode("POPS LF@tmp");
-                addCode("JUMPIFEQ $vetsi%05d LF@tmp bool@true", lbl);
-                addCode("PUSHS int@0");
-                addCode("JUMP $done%05d", lbl);
-                addCode("LABEL $vetsi%05d", lbl);
-                addCode("PUSHS int@1");
-                addCode("LABEL $done%05d", lbl++);
+                if (isNull(table, &third) || isNull(table, &stackTop))
+                {
+                    addCode("PUSHS int@0");
+                }
+                else
+                {
+                    addCode("GTS");
+                    addCode("POPS LF@tmp");
+                    addCode("JUMPIFEQ $vetsi%05d LF@tmp bool@true", lbl);
+                    addCode("PUSHS int@0");
+                    addCode("JUMP $done%05d", lbl);
+                    addCode("LABEL $vetsi%05d", lbl);
+                    addCode("PUSHS int@1");
+                    addCode("LABEL $done%05d", lbl++);
+                }
                 break;
             case tLess:
-                addCode("LTS");
-                addCode("POPS LF@tmp");
-                addCode("JUMPIFEQ $mensi%05d LF@tmp bool@true", lbl);
-                addCode("PUSHS int@0");
-                addCode("JUMP $done%05d", lbl);
-                addCode("LABEL $mensi%05d", lbl);
-                addCode("PUSHS int@1");
-                addCode("LABEL $done%05d", lbl++);
+                if (isNull(table, &third) || isNull(table, &stackTop))
+                {
+                    addCode("PUSHS int@0");
+                }
+                else
+                {
+                    addCode("LTS");
+                    addCode("POPS LF@tmp");
+                    addCode("JUMPIFEQ $mensi%05d LF@tmp bool@true", lbl);
+                    addCode("PUSHS int@0");
+                    addCode("JUMP $done%05d", lbl);
+                    addCode("LABEL $mensi%05d", lbl);
+                    addCode("PUSHS int@1");
+                    addCode("LABEL $done%05d", lbl++);
+                }
                 break;
             case tMoreEq:
-                addCode("POPS LF@otoc");
-                addCode("POPS LF@tmp");
-                addCode("JUMPIFEQ $rovno%05d LF@tmp LF@otoc", lbl);
-                addCode("GT LF@tmp LF@tmp LF@otoc", lbl);
-                addCode("JUMPIFEQ $rovno%05d LF@tmp bool@true", lbl);
-                addCode("JUMP $mene%05d", lbl);
-                addCode("LABEL $rovno%05d", lbl);
-                addCode("PUSHS int@1");
-                addCode("JUMP $done%05d", lbl);
-                addCode("LABEL $mene%05d", lbl);
-                addCode("PUSHS int@0");
-                addCode("LABEL $done%05d", lbl++);
+                if (isNull(table, &third) && isNull(table, &stackTop))
+                    addCode("PUSHS int@1");
+                else if (isNull(table, &third) || isNull(table, &stackTop))
+                {
+                    addCode("JUMPIFEQS $eq%05d", lbl);
+                    addCode("PUSHS int@0");
+                    addCode("JUMP $noteq%05d", lbl);
+                    addCode("LABEL $eq%05d", lbl);
+                    addCode("PUSHS int@1");
+                    addCode("LABEL $noteq%05d", lbl++);
+                }
+                else
+                {
+                    addCode("POPS LF@otoc");
+                    addCode("POPS LF@tmp");
+                    addCode("JUMPIFEQ $rovno%05d LF@tmp LF@otoc", lbl);
+                    addCode("GT LF@tmp LF@tmp LF@otoc", lbl);
+                    addCode("JUMPIFEQ $rovno%05d LF@tmp bool@true", lbl);
+                    addCode("JUMP $mene%05d", lbl);
+                    addCode("LABEL $rovno%05d", lbl);
+                    addCode("PUSHS int@1");
+                    addCode("JUMP $done%05d", lbl);
+                    addCode("LABEL $mene%05d", lbl);
+                    addCode("PUSHS int@0");
+                    addCode("LABEL $done%05d", lbl++);
+                }
                 break;
             case tLessEq:
-                addCode("POPS LF@otoc");
-                addCode("POPS LF@tmp");
-                addCode("JUMPIFEQ $rovno%05d LF@tmp LF@otoc", lbl);
-                addCode("LT LF@tmp LF@tmp LF@otoc");
-                addCode("JUMPIFEQ $rovno%05d LF@tmp bool@true", lbl);
-                addCode("JUMP $vice%05d", lbl);
-                addCode("LABEL $rovno%05d", lbl);
-                addCode("PUSHS int@1");
-                addCode("JUMP $done%05d", lbl);
-                addCode("LABEL $vice%05d", lbl);
-                addCode("PUSHS int@0");
-                addCode("LABEL $done%05d", lbl++);
+                if (isNull(table, &third) && isNull(table, &stackTop))
+                    addCode("PUSHS int@1");
+                else if (isNull(table, &third) || isNull(table, &stackTop))
+                {
+                    addCode("JUMPIFEQS $eq%05d", lbl);
+                    addCode("PUSHS int@0");
+                    addCode("JUMP $noteq%05d", lbl);
+                    addCode("LABEL $eq%05d", lbl);
+                    addCode("PUSHS int@1");
+                    addCode("LABEL $noteq%05d", lbl++);
+                }
+                else
+                {
+                    addCode("POPS LF@otoc");
+                    addCode("POPS LF@tmp");
+                    addCode("JUMPIFEQ $rovno%05d LF@tmp LF@otoc", lbl);
+                    addCode("LT LF@tmp LF@tmp LF@otoc");
+                    addCode("JUMPIFEQ $rovno%05d LF@tmp bool@true", lbl);
+                    addCode("JUMP $vice%05d", lbl);
+                    addCode("LABEL $rovno%05d", lbl);
+                    addCode("PUSHS int@1");
+                    addCode("JUMP $done%05d", lbl);
+                    addCode("LABEL $vice%05d", lbl);
+                    addCode("PUSHS int@0");
+                    addCode("LABEL $done%05d", lbl++);
+                }
                 break;
             case tIdentical:
                 addCode("JUMPIFEQS $iden%05d", lbl);

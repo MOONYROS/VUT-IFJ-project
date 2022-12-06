@@ -20,6 +20,8 @@
 #include "support.h"
 #include "generator.h"
 #include "symtable.h"
+#include "expression.h"
+#include "expStack.h"
 
 tCodeLine* codeFirst = NULL;
 tCodeLine* codeLast = NULL;
@@ -167,7 +169,7 @@ char* ifjCodeNil(char* outStr)
 {
     if (outStr == NULL)
         return NULL;
-    
+
     sprintf(outStr, "nil@nil");
     return outStr;
 }

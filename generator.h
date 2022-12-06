@@ -15,6 +15,7 @@
 #define generator_h
 
 #include "symtable.h"
+#include "expStack.h"
 
 #define MAX_IFJC_LEN	1024
 

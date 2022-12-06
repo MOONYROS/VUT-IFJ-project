@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-$a = 5.5 + 1 / -2 * 3;
+$a = (2+3) / 5;
 write($a);
 
 ?>

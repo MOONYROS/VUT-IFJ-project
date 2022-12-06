@@ -64,6 +64,7 @@ void expStackDispose(tExpStack *stack)
     {
         next = toDelete->next;   
         safe_free(toDelete->exp->data);
+        safe_free(toDelete->exp);
         safe_free(toDelete);
         toDelete = next;
     }
@@ -79,6 +80,8 @@ void expStackDispose(tExpStack *stack)
 void expStackPush(tExpStack* stack, tExpression* exp)
 {
     if (stack == NULL)
+        return;
+    if (exp == NULL)
         return;
 
     tExpStackItem* newItem = safe_malloc(sizeof(tExpStackItem));
@@ -105,6 +108,8 @@ bool expStackPop(tExpStack *stack, tExpression *exp)
         return false;
     if (stack->top == NULL)
         return false;
+    if (exp == NULL)
+        return false;
 
     tExpStackItem *toDelete = stack->top;
     if (toDelete->exp->data != NULL) 
@@ -115,6 +120,7 @@ bool expStackPop(tExpStack *stack, tExpression *exp)
     exp->isNonTerminal = toDelete->exp->isNonTerminal;
     exp->type = toDelete->exp->type;
     stack->top = toDelete->next;
+    safe_free(toDelete->exp);
     safe_free(toDelete);
     return true;
 }
@@ -142,7 +148,10 @@ void expStackTop(tExpStack *stack, tExpression *exp)
     if (expIsEmpty(stack))
         return;
 
-    strcpy(exp->data, stack->top->exp->data);
-    exp->type = stack->top->exp->type;
-    exp->isNonTerminal = stack->top->exp->isNonTerminal;
+    if (exp != NULL)
+    {
+        strcpy(exp->data, stack->top->exp->data);
+        exp->type = stack->top->exp->type;
+        exp->isNonTerminal = stack->top->exp->isNonTerminal;
+    }
 }
