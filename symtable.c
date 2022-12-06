@@ -1,9 +1,15 @@
-//
-//  lex.h
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 15.10.2022.
-//
+/**
+ * @file symtable.c
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This file contains all the functions for symbol table.
+ * @date 2022-11
+ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -50,6 +56,13 @@ static const unsigned int crc32_table[] =
     0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
+/**
+ * @brief CRC32 function for hash calculation.
+ * 
+ * @param buf input data
+ * @param len data length
+ * @return unsigned int 
+ */
 unsigned int crc32(const unsigned char* buf, size_t len)
 {
     unsigned int crc = 0xFFFFFFFF;
@@ -61,17 +74,35 @@ unsigned int crc32(const unsigned char* buf, size_t len)
     return ~crc;
 }
 
+/**
+ * @brief Function that gets the hash table index.
+ * 
+ * @param key hash key
+ * @return int hash table index
+ */
 int get_hash(char *key) 
 {
   return (crc32((const unsigned char *)key, strlen(key)) % ST_SIZE);
 }
 
+/**
+ * @brief Function for initialization of symbol table.
+ * 
+ * @param table hash table
+ */
 void st_init(tSymTable *table) 
 {
     for(int i = 0; i < ST_SIZE; i++)
         table->items[i] = NULL;
 }
 
+/**
+ * @brief Function for searching in symbol table.
+ * 
+ * @param table symbol table
+ * @param key key for finding correct item
+ * @return tSymTableItem* item in symbol table
+ */
 tSymTableItem *st_search(tSymTable *table, char *key)
 {
     if (table == NULL)
@@ -90,6 +121,13 @@ tSymTableItem *st_search(tSymTable *table, char *key)
     return NULL;
 }
 
+/**
+ * @brief Function for inserting an item into symbol table.
+ * 
+ * @param table symbol table
+ * @param key key for item
+ * @return tSymTableItem* item in symbol table
+ */
 tSymTableItem* st_insert(tSymTable* table, char* key)
 {
     if (table == NULL)
@@ -126,6 +164,14 @@ tSymTableItem* st_insert(tSymTable* table, char* key)
     }
 }
 
+/**
+ * @brief Function for inserting function to symbol table.
+ * 
+ * @param table symbol table
+ * @param key key for item
+ * @param type token type
+ * @return tSymTableItem* stored function
+ */
 tSymTableItem* st_insert_function(tSymTable* table, char* key, tTokenType type)
 {
     if (table == NULL)
@@ -144,6 +190,15 @@ tSymTableItem* st_insert_function(tSymTable* table, char* key, tTokenType type)
     return sti;
 }
 
+/**
+ * @brief Function for adding parameters to symbol table.
+ * 
+ * @param table symbol table
+ * @param key key for item
+ * @param type token type
+ * @param name name of the parameter
+ * @return tSymTableItem* 
+ */
 tSymTableItem* st_add_params(tSymTable* table, char* key, tTokenType type, char* name)
 {
     if (table == NULL)
@@ -185,6 +240,13 @@ tSymTableItem* st_add_params(tSymTable* table, char* key, tTokenType type, char*
     return fce;
 }
 
+/**
+ * @brief 
+ * 
+ * @param table symbol table
+ * @param key key for item
+ * @return tSymTableItem* inserted item
+ */
 tSymTableItem* st_searchinsert(tSymTable* table, char* key)
 {
     if (table == NULL)
@@ -197,6 +259,13 @@ tSymTableItem* st_searchinsert(tSymTable* table, char* key)
 
 }
 
+/**
+ * @brief Function that counts number of parameters of a function.
+ * 
+ * @param table symbol table
+ * @param key key for item
+ * @return int number of paramaters
+ */
 int st_nr_func_params(tSymTable* table, char* key)
 {
     tSymTableItem* sti = st_search(table, key);
@@ -213,6 +282,13 @@ int st_nr_func_params(tSymTable* table, char* key)
     return cnt;
 }
 
+/**
+ * @brief Function that gets the type of a token
+ * 
+ * @param table symbol table
+ * @param key key for item
+ * @return tTokenType token type
+ */
 tTokenType st_get_type(tSymTable* table, char* key)
 {
     tSymTableItem* sti = st_search(table, key);
@@ -222,6 +298,11 @@ tTokenType st_get_type(tSymTable* table, char* key)
         return tNone;
 }
 
+/**
+ * @brief Function for deleting parameters.
+ * 
+ * @param paramToDelete param that will be deleted
+ */
 void st_delete_params(tFuncParam **paramToDelete)
 {
     tFuncParam* param = *paramToDelete;
@@ -236,6 +317,12 @@ void st_delete_params(tFuncParam **paramToDelete)
     *paramToDelete = NULL;
 }
 
+/**
+ * @brief Function for deletion from symbol table.
+ * 
+ * @param table symbol table
+ * @param key key for item
+ */
 void st_delete(tSymTable *table, char *key) {
     if(table != NULL)
     {
@@ -264,6 +351,11 @@ void st_delete(tSymTable *table, char *key) {
     }
 }
 
+/**
+ * @brief Function for deletion of all the items in symbol table.
+ * 
+ * @param table symbol table
+ */
 void st_delete_all(tSymTable *table) {
     tSymTableItem* toDelete;
     if (table == NULL)
@@ -318,6 +410,11 @@ void st_delete_scope(tSymTable* table, int scope)
     }
 } */
 
+/**
+ * @brief Function for printing out the symbol table.
+ * 
+ * @param table symbol table
+ */
 void st_print(tSymTable* table)
 {
     if (table == NULL)

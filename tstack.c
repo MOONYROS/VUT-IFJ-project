@@ -1,9 +1,15 @@
-//
-//  parser.c
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 02.11.2022.
-//
+/**
+ * @file tstack.c
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This file contains functions for token stack.
+ * @date 2022-11
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +22,11 @@
 
 extern char* tokenName[tMaxToken];
 
+/**
+ * @brief Function for initialization of a stack.
+ * 
+ * @return tStack* 
+ */
 tStack* tstack_init()
 {
     tStack* st = safe_malloc(sizeof(tStack));
@@ -30,6 +41,11 @@ tStack* tstack_init()
     return st;
 }
 
+/**
+ * @brief Function for deallocation of a stack.
+ * 
+ * @param stack stack
+ */
 void tstack_free(tStack** stack)
 {
     if (*stack != NULL)
@@ -40,6 +56,11 @@ void tstack_free(tStack** stack)
     *stack = NULL;
 }
 
+/**
+ * @brief Function for deletion of all the items in stack. 
+ * 
+ * @param stack stack
+ */
 void tstack_deleteItems(tStack* stack)
 {
     if (stack != NULL)
@@ -57,6 +78,12 @@ void tstack_deleteItems(tStack* stack)
     }
 }
 
+/**
+ * @brief Function for pushing to stack.
+ * 
+ * @param stack stack 
+ * @param token token
+ */
 void tstack_push(tStack* stack, tToken token)
 {
     if (stack != NULL)
@@ -77,6 +104,12 @@ void tstack_push(tStack* stack, tToken token)
     }
 }
 
+/**
+ * @brief Function to push token to the bottom of stack
+ * 
+ * @param stack stack
+ * @param token token
+ */
 void tstack_pushl(tStack* stack, tToken token)
 {
     if (stack != NULL)
@@ -99,6 +132,14 @@ void tstack_pushl(tStack* stack, tToken token)
     }
 }
 
+/**
+ * @brief Function for poping out of stack.
+ * 
+ * @param stack stack
+ * @param token token
+ * @return true if pop was successful
+ * @return false if stack is empty or uninitalized
+ */
 bool tstack_pop(tStack* stack, tToken *token)
 {
     if (token == NULL)
@@ -133,16 +174,36 @@ bool tstack_pop(tStack* stack, tToken *token)
     }
 }
 
+/**
+ * @brief Function for checking if stack is empty.
+ * 
+ * @param stack stack
+ * @return true if stack is empty
+ * @return false if 1 or more items are in stack
+ */
 bool tstack_isEmpty(tStack* stack)
 {
     return tstack_count(stack) == 0;
 }
 
+/**
+ * @brief Function for checking if stack is full
+ * 
+ * @param stack stack
+ * @return true if stack is full
+ * @return false in other cases
+ */
 bool tstack_isFull(tStack* stack)
 {
     return tstack_count(stack) >= MAX_STACK;
 }
 
+/**
+ * @brief Function counts the number of items in stack.
+ * 
+ * @param stack stack
+ * @return int count of items
+ */
 int tstack_count(tStack* stack)
 {
     int cnt = 0;
@@ -158,6 +219,12 @@ int tstack_count(tStack* stack)
     return cnt;
 }
 
+/**
+ * @brief Function that looks onto the top of stack.
+ * 
+ * @param stack stack
+ * @return tToken* pointer for token
+ */
 tToken* tstack_peek(tStack* stack)
 {
     if (stack != NULL)
@@ -170,6 +237,11 @@ tToken* tstack_peek(tStack* stack)
     return NULL;
 }
 
+/**
+ * @brief Function for printing out stack contents.
+ * 
+ * @param stack stack
+ */
 void tstack_print(tStack* stack)
 {
     if (stack != NULL)
@@ -185,7 +257,13 @@ void tstack_print(tStack* stack)
     }
 }
 
-// Stack hodne na steroidech
+/**
+ * @brief Function for inserting behind active element in stack.
+ * 
+ * @param stack stack
+ * @param active active item in stack
+ * @param inserted inserted item
+ */
 void tstack_insertAfter(tStack* stack, tStackItem* active, tToken inserted)
 {
     if (stack != NULL)

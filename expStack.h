@@ -1,11 +1,14 @@
 /**
  * @file expStack.h
- * @author Ondrej Koumar
- * @brief expression stack (different from parser stack)
- * @version 0.1
- * @date 2022-12-02
+ * Implementace prekladace imperativniho jazyka IFJ22
  * 
- * @copyright Copyright (c) 2022
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This file is an expression stack (different from parser stack).
+ * @date 2022-12
  */
 
 #ifndef expstack_h

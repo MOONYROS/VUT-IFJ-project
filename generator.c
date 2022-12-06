@@ -1,16 +1,15 @@
-/*****************************************************************//**
- * \file   generator.c
+/**
+ * @file generator.c
  * Implementace prekladace imperativniho jazyka IFJ22
- *
- * \brief  This file is responsible for generating the code.
- *
- * \author Ondrej Lukasek (xlukas15)
- * \author Ondrej Koumar (xkouma02)
- * \author Jonas Morkus (xmorku03)
- * \author Milan Menc (xmencm00)
- *
- * \date   November 2022
- *********************************************************************/
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This file is responsible for generating the code.
+ * @date 2022-11
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -37,11 +36,11 @@ extern int prgPass;
 extern tSymTableItem* actFunc; // active function if processing function definition body
 
 /**
- * \brief Function, that "translates" strings into processable form.
+ * @brief Function, that "translates" strings into processable form.
  * 
- * \param outStr output string
- * \param str input string
- * \return char*
+ * @param outStr output string
+ * @param str input string
+ * @return char*
  */
 char* ifjCodeStr(char *outStr, char* str)
 {
@@ -133,11 +132,11 @@ char* ifjCodeStr(char *outStr, char* str)
 }
 
 /**
- * \brief 
+ * @brief 
  * 
- * \param outStr output string
- * \param val value
- * \return char*
+ * @param outStr output string
+ * @param val value
+ * @return char*
  */
 char* ifjCodeInt(char* outStr, int val)
 {
@@ -149,11 +148,11 @@ char* ifjCodeInt(char* outStr, int val)
 }
 
 /**
- * \brief
+ * @brief
  * 
- * \param outStr output string
- * \param val value
- * \return char*
+ * @param outStr output string
+ * @param val value
+ * @return char*
  */
 char* ifjCodeReal(char* outStr, double val)
 {
@@ -165,11 +164,11 @@ char* ifjCodeReal(char* outStr, double val)
 }
 
 /**
- * \brief
+ * @brief
  * 
- * \param fmt
- * \param 
- * \return int
+ * @param fmt
+ * @param 
+ * @return int
  */
 int addCode(const char* fmt, ...)
 {
@@ -208,9 +207,9 @@ int addCode(const char* fmt, ...)
 }
 
 /**
- * \brief
+ * @brief
  * 
- * \param table symbol table
+ * @param table symbol table
  */
 void addCodeVariableDefs(tSymTable* table)
 {
@@ -238,9 +237,9 @@ void addCodeVariableDefs(tSymTable* table)
 }
 
 /**
- * \brief Function that generates prolog code.
+ * @brief Function that generates prolog code.
  * 
- * \param f file
+ * @param f file
  */
 void genCodeProlog(FILE* f)
 {
@@ -251,9 +250,9 @@ void genCodeProlog(FILE* f)
 }
 
 /**
- * \brief 
+ * @brief 
  * 
- * \param f file
+ * @param f file
  */
 void genCodeMain(FILE* f)
 {
@@ -268,9 +267,9 @@ void genCodeMain(FILE* f)
 }
 
 /**
- * \brief
+ * @brief
  * 
- * \param f
+ * @param f
  */
 void generateCode(FILE* f)
 {
@@ -286,9 +285,9 @@ void generateCode(FILE* f)
 }
 
 /**
- * \brief
+ * @brief
  * 
- * \param f file
+ * @param f file
  */
 void generateFuncCode(FILE* f)
 {
@@ -305,9 +304,9 @@ void generateFuncCode(FILE* f)
 }
 
 /**
- * \brief Function, that generates embedded functions.
+ * @brief Function, that generates embedded functions.
  *
- * \param f file
+ * @param f file
  */
 void generateEmbeddedFunctions(FILE* f)
 {

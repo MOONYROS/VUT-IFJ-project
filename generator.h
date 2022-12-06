@@ -1,9 +1,15 @@
-//
-//  generator.h
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 15.10.2022.
-//
+/**
+ * @file generator.h
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This header file is responsible for generating the code.
+ * @date 2022-11
+ */
 
 #ifndef generator_h
 #define generator_h

@@ -8,7 +8,7 @@
  * @author Milan Menc (xmencm00)
  * 
  * @brief This header file does all the parsing for the compiler, works woth symbol table, controls semantics and generates code.
- * @date 2022-11
+ * @date 2022-10
  */
 
 #ifndef parser_h

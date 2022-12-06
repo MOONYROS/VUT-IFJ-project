@@ -1,11 +1,14 @@
 /**
  * @file expStack.h
- * @author Ondrej Koumar
- * @brief expression stack (different from parser stack)
- * @version 0.1
- * @date 2022-12-02
+ * Implementace prekladace imperativniho jazyka IFJ22
  * 
- * @copyright Copyright (c) 2022
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This file is an expression stack (different from parser stack).
+ * @date 2022-12
  */
 
 #include <stdlib.h>
@@ -13,6 +16,12 @@
 #include "expStack.h"
 #include "support.h"
 
+/**
+ * @brief Function that calculates stack length.
+ * 
+ * @param stack stack
+ * @return unsigned int length of the stack 
+ */
 unsigned int expStackLength(tExpStack *stack)
 {
     if (stack == NULL)
@@ -28,12 +37,22 @@ unsigned int expStackLength(tExpStack *stack)
     return count;
 }
 
+/**
+ * @brief Function for initialization of stack
+ * 
+ * @param stack stack
+ */
 void expStackInit(tExpStack **stack)
 {
     *stack = safe_malloc(sizeof(tExpStack));
     (*stack)->top = NULL;
 }
 
+/**
+ * @brief Function for disposal of stack.
+ * 
+ * @param stack stack
+ */
 void expStackDispose(tExpStack *stack)
 {
     if (stack == NULL)
@@ -51,6 +70,12 @@ void expStackDispose(tExpStack *stack)
     stack->top = NULL;
 }
 
+/**
+ * @brief Function for pushing expressions on stack.
+ * 
+ * @param stack stack
+ * @param exp expression
+ */
 void expStackPush(tExpStack* stack, tExpression* exp)
 {
     if (stack == NULL)
@@ -66,6 +91,14 @@ void expStackPush(tExpStack* stack, tExpression* exp)
     stack->top = newItem;
 }
 
+/**
+ * @brief Function for popping out of stack.
+ * 
+ * @param stack stack
+ * @param exp expression
+ * @return true if pop was successful
+ * @return false if stack is not initialized or is empty
+ */
 bool expStackPop(tExpStack *stack, tExpression *exp)
 {
     if (stack == NULL)
@@ -86,11 +119,24 @@ bool expStackPop(tExpStack *stack, tExpression *exp)
     return true;
 }
 
+/**
+ * @brief Function that tells whether the stack is empty.
+ * 
+ * @param stack stack
+ * @return true if stack is empty
+ * @return false if stack is not empty
+ */
 bool expIsEmpty(tExpStack *stack)
 {
     return stack == NULL ? true : stack->top == NULL; 
 }
 
+/**
+ * @brief Function that shows what's on top of the stack.
+ * 
+ * @param stack stack
+ * @param exp expression
+ */
 void expStackTop(tExpStack *stack, tExpression *exp)
 {
     if (expIsEmpty(stack))

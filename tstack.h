@@ -1,9 +1,15 @@
-//
-//  parser.c
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 02.11.2022.
-//
+/**
+ * @file tstack.h
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This header file contains functions for token stack.
+ * @date 2022-11
+ */
 
 #ifndef tstack_h
 #define tstack_h

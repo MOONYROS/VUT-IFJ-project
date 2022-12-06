@@ -1,9 +1,15 @@
-//
-//  token.h
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 15.10.2022.
-//
+/**
+ * @file token.h
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This header file for token.c, contains token types and token structure.
+ * @date 2022-9
+ */
 
 #ifndef token_h
 #define token_h

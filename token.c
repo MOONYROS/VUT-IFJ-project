@@ -1,9 +1,15 @@
-//
-//  support.h
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 15.10.2022.
-//
+/**
+ * @file token.c
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This file for basic function for tokens.
+ * @date 2022-9
+ */
 
 #include "token.h"
 
@@ -20,6 +26,13 @@ char *tokenName[tMaxToken] = {
     "tLiteral", "tEpilog"
 };
 
+/**
+ * @brief Function that checks if two tokens have compatible types.
+ * 
+ * @param dst destination token type
+ * @param src source token type
+ * @return int 1 if compatible, otherwise 0
+ */
 int typeIsCompatible(tTokenType dst, tTokenType src)
 {
     if (dst == src)
