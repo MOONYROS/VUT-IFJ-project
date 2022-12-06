@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+
+$tmp0 = 3;
+$tmp1 = 3.0;
+$tmpnull = null;
+
+$a = 6/3;
+$b = 7/3;
+$c = 6.0/3.0;
+$d = 7.45/3.55;
+$e = 6/$tmp0;
+$f = 6/$tmp0/$tmp0;
+$g = 6.0/$tmp0;
+$h = 6/$tmp1;
+$i = $tmp1/$tmp0;
+$j = $tmp0/1.55;
+$k = $tmp0/null;
+$l = null/3;
+$m = $tmpnull/$tmp1;
+
+
+write(
+$a, " 6/3\n", 
+$b, " 7/3\n", 
+$c, " 6.0/3.0\n",
+$d, " 7.45/3.55\n",
+$e, " 6/3\n",
+$f, " 6/3/3\n",
+$g, " 6.0/3\n",
+$h, " 6/3.0\n",
+$i, " 3.0/3\n",
+$j, " 3/1.55\n",
+$k, " 3/null\n",
+$l, " null/3\n",
+$m, " null/3.0\n"
+);

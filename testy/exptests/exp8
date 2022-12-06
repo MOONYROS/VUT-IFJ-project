@@ -1,0 +1,54 @@
+<?php
+declare(strict_types=1);
+
+$tmp0 = 0;
+$tmp1 = 1.0;
+$tmpnull = null;
+
+$a = 1>$tmp0;
+$b = $tmp1<0.0;
+$c = 1>$tmp1;
+$d = $tmp1>=0.0;
+$e = 1>=$tmp1;
+$f = $tmp1<=1;
+$g = 1<=$tmp0;
+$h = $tmp1>=null;
+$i = 0.0<=$tmpnull;
+$j = $tmp0>null;
+$k = 1!==$tmp1;
+$l = $tmp1!==0.0;
+$m = 1===$tmp1;
+$n = $tmp1===0.0;
+$o = 1!==$tmpnull;
+$p = $tmp0!==null;
+$q = 1===$tmpnull;
+$r = $tmp0===null;
+$s = null===$tmp0;
+$t = $tmpnull!==0.0;
+$u = null===$tmp1;
+$v = $tmpnull!==1;
+
+write(
+$a, " 1>0.0\n", 
+$b, " 1.0<0.0\n", 
+$c, " 1>1.0\n",
+$d, " 1.0>=0.0\n",
+$e, " 1>=1.0\n",
+$f, " 1.0<=1\n",
+$g, " 1<=0.0\n",
+$h, " 1.0>=null\n",
+$i, " 0.0<=null\n",
+$j, " 0.0>null\n",
+$k, " 1!==1.0\n",
+$l, " 1.0!==0.0\n",
+$m, " 1===1.0\n",
+$n, " 1.0===0.0\n",
+$o, " 1!==null\n",
+$p, " 0.0!==null\n",
+$q, " 1===null\n",
+$r, " 0.0===null\n",
+$s, " null===0.0\n",
+$t, " null!==0.0\n",
+$u, " null===1.0\n",
+$v, " null!==1\n"
+);
