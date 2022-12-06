@@ -635,8 +635,8 @@ int ReadToken(FILE *f, tToken *token)
                 {
                     SAVECHAR;
                     int len = (int)strlen(token->data);
-                    int octNum = (token->data[len - 3] - '0') * 100;
-                    octNum += (token->data[len - 2] - '0') * 10;
+                    int octNum = (token->data[len - 3] - '0') * 64;
+                    octNum += (token->data[len - 2] - '0') * 8;
                     octNum += (token->data[len - 1] - '0') * 1;
                     if (octNum < 0 || octNum > 255)
                     {
@@ -644,6 +644,11 @@ int ReadToken(FILE *f, tToken *token)
                         token->type = tInvalid;
                         break;
                     }
+                    char tmp[10];
+                    sprintf(tmp, "%03d", octNum);
+                    token->data[len - 3] = tmp[0];
+                    token->data[len - 2] = tmp[1];
+                    token->data[len - 1] = tmp[2];
                     state = sLiteral;
                 }
                 else    // anything else is invalid
