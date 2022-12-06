@@ -26,6 +26,7 @@ typedef struct CodeLine {
 char* ifjCodeStr(char* outStr, char* str);
 char* ifjCodeInt(char* outStr, int val);
 char* ifjCodeReal(char* outStr, double val);
+char* ifjCodeNil(char* outStr);
 int addCode(const char* fmt, ...);
 void addCodeVariableDefs(tSymTable* table);
 void genCodeProlog(FILE* f);

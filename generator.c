@@ -163,6 +163,15 @@ char* ifjCodeReal(char* outStr, double val)
     return outStr;
 }
 
+char* ifjCodeNil(char* outStr)
+{
+    if (outStr == NULL)
+        return;
+    
+    sprintf(outStr, "nil@nil");
+    return outStr;
+}
+
 /**
  * @brief
  * 

@@ -160,7 +160,7 @@ bool isNullTypeVar(tSymTable *table, tExpression *exp)
     if (isVar(table, exp))
         return (variableType(table, exp) == tNullTypeInt || variableType(table, exp) == tNullTypeFloat || variableType(table, exp) == tNullTypeString);
     else
-        return false;
+        return true;
 }
 
 bool isNull(tSymTable *table, tExpression *exp)
@@ -368,6 +368,7 @@ int typeToIndex(tTokenType tokenType)
         case tReal:
         case tReal2:
         case tLiteral:
+        case tNull:
             return 13;
         default:
             // Sem bychom se nikdy nemeli dostat
@@ -409,6 +410,9 @@ char *typeToString(char *tmpStr, tExpression *exp)
     else
     {
         switch (exp->type) {
+        case tNull:
+            ifjCodeNil(tmpStr);
+            break;
         case tLiteral:
             ifjCodeStr(tmpStr, exp->data);
             break;
@@ -440,19 +444,15 @@ char *typeToString(char *tmpStr, tExpression *exp)
 
 tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
 {
+    // ExpStack is an input stack, evalStack is a stack where expression evaluation will be done.
+    // The evalStack is necessary, because we're working with different struct. 
     tExpStack *evalStack = NULL;
     expStackInit(&evalStack);
 
-    //char code[MAX_IFJC_LEN];
     char tmpStr[MAX_IFJC_LEN];
-    //int tmpInt;
-    //double tmpReal;
-    //const char tmpNonTerminal[] = "nonTerminal";
     char precedence;
 
     dbgMsg("evalExp:\n");
-    //addCode("DEFVAR LF@otoc");
-    //addCode("DEFVAR LF@tmp");
 
     // Auxiliary variables for easier work with stacks and reducing.
     tExpression stackTop = {NULL, 0, false};
@@ -517,6 +517,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             else
                 errorExit("Podminka u jen jedne veci na inputstacku neco chybne\n", CERR_INTERNAL);
 
+            dbgMsg("%s", tokenName[const2type(inputExp.type)]);
             return const2type(inputExp.type);
         }
     }
@@ -568,9 +569,13 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         switch (precedence)
         {
         case 'x':
+
             errorExit("Never should've got here (case 'x')", CERR_INTERNAL);
             break;
+
         case '=':
+
+            // Just push the input token.
             expStackPush(evalStack, &inputExp);
             if (tstack_isEmpty(expStack))
             {
@@ -589,35 +594,29 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             break;
         
         case '<':
-            /* ------  CHECKING TYPES ------ */
 
-            // There's string literal or variable containing string on top of stack
-            if (isString(table, &stackTop))
-            {
-                // The following expression has to be string compatible operator.
-                if (!isStringOp(&inputExp))
+            if (isNull(table, &stackTop) && !isRelationalOp(&inputExp))
+                errorExit("Expected different operator after NULL constant.\n", CERR_SEM_TYPE);
+
+            // String is on top of stack, next has to be string operator.
+            else if (isString(table, &stackTop) && !isStringOp(&inputExp))
                     errorExit("Expected string operator.\n", CERR_SEM_TYPE);
-            }
 
-            // There's a string operator on top of stack
+            // String and string operator are on top of stack. The next expression has to be string/NULL.
             else if (second.type != tNone && isString(table, &second) && \
                     isStringOp(&stackTop) && !isString(table, &inputExp))
                 errorExit("Expected string variable or constant.\n", CERR_SEM_TYPE);
 
-
-            // There's number on top of stack
-            else if (isNumber(table, &stackTop))
-            {   
-                // The following expression has to be arithmetic or relational operator.
-                if (!(isNumberOp(&inputExp) || isRelationalOp(&inputExp)))
+            // Number on top of stack, next has to be arithmetic or relational operator.
+            else if (isNumber(table, &stackTop) && !(isNumberOp(&inputExp) || isRelationalOp(&inputExp)))
                     errorExit("The following token after number constant or variable containing number has to be number operator.\n", CERR_SEM_TYPE);
-            }
 
-            // There's number operator on top of stack
+            // Number and number operator on top of stack, next expression has to be number/leftPar/NULL.
             else if (isNumber(table, &second) && (isNumberOp(&stackTop) || isRelationalOp(&stackTop)) && \
-                    !(isNumber(table, &inputExp) || inputExp.type == tLPar))
+                    !(isNumber(table, &inputExp) || inputExp.type == tLPar || isNull(table, &inputExp)))
                     errorExit("Expected number variable or constant.", CERR_SEM_TYPE);
     
+            // Incoming variable cannot be NULL if it's not NULL type.
             if (!isNullTypeVar(table, &inputExp) && isNull(table, &inputExp))
                 errorExit("NULL in variable that isn't NULL type.\n", CERR_SEM_TYPE);
 
@@ -649,6 +648,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             // Print whats being reduced on stack
             dbgMsg("%s %s %s\n", third.data, tokenName[second.type], stackTop.data);
             
+            // This case happens only when we have '(E)' on stack
             if (!isOperator(&second))
                 nonTerminal.type = second.type;
             else
@@ -657,6 +657,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             if (nonTerminal.type == tNone)
                 errorExit("Should never get here (nonterminal type tNone).\n", CERR_INTERNAL);
 
+            // (E) --> E
             if (third.type == tLPar && stackTop.type == tRPar)
             {
                 expStackPop(evalStack, &uselessExp);
@@ -667,20 +668,24 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                     expStackPop(evalStack, &uselessExp);
                 break;
             }
+            // i operator i --> E
             else if (third.isNonTerminal == false && stackTop.isNonTerminal == false)
             {
                 addCode("PUSHS %s", typeToString(tmpStr, &third));
                 addCode("PUSHS %s", typeToString(tmpStr, &stackTop));
             }
+            // i operator E --> E
             else if (third.isNonTerminal == false && stackTop.isNonTerminal == true)
             {
                 addCode("POPS LF@otoc");
                 addCode("PUSHS %s", typeToString(tmpStr, &third));
                 addCode("PUSHS LF@otoc");
             }
+            // E operator E --> E
             else if (third.isNonTerminal == true && stackTop.isNonTerminal == false)
                 addCode("PUSHS %s", typeToString(tmpStr, &stackTop));
 
+            // Code generation for operators.
             switch (second.type)
             {
             case tPlus:
@@ -770,18 +775,18 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 break;
             }
 
+            // After successful reduction, pop three reduced things from stack and push one non-terminal.
             expStackPop(evalStack, &uselessExp);
             expStackPop(evalStack, &uselessExp);
             expStackPop(evalStack, &uselessExp);
             expStackPush(evalStack, &nonTerminal);
             
-            // If there's last item on our stack, it shall be the last nonterminal,
-            // we pop it so the while loop breaks.
+            // Last item on evalStack and no input token --> last nonTerminal on stack.
             if (evalStack->top->next == NULL && inputExp.type == tNone)
                 expStackPop(evalStack, &uselessExp);
         }            
     } 
-    // addCode("MOVE %s TF@%s", tgtVar, tmpNonTerminal);
+    // Pop the result into desired variable.
     addCode("POPS %s", tgtVar);
 
     safe_free(stackTop.data);
