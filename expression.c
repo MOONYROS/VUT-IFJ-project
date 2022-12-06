@@ -604,7 +604,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
 
             // String and string operator are on top of stack. The next expression has to be string/NULL.
             else if (second.type != tNone && isString(table, &second) && \
-                    isStringOp(&stackTop) && !isString(table, &inputExp))
+                    isStringOp(&stackTop) && !isString(table, &inputExp) && !isNull(table, &inputExp))
                 errorExit("Expected string variable or constant.\n", CERR_SEM_TYPE);
 
             // Number on top of stack, next has to be arithmetic or relational operator.

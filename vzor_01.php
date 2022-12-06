@@ -3,7 +3,7 @@ declare(strict_types=1);
 $y = 10;	// local variable in main body
 function foo(int $x) : void {
 	$y = "hello";	// local variable in this function
-	if (1 === null) {
+	if ($y !== null) {
 		$y = 42;	// not new local variable
 		write($y);	// prints 42
 	} else { }
