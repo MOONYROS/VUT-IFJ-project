@@ -350,4 +350,85 @@ void generateEmbeddedFunctions(FILE* f)
     fprintf(f, "POPFRAME\n");
     fprintf(f, "RETURN\n");
     fprintf(f, "\n");
+
+    fprintf(f, "LABEL $func_substring\n");
+    fprintf(f, "PUSHFRAME\n");
+    fprintf(f, "CREATEFRAME\n");
+    fprintf(f, "DEFVAR LF@s\n");
+    fprintf(f, "DEFVAR LF@i\n");
+    fprintf(f, "DEFVAR LF@j\n");
+    fprintf(f, "DEFVAR TF@tmp\n");
+    fprintf(f, "MOVE LF@s LF@%%1\n");
+    fprintf(f, "MOVE LF@i LF@%%2\n");
+    fprintf(f, "MOVE LF@j LF@%%3\n");
+    fprintf(f, "DEFVAR LF@%%retval1\n");
+    // osetreni chyb vstupnich parametru
+    fprintf(f, "LT TF@tmp LF@i int@0\n");
+    fprintf(f, "JUMPIFEQ $func_substring_nullend TF@tmp bool@true\n");
+    fprintf(f, "LT TF@tmp LF@j int@0\n");
+    fprintf(f, "JUMPIFEQ $func_substring_nullend TF@tmp bool@true\n");
+    fprintf(f, "GT TF@tmp LF@i LF@j\n");
+    fprintf(f, "JUMPIFEQ $func_substring_nullend TF@tmp bool@true\n");
+    // do TF@len si vypocitam delku vstupniho retezce - bacha nesmime odted zavolat CREATEFRAME
+    fprintf(f, "CREATEFRAME\n");
+    fprintf(f, "DEFVAR TF@%%1\n");
+    fprintf(f, "MOVE TF@%%1 LF@s\n");
+    fprintf(f, "CALL $func_strlen\n");
+    fprintf(f, "DEFVAR TF@len\n");
+    fprintf(f, "MOVE TF@len TF@%%retval1\n");
+    // a osetrujeme dalsi chyby spojene s delkou
+    fprintf(f, "DEFVAR TF@tmp\n"); // musime zalozit znovu, protoze jsme si ji zrusili predchozim CREATEFRAME pred volanim funkce
+    fprintf(f, "GT TF@tmp LF@i TF@len\n");
+    fprintf(f, "JUMPIFEQ $func_substring_nullend TF@tmp bool@true\n");
+    fprintf(f, "JUMPIFEQ $func_substring_nullend LF@i TF@len\n");
+    fprintf(f, "GT TF@tmp LF@j TF@len\n");
+    fprintf(f, "JUMPIFEQ $func_substring_nullend TF@tmp bool@true\n");
+    // vykonny kod - vlastni smycka
+    fprintf(f, "DEFVAR TF@ndx\n");
+    fprintf(f, "MOVE TF@ndx LF@i\n");
+    fprintf(f, "MOVE LF@%%retval1 string@\n");
+    fprintf(f, "LABEL $func_substring_smycka\n");
+    fprintf(f, "JUMPIFEQ $func_substring_end TF@ndx LF@j\n");
+    fprintf(f, "GETCHAR TF@tmp LF@s TF@ndx\n");
+    fprintf(f, "CONCAT LF@%%retval1 LF@%%retval1 TF@tmp\n");
+    fprintf(f, "ADD TF@ndx TF@ndx int@1\n");
+    fprintf(f, "JUMP $func_substring_smycka\n");
+    // a koncime
+    fprintf(f, "JUMP $func_substring_end\n");
+    // vracime null pri chybe
+    fprintf(f, "LABEL $func_substring_nullend\n");
+    fprintf(f, "MOVE LF@%%retval1 nil@nil\n");
+    fprintf(f, "LABEL $func_substring_end\n");
+    fprintf(f, "POPFRAME\n");
+    fprintf(f, "RETURN\n");
+    fprintf(f, "\n");
+
+    fprintf(f, "LABEL $func_ord\n");
+    fprintf(f, "PUSHFRAME\n");
+    fprintf(f, "CREATEFRAME\n");
+    fprintf(f, "DEFVAR LF@c\n");
+    fprintf(f, "MOVE LF@c LF@%%1\n");
+    fprintf(f, "DEFVAR LF@%%retval1\n");
+    fprintf(f, "DEFVAR TF@tmp\n");
+    fprintf(f, "STRLEN TF@tmp LF@c\n");
+    fprintf(f, "JUMPIFEQ $func_ord_zerolen TF@tmp int@0\n");
+    fprintf(f, "STRI2INT LF@%%retval1 LF@c int@0\n");
+    fprintf(f, "JUMP $func_ord_end\n");
+    fprintf(f, "LABEL $func_ord_zerolen\n");
+    fprintf(f, "MOVE LF@%%retval1 int@0\n");
+    fprintf(f, "LABEL $func_ord_end\n");
+    fprintf(f, "POPFRAME\n");
+    fprintf(f, "RETURN\n");
+    fprintf(f, "\n");
+
+    fprintf(f, "LABEL $func_chr\n");
+    fprintf(f, "PUSHFRAME\n");
+    fprintf(f, "CREATEFRAME\n");
+    fprintf(f, "DEFVAR LF@i\n");
+    fprintf(f, "MOVE LF@i LF@%%1\n");
+    fprintf(f, "DEFVAR LF@%%retval1\n");
+    fprintf(f, "INT2CHAR LF@%%retval1 LF@i\n");
+    fprintf(f, "POPFRAME\n");
+    fprintf(f, "RETURN\n");
+    fprintf(f, "\n");
 }

@@ -634,7 +634,7 @@ int ReadToken(FILE *f, tToken *token)
                 if ((ch >= '0') && (ch <= '9'))   // if it's a number from interval <0; 7>, it is a COMPLETE octal number, we'll get back to literal
                 {
                     SAVECHAR;
-                    int len = strlen(token->data);
+                    int len = (int)strlen(token->data);
                     int octNum = (token->data[len - 3] - '0') * 100;
                     octNum += (token->data[len - 2] - '0') * 10;
                     octNum += (token->data[len - 1] - '0') * 1;
@@ -670,7 +670,7 @@ int ReadToken(FILE *f, tToken *token)
                 {
                     ch = upCase(ch);
                     SAVECHAR;
-                    int len = strlen(token->data);
+                    int len = (int)strlen(token->data);
                     int hexNum = hexToDec(token->data[len - 2]) * 16;
                     hexNum += hexToDec(token->data[len - 1]) * 1;
                     char tmp[10];

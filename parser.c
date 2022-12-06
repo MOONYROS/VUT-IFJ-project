@@ -11,6 +11,7 @@
  * @date 2022-10
  */
 
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -22,6 +23,7 @@
 #include "symtable.h"
 #include "expression.h"
 #include "generator.h"
+
 
 extern char* tokenName[tMaxToken];
 extern const char tmpExpResultName[];
@@ -54,19 +56,28 @@ void insert_embedded_functions(tSymTable* st)
         (st_insert_function(st, "readi", tNullTypeInt) == 0) ||
         (st_insert_function(st, "readf", tNullTypeFloat) == 0) ||
         (st_insert_function(st, "write", tVoid) == 0) ||
+
+        (st_insert_function(st, "floatval", tTypeFloat) == 0) ||
+        (st_insert_function(st, "intval", tTypeInt) == 0) ||
+        (st_insert_function(st, "strval", tTypeString) == 0) ||
+
         (st_insert_function(st, "strlen", tTypeInt) == 0) ||
         (st_insert_function(st, "substring", tNullTypeString) == 0) ||
         (st_insert_function(st, "ord", tTypeInt) == 0) ||
         (st_insert_function(st, "chr", tTypeString) == 0) )
         errorExit("cannot insert embedded functions to symbol table", CERR_INTERNAL);
+
     if( st_add_params(st, "strlen", tTypeString, "s") == 0 )
         errorExit("cannot insert function parameters to function in symbol table", CERR_INTERNAL);
+
     if( (st_add_params(st, "substring", tTypeString, "s") == 0) ||
         (st_add_params(st, "substring", tTypeInt, "i") == 0) ||
         (st_add_params(st, "substring", tTypeInt, "j") == 0) )
         errorExit("cannot insert function parameters to function in symbol table", CERR_INTERNAL);
+
     if (st_add_params(st, "ord", tTypeString, "c") == 0)
         errorExit("cannot insert function parameters to function in symbol table", CERR_INTERNAL);
+
     if (st_add_params(st, "chr", tTypeInt, "i") == 0)
         errorExit("cannot insert function parameters to function in symbol table", CERR_INTERNAL);
 }
@@ -139,7 +150,7 @@ tTokenType strToToken(const char *tokenStr)
 void prl(char* str)
 {
     level++;
-    return; // just so we don't get a warning for doing nothing with str, when the next line is commented
+    return; // jen aby nebyl warning, ze se str nic nedelame, kdy mame zakomentovany nasleduji radek
     dbgMsg("%*s%s\n", level*2, "", str);
 }
 
@@ -483,6 +494,9 @@ void processFunctionCall(tSymTable* st, tStack* stack)
         // pri prvnim pruchodu nas parametry vubec nezajimaji
         tstack_deleteItems(tmpStack);
         if (strcmp(funcName, "write") != 0)
+            //(strcmp(funcName, "floatval") != 0) &&
+            //(strcmp(funcName, "intval") != 0) &&
+            //(strcmp(funcName, "strval") != 0))
         {
             char tmpStr[MAX_TOKEN_LEN];
             tSymTableItem* sti = st_search(&gst, funcName);
@@ -509,12 +523,14 @@ void processFunctionCall(tSymTable* st, tStack* stack)
         dbgMsg("function call %s (", funcName);
         if (strcmp(sti->name, "write") == 0)
         {
-            // specialni sekce pro funkci write, ktera ma libovolny pocet parametru
+            // function write ( term1 , term2 , ..., termn) : void
+
             while (!tstack_isEmpty(tmpStack))
             {
-                // aaa write asi taky bude muset umet zpracova expression :(
+                // write podle zadani umi jen neomezene termu, takze nezpracovava expression
                 if (!tstack_pop(tmpStack, &tmpToken))
                     errorExit("stack error processing function parameters", CERR_INTERNAL);
+                
                 if (tmpToken.type != tComma)
                 {
                     char c[MAX_TOKEN_LEN], tmpStr[MAX_TOKEN_LEN];
@@ -545,6 +561,9 @@ void processFunctionCall(tSymTable* st, tStack* stack)
                             strcat(c, ifjCodeReal(tmpStr, tmpd));
                         }
                     break;
+                    case tNull:
+                        strcat(c, "string@");
+                        break;
                     case tIdentifier:
                         {
                             tSymTableItem* stp = st_search(st, tmpToken.data);
@@ -566,6 +585,228 @@ void processFunctionCall(tSymTable* st, tStack* stack)
                 }
             }
             addCode("");
+        }
+        else if (strcmp(sti->name, "floatval") == 0)
+        {
+            // function floatval(term) : float
+
+            if (!tstack_pop(tmpStack, &tmpToken))
+                errorExit("one term required in floatval(term) function", CERR_SEM_ARG);
+            on_stack_state_error(tmpStack, notEmpty, "only one term allowed in floatval(term) function", CERR_SEM_ARG);
+            
+            char tgtVar[MAX_TOKEN_LEN]; // , tmpStr[MAX_TOKEN_LEN];
+            sprintf(tgtVar, "LF@%s%s%05d", funcPrefixName, funcName, funcNr);
+            
+            //char c[MAX_TOKEN_LEN], tmpStr[MAX_TOKEN_LEN];
+            switch (tmpToken.type) {
+            case tLiteral:
+                dbgMsg(" \"%s\"", tmpToken.data);
+                double tmpd;
+                if (sscanf(tmpToken.data, "%lf", &tmpd) != 1)
+                    errorExit("wrong float string literal", CERR_INTERNAL);
+                addCode("MOVE %s float@%a", tgtVar, tmpd);
+                break;
+            case tInt: // aaa osetrit jestli jsou to spravne typu INT
+            case tInt2:
+            {
+                dbgMsg(" %s", tmpToken.data);
+                int tmpi;
+                if (sscanf(tmpToken.data, "%d", &tmpi) != 1)
+                    errorExit("wrong integer constant", CERR_INTERNAL);
+                addCode("MOVE %s float@%a", tgtVar, (float)tmpi);
+            }
+            break;
+            case tReal: // aaa osetrit spravne type real
+            case tReal2:
+            {
+                dbgMsg(" %s", tmpToken.data);
+                double tmpd;
+                if (sscanf(tmpToken.data, "%lf", &tmpd) != 1)
+                    errorExit("wrong float constant", CERR_INTERNAL);
+                addCode("MOVE %s float@%a", tgtVar, tmpd);
+            }
+            break;
+            case tNull:
+                addCode("MOVE %s float@%a", tgtVar, 0.0);
+                break;
+            case tIdentifier:
+            {
+                tSymTableItem* stp = st_search(st, tmpToken.data);
+                if (stp == NULL)
+                {
+                    errorExit("function parameter not defined", CERR_SEM_UNDEF);
+                    return;
+                }
+                dbgMsg(" %s", tmpToken.data);
+                switch (stp->dataType)
+                {
+                case tNullType:
+                case tNull:
+                    addCode("MOVE %s float@%a", tgtVar, 0.0);
+                    break;
+                case tTypeInt:
+                case tNullTypeInt:
+                    addCode("INT2FLOAT %s LF@%s", tgtVar, tmpToken.data);
+                    break;
+                case tTypeFloat:
+                case tNullTypeFloat:
+                    addCode("MOVE %s LF@%s", tgtVar, tmpToken.data);
+                    break;
+                default:
+                    errorExit("unsupported variable conversion", CERR_SEM_UNDEF);
+                    return;
+                }
+            }
+            break;
+            default:
+                errorExit("unknow floatval() parameter", CERR_SEM_ARG);
+                break;
+            }
+        }
+        else if (strcmp(sti->name, "intval") == 0)
+        {
+            // function intval(term) : int
+
+            if (!tstack_pop(tmpStack, &tmpToken))
+                errorExit("one term required in intval(term) function", CERR_SEM_ARG);
+            on_stack_state_error(tmpStack, notEmpty, "only one term allowed in intval(term) function", CERR_SEM_ARG);
+
+            char tgtVar[MAX_TOKEN_LEN]; // , tmpStr[MAX_TOKEN_LEN];
+            sprintf(tgtVar, "LF@%s%s%05d", funcPrefixName, funcName, funcNr);
+
+            switch (tmpToken.type) {
+            case tLiteral:
+                dbgMsg(" \"%s\"", tmpToken.data);
+                int tmpi;
+                if (sscanf(tmpToken.data, "%d", &tmpi) != 1)
+                    errorExit("wrong int string literal", CERR_INTERNAL);
+                addCode("MOVE %s int@%d", tgtVar, tmpi);
+                break;
+            case tInt: // aaa osetrit jestli jsou to spravne typu INT
+            case tInt2:
+            {
+                dbgMsg(" %s", tmpToken.data);
+                int tmpi;
+                if (sscanf(tmpToken.data, "%d", &tmpi) != 1)
+                    errorExit("wrong integer constant", CERR_INTERNAL);
+                addCode("MOVE %s int@%d", tgtVar, tmpi);
+            }
+            break;
+            case tReal: // aaa osetrit spravne type real
+            case tReal2:
+            {
+                dbgMsg(" %s", tmpToken.data);
+                double tmpd;
+                if (sscanf(tmpToken.data, "%lf", &tmpd) != 1)
+                    errorExit("wrong float constant", CERR_INTERNAL);
+                addCode("MOVE %s int@%d", tgtVar, (int)tmpd);
+            }
+            break;
+            case tNull:
+                addCode("MOVE %s int@0", tgtVar);
+                break;
+            case tIdentifier:
+            {
+                tSymTableItem* stp = st_search(st, tmpToken.data);
+                if (stp == NULL)
+                {
+                    errorExit("function parameter not defined", CERR_SEM_UNDEF);
+                    return;
+                }
+                dbgMsg(" %s", tmpToken.data);
+                switch (stp->dataType)
+                {
+                case tNullType:
+                case tNull:
+                    addCode("MOVE %s int@0", tgtVar);
+                    break;
+                case tTypeInt:
+                case tNullTypeInt:
+                    addCode("MOVE %s LF@%s", tgtVar, tmpToken.data);
+                    break;
+                case tTypeFloat:
+                case tNullTypeFloat:
+                    addCode("FLOAT2INT %s LF@%s", tgtVar, tmpToken.data);
+                    break;
+                default:
+                    errorExit("unsupported variable conversion", CERR_SEM_UNDEF);
+                    return;
+                }
+            }
+            break;
+            default:
+                errorExit("unknow intval() parameter", CERR_SEM_ARG);
+                break;
+            }
+        }
+        else if (strcmp(sti->name, "strval") == 0)
+        {
+            // function strval(term) : string
+
+            if (!tstack_pop(tmpStack, &tmpToken))
+                errorExit("one term required in strval(term) function", CERR_SEM_ARG);
+            on_stack_state_error(tmpStack, notEmpty, "only one term allowed in strval(term) function", CERR_SEM_ARG);
+
+            char tgtVar[MAX_TOKEN_LEN], tmpStr[MAX_TOKEN_LEN];
+            sprintf(tgtVar, "LF@%s%s%05d", funcPrefixName, funcName, funcNr);
+
+            switch (tmpToken.type) {
+            case tLiteral:
+                dbgMsg(" \"%s\"", tmpToken.data);
+                addCode("MOVE %s %s", tgtVar, ifjCodeStr(tmpStr, tmpToken.data));
+                break;
+            case tInt: // aaa osetrit jestli jsou to spravne typu INT
+            case tInt2:
+            {
+                dbgMsg(" %s", tmpToken.data);
+                int tmpi;
+                if (sscanf(tmpToken.data, "%d", &tmpi) != 1)
+                    errorExit("wrong integer constant", CERR_INTERNAL);
+                addCode("MOVE %s string@%d", tgtVar, tmpi);
+            }
+            break;
+            case tReal: // aaa osetrit spravne type real
+            case tReal2:
+            {
+                dbgMsg(" %s", tmpToken.data);
+                double tmpd;
+                if (sscanf(tmpToken.data, "%lf", &tmpd) != 1)
+                    errorExit("wrong float constant", CERR_INTERNAL);
+                addCode("MOVE %s string@%a", tgtVar, tmpd);
+            }
+            break;
+            case tNull:
+                addCode("MOVE %s string@", tgtVar);
+                break;
+            case tIdentifier:
+            {
+                tSymTableItem* stp = st_search(st, tmpToken.data);
+                if (stp == NULL)
+                {
+                    errorExit("function parameter not defined", CERR_SEM_UNDEF);
+                    return;
+                }
+                dbgMsg(" %s", tmpToken.data);
+                switch (stp->dataType)
+                {
+                case tNullType:
+                case tNull:
+                    addCode("MOVE %s string@", tgtVar);
+                    break;
+                case tTypeString:
+                case tNullTypeString:
+                    addCode("MOVE %s LF@%s", tgtVar, tmpToken.data);
+                    break;
+                default:
+                    errorExit("unsupported variable conversion", CERR_SEM_UNDEF);
+                    return;
+                }
+            }
+            break;
+            default:
+                errorExit("unknow strval() parameter", CERR_SEM_ARG);
+                break;
+            }
         }
         else
         {
@@ -818,48 +1059,6 @@ void parse()
     dbgMsg("Delete rest: ");
     safe_free_all();
 }
-
-/*
-void parse_programs()
-{
-    prl("programs");
-
-    switch (token.type)
-    {
-    case tEpilog:
-        break;
-
-    case tFunction:
-    case tIf:
-    case tWhile:
-    case tSemicolon:
-    case tIdentifier:
-    case tReturn:
-    case tMinus:
-    case tLPar:
-    case tInt:
-    case tReal:
-    case tReal2:
-    case tInt2:
-    case tNull:
-    case tLiteral:
-    case tFuncName:
-        parse_program();
-        parse_programs();
-        break;
-
-    default:
-        // epsilon
-        parse_program();
-        parse_programs();
-        break;
-    }
-    
-    // while (token.type != tEpilog)
-    //     parse_program();
-    
-    level--;
-} */
 
 /**
  * @brief Function that processes program (non-terminal).
