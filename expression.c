@@ -828,11 +828,11 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 addCode("JUMPIFEQ $rovno%05d LF@tmp LF@otoc", lbl);
                 addCode("GT LF@tmp LF@tmp LF@otoc", lbl);
                 addCode("JUMPIFEQ $rovno%05d LF@tmp bool@true", lbl);
-                addCode("JUMP $mene$05d", lbl);
+                addCode("JUMP $mene%05d", lbl);
                 addCode("LABEL $rovno%05d", lbl);
                 addCode("PUSHS int@1");
                 addCode("JUMP $done%05d", lbl);
-                addCode("LABEL $mene$05d", lbl);
+                addCode("LABEL $mene%05d", lbl);
                 addCode("PUSHS int@0");
                 addCode("LABEL $done%05d", lbl++);
                 break;

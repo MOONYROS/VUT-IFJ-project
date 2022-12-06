@@ -927,7 +927,7 @@ void processReturn(tSymTable* st)
             {
                 if (actFunc->dataType == tVoid)
                     errorExit("void function returning value", CERR_SEM_RET);
-                else if (actFunc->dataType != expType)
+                else if (!typeIsCompatible(actFunc->dataType, expType))
                     errorExit("wrong data type in return statement", CERR_SEM_ARG);
             }
             actFunc->hasReturn++;

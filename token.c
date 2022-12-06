@@ -41,15 +41,15 @@ int typeIsCompatible(tTokenType dst, tTokenType src)
     switch (dst)
     {
     case tNullTypeInt:
-        if (src == tTypeInt || src == tNullType)
+        if (src == tTypeInt || src == tNullType || src == tInt || src == tInt2 || src == tNull)
             return 1;
         break;
     case tNullTypeFloat:
-        if (src == tTypeFloat || src == tNullType)
+        if (src == tTypeFloat || src == tNullType || src == tReal || src == tReal2 || src == tNull)
             return 1;
         break;
     case tNullTypeString:
-        if (src == tTypeString || src == tNullType)
+        if (src == tTypeString || src == tNullType || src == tLiteral || src == tNull)
             return 1;
         break;
     default:
