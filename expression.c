@@ -557,7 +557,8 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         // If inputExp.type is set to none, there's nothing left on input stack (aka expStack). Reduce everything.
         if (inputExp.type == tNone)
             precedence = '>';
-        else if ( (isNonTerminal(evalStack->top->exp) || isConst(&stackTop) || isVar(table, &stackTop)) && isOperator(&inputExp) )
+        else if ((isNonTerminal(evalStack->top->exp) || isConst(&stackTop) || isVar(table, &stackTop) || isNull(table, &stackTop)) \
+                && isOperator(&inputExp))
             precedence = prdTable[typeToIndex(second.type)][typeToIndex(inputExp.type)];
         else if (isConst(&inputExp))
             precedence = '<';
