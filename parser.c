@@ -1,16 +1,15 @@
-/*****************************************************************//**
- * \file   parser.c
+/**
+ * @file parser.c
  * Implementace prekladace imperativniho jazyka IFJ22
  * 
- * \brief  This file does all the parsing for the compiler, works woth symbol table, controls semantics and generates code.
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
  * 
- * \author Ondrej Lukasek (xlukas15)
- * \author Ondrej Koumar (xkouma02)
- * \author Jonas Morkus (xmorku03)
- * \author Milan Menc (xmencm00)
- * 
- * \date   November 2022
- *********************************************************************/
+ * @brief This file does all the parsing for the compiler, works woth symbol table, controls semantics and generates code.
+ * @date 2022-11
+ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -45,9 +44,9 @@ typedef enum {
 } tStackState;
 
 /**
- * \brief Does inserting of all embedded functions.
+ * @brief Does inserting of all embedded functions.
  * 
- * \param st symbol table
+ * @param st symbol table
  */
 void insert_embedded_functions(tSymTable* st)
 {
@@ -75,10 +74,10 @@ void insert_embedded_functions(tSymTable* st)
 /**
  * /brief Function handles errors on stack
  * 
- * \param stack stack
- * \param cond condition
- * \param msg string with a message
- * \param errCode error code number
+ * @param stack stack
+ * @param cond condition
+ * @param msg string with a message
+ * @param errCode error code number
  */
 void on_stack_state_error(tStack* stack, tStackState cond, char* msg, int errCode)
 {
@@ -99,11 +98,11 @@ void on_stack_state_error(tStack* stack, tStackState cond, char* msg, int errCod
 }
 
 /**
- * \brief Functions reads token and then prints its data.
+ * @brief Functions reads token and then prints its data.
  * 
- * \param f file from which tokens are read
- * \param token token with it's type and data
- * \return 1 or 0 depending on whether reading was successful
+ * @param f file from which tokens are read
+ * @param token token with it's type and data
+ * @return 1 or 0 depending on whether reading was successful
  */
 int ReadTokenPRINT(FILE *f, tToken *token)
 {
@@ -119,9 +118,9 @@ int ReadTokenPRINT(FILE *f, tToken *token)
 }
 
 /**
- * \brief
+ * @brief
  * 
- * \param tokenStr
+ * @param tokenStr
  */
 tTokenType strToToken(const char *tokenStr)
 {
@@ -133,19 +132,19 @@ tTokenType strToToken(const char *tokenStr)
 }
 
 /**
- * \brief
+ * @brief
  * 
- * \param str string
+ * @param str string
  */
 void prl(char* str)
 {
     level++;
-    return; // jen aby nebyl warning, ze se str nic nedelame, kdy mame zakomentovany nasleduji radek
+    return; // just so we don't get a warning for doing nothing with str, when the next line is commented
     dbgMsg("%*s%s\n", level*2, "", str);
 }
 
 /**
- * \brief
+ * @brief
  */
 void nextToken()
 {
@@ -159,9 +158,9 @@ void nextToken()
 }
 
 /**
- * \brief Function matches desired token and then reads another one.
+ * @brief Function matches desired token and then reads another one.
  * 
- * \param tokType desired token type to match
+ * @param tokType desired token type to match
  */
 void matchTokenAndNext(tTokenType tokType)
 {
@@ -175,7 +174,7 @@ void matchTokenAndNext(tTokenType tokType)
 }
 
 /**
- * \brief Function that processes function definition
+ * @brief Function that processes function definition
  */
 void processFunctionDefinition()
 {
@@ -331,9 +330,9 @@ void processFunctionDefinition()
 }
 
 /**
- * \brief Function that processes if statement (with else).
+ * @brief Function that processes if statement (with else).
  * 
- * \param st symbol table
+ * @param st symbol table
  */
 void processIfStatement(tSymTable* st)
 {
@@ -394,9 +393,9 @@ void processIfStatement(tSymTable* st)
 }
 
 /**
- * \brief Function that processes while statement.
+ * @brief Function that processes while statement.
  * 
- * \param st symbol table
+ * @param st symbol table
  */
 void processWhileStatement(tSymTable* st)
 {
@@ -448,10 +447,10 @@ void processWhileStatement(tSymTable* st)
 }
 
 /**
- * \brief Function that processes call of a function.
+ * @brief Function that processes call of a function.
  *
- * \param st symbol table
- * \param stack stack
+ * @param st symbol table
+ * @param stack stack
  */
 void processFunctionCall(tSymTable* st, tStack* stack)
 {
@@ -641,9 +640,9 @@ void processFunctionCall(tSymTable* st, tStack* stack)
 }
 
 /**
- * \brief Function that processes return
+ * @brief Function that processes return
  *
- * \param st symbol table
+ * @param st symbol table
  */
 void processReturn(tSymTable* st)
 {
@@ -703,9 +702,9 @@ void processReturn(tSymTable* st)
 }
 
 /**
- * \brief Function that processes assignments
+ * @brief Function that processes assignments
  *
- * \param st symbol table
+ * @param st symbol table
  */
 void processAssignment(tSymTable* st)
 {
@@ -764,7 +763,7 @@ extern size_t totDeAllocs;
 extern size_t memDeAlloc;
 
 /**
- * \brief Main function for parser, basically handles whole parsing, semantic analysis and code generation.
+ * @brief Main function for parser, basically handles whole parsing, semantic analysis and code generation.
  */
 void parse()
 {
@@ -863,7 +862,7 @@ void parse_programs()
 } */
 
 /**
- * \brief Function that processes program (non-terminal).
+ * @brief Function that processes program (non-terminal).
  */
 void parse_program()
 {
@@ -906,10 +905,10 @@ void parse_program()
     level--;
 }
 /**
- * \brief Function that processes statements.
+ * @brief Function that processes statements.
  *
- * \param st symbol table
- * \param stack stack
+ * @param st symbol table
+ * @param stack stack
  */
 void parse_statements(tSymTable *st, tStack* stack)
 {
@@ -944,10 +943,10 @@ void parse_statements(tSymTable *st, tStack* stack)
 }
 
 /**
- * \brief Function that processes statement.
+ * @brief Function that processes statement.
  *
- * \param st symbol table
- * \param stack stack
+ * @param st symbol table
+ * @param stack stack
  */
 void parse_statement(tSymTable* st, tStack* stack)
 {
@@ -1005,10 +1004,10 @@ void parse_statement(tSymTable* st, tStack* stack)
 }
 
 /**
- * \brief Function that parses function call.
+ * @brief Function that parses function call.
  *
- * \param st symbol table
- * \param stack stack
+ * @param st symbol table
+ * @param stack stack
  */
 void parse_functionCall(tSymTable* st, tStack* stack)
 {
@@ -1031,10 +1030,10 @@ void parse_functionCall(tSymTable* st, tStack* stack)
 }
 
 /**
- * \brief Function that parses returnValue non-terminal.
+ * @brief Function that parses returnValue non-terminal.
  *
- * \param st symbol table
- * \param stack stack
+ * @param st symbol table
+ * @param stack stack
  */
 void parse_returnValue(tSymTable* st, tStack* stack)
 {
@@ -1064,9 +1063,9 @@ void parse_returnValue(tSymTable* st, tStack* stack)
 }
 
 /**
- * \brief Function that parses nextTerminla non-terminal.
+ * @brief Function that parses nextTerminla non-terminal.
  *
- * \param st symbol table
+ * @param st symbol table
  */
 void parse_nextTerminal(tSymTable* st)
 {
@@ -1105,10 +1104,10 @@ void parse_nextTerminal(tSymTable* st)
 }
 
 /**
- * \brief Function that parses preExpression non-terminal.
+ * @brief Function that parses preExpression non-terminal.
  *
- * \param st symbol table
- * \param stack stack
+ * @param st symbol table
+ * @param stack stack
  */
 void parse_preExpression(tSymTable* st, tStack* stack)
 {
@@ -1158,10 +1157,10 @@ void parse_preExpression(tSymTable* st, tStack* stack)
 }
 
 /**
- * \brief Function that parses expression non-terminal.
+ * @brief Function that parses expression non-terminal.
  *
- * \param st symbol table
- * \param stack stack
+ * @param st symbol table
+ * @param stack stack
  */
 void parse_expression(tSymTable* st, tStack* stack)
 {
@@ -1200,10 +1199,10 @@ void parse_expression(tSymTable* st, tStack* stack)
 }
 
 /**
- * \brief Function that parses expression2 non-terminal.
+ * @brief Function that parses expression2 non-terminal.
  *
- * \param st symbol table
- * \param stack stack
+ * @param st symbol table
+ * @param stack stack
  */
 void parse_expression2(tSymTable* st, tStack* stack)
 {
@@ -1236,9 +1235,9 @@ void parse_expression2(tSymTable* st, tStack* stack)
 }
 
 /**
- * \brief Function that parses arguments non-terminal.
+ * @brief Function that parses arguments non-terminal.
  *
- * \param stack stack
+ * @param stack stack
  */
 void parse_arguments(tStack* stack)
 {
@@ -1268,9 +1267,9 @@ void parse_arguments(tStack* stack)
 }
 
 /**
- * \brief Function that parses argumentVars non-terminal.
+ * @brief Function that parses argumentVars non-terminal.
  *
- * \param stack stack
+ * @param stack stack
  */
 void parse_argumentVars(tStack* stack)
 {
@@ -1296,10 +1295,10 @@ void parse_argumentVars(tStack* stack)
 }
 
 /**
- * \brief Function that parses parameters non-terminal.
+ * @brief Function that parses parameters non-terminal.
  *
- * \param st symbol table
- * \param stack stack
+ * @param st symbol table
+ * @param stack stack
  */
 void parse_parameters(tSymTable* st, tStack* stack)
 {
@@ -1330,10 +1329,10 @@ void parse_parameters(tSymTable* st, tStack* stack)
 }
 
 /**
- * \brief Function that parses parameters2 non-terminal.
+ * @brief Function that parses parameters2 non-terminal.
  *
- * \param st symbol table
- * \param stack stack
+ * @param st symbol table
+ * @param stack stack
  */
 void parse_parameters2(tSymTable* st, tStack* stack)
 {
@@ -1357,10 +1356,10 @@ void parse_parameters2(tSymTable* st, tStack* stack)
 }
 
 /**
- * \brief Function that parses term non-terminal.
+ * @brief Function that parses term non-terminal.
  *
- * \param st symbol table
- * \param stack stack
+ * @param st symbol table
+ * @param stack stack
  */
 void parse_term(tSymTable* st, tStack* stack)
 {
@@ -1401,9 +1400,9 @@ void parse_term(tSymTable* st, tStack* stack)
 }
 
 /**
- * \brief Function that parses minusTerm non-terminal.
+ * @brief Function that parses minusTerm non-terminal.
  *
- * \param stack stack
+ * @param stack stack
  */
 void parse_minusTerm(tStack* stack)
 {
@@ -1438,9 +1437,9 @@ void parse_minusTerm(tStack* stack)
 }
 
 /**
- * \brief Function that parses const non-terminal.
+ * @brief Function that parses const non-terminal.
  *
- * \param stack stack
+ * @param stack stack
  */
 void parse_const(tStack* stack)
 {
@@ -1467,9 +1466,9 @@ void parse_const(tStack* stack)
 }
 
 /**
- * \brief Function that parses type non-terminal.
+ * @brief Function that parses type non-terminal.
  *
- * \param stack stack
+ * @param stack stack
  */
 void parse_type(tStack* stack)
 {

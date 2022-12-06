@@ -1,9 +1,15 @@
-//
-//  parser.h
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 02.11.2022.
-//
+/**
+ * @file parser.h
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This header file does all the parsing for the compiler, works woth symbol table, controls semantics and generates code.
+ * @date 2022-11
+ */
 
 #ifndef parser_h
 #define parser_h

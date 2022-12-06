@@ -1,9 +1,15 @@
-//
-//  support.h
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 15.10.2022.
-//
+/**
+ * @file support.c
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This file contains helpful functions that are used all around the project.
+ * @date 2022-11
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,13 +19,18 @@
 #include "support.h"
 #include "token.h"
 
-
 tAllocatedMemory* memoryAllocations = NULL;
 size_t totAllocs = 0;
 size_t memAlloc = 0;
 size_t totDeAllocs = 0;
 size_t memDeAlloc = 0;
 
+/**
+ * @brief Function basically works like a regular malloc, but saves the allocation into a list, so it can be all freed later.
+ * 
+ * @param size allocation size
+ * @return 
+ */
 void* safe_malloc(size_t size)
 {
     char* ptr = malloc(size);
@@ -56,6 +67,11 @@ size_t safe_msize(void* ptr)
 #endif
 }
 
+/**
+ * @brief frees allocation done with safe_malloc and deletes it from the list
+ * 
+ * @param ptr
+ */
 void safe_free(void* ptr)
 {
     if (ptr == NULL)
@@ -103,6 +119,9 @@ void safe_free(void* ptr)
     errorExit("did not find memory pointer do deallocate", CERR_INTERNAL);
 }
 
+/**
+ * @brief Function frees all memory allocations done with safe_malloc.
+ */
 void safe_free_all()
 {
     size_t sum = 0;
@@ -124,6 +143,12 @@ void safe_free_all()
     dbgMsg("free_all() deallocated %d bytes of memory in %d chunks\n", sum, cnt);
 }
 
+/**
+ * @brief Function sends exit code depending on it's parameters.
+ * 
+ * @param msg desired message
+ * @param errCode error code to call
+ */
 void errorExit(char* msg, int errCode)
 {
     switch (errCode) 
@@ -167,6 +192,12 @@ void errorExit(char* msg, int errCode)
     exit(errCode);
 }
 
+/**
+ * @brief Function works basically as a printf() but can be disabled based on its global value.
+ * 
+ * @param fmt message to show/print
+ * @return 
+ */
 int dbgMsg(const char* fmt, ...)
 {
 #if DEBUG_MSG == 1
@@ -181,6 +212,12 @@ int dbgMsg(const char* fmt, ...)
 #endif
 }
 
+/**
+ * @brief Function works basically as a printf() but can be disabled based on its global value. Also depends on number of program pass (1 or 2).
+ *
+ * @param fmt message to show/print
+ * @return
+ */
 int dbgMsg2(const char* fmt, ...)
 {
     if (prgPass == 2)

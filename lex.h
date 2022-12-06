@@ -7,8 +7,8 @@
  * @author Jonas Morkus (xmorku03)
  * @author Milan Menc (xmencm00)
  * 
- * @brief This file is responsible for lexical analysis. Reads characters and saves them to tokens.
- * @date 2022-11
+ * @brief This header file is responsible for lexical analysis. Reads characters and saves them to tokens.
+ * @date 2022-9
  */
 
 #ifndef lex_h

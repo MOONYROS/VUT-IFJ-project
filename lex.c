@@ -8,7 +8,7 @@
  * @author Milan Menc (xmencm00)
  * 
  * @brief This file is responsible for lexical analysis. Reads characters and saves them to tokens.
- * @date 2022-11
+ * @date 2022-9
  */
 
 #include <stdio.h>

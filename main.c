@@ -1,9 +1,15 @@
-//
-//  main.c
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 15.10.2022.
-//
+/**
+ * @file main.c
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This file is the project main file.
+ * @date 2022-11
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +40,6 @@ int main(int argc, const char * argv[]) {
     {
         parse();
         
-        //dbgMsg("PARSING FINISHED OK\n");
         fclose(inf);
     }
 
