@@ -1,9 +1,15 @@
-//
-//  expression.c
-//  IFJ-prekladac
-//
-//  Created by Ondrej Lukasek on 15.10.2022.
-//
+/**
+ * @file expression.c
+ * Implementace prekladace imperativniho jazyka IFJ22
+ * 
+ * @author Ondrej Lukasek (xlukas15)
+ * @author Ondrej Koumar (xkouma02)
+ * @author Jonas Morkus (xmorku03)
+ * @author Milan Menc (xmencm00)
+ * 
+ * @brief This file is responsible for handling expressions and generating code for them.
+ * @date 2022-12
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
