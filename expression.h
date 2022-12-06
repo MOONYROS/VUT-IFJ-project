@@ -48,6 +48,8 @@ double getFloatValue(tExpression *exp);
 int getIntValue(tExpression *exp);
 void convertFloatToInt(tSymTable *table, tExpression *exp);
 void convertIntToFloat(tSymTable *table, tExpression *exp);
+void convertNullToInt(tSymTable *table, tExpression *exp);
+void convertNullToFloat(tSymTable  *table, tExpression *Exp);
 tTokenType variableType(tSymTable *table, tExpression *exp);
 tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third, tTokenType operation);
 

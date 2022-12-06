@@ -177,7 +177,7 @@ bool isNull(tSymTable *table, tExpression *exp)
 tTokenType intOrFloat(tSymTable *table, tExpression *top, tExpression *third)
 {
     if (isReal(table, top) && isReal(table, third))
-        return tTypeInt;
+        return tTypeFloat;
     else if (isReal(table, top) && isInt(table, third))
     {
         convertIntToFloat(table, third);
@@ -202,39 +202,48 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
     tTokenType retType;
     switch (operation)
     {
+        case tDiv:
+
+            if (isNull(table, top))
+                errorExit("Division by zero.\n", CERR_SEM_OTHER);
+            if (isNull(table, third))
+                convertNullToFloat(table, third);
+            if (isInt(table, top))
+                convertIntToFloat(table, top);
+            if (isInt(table, third))
+                convertIntToFloat(table, third); 
+    
+            retType = tTypeFloat;
+            break;
+
         case tPlus:
         case tMinus:
-        case tDiv:
         case tMul:
-            // One of the variable is not null type
-            if (!isNullTypeVar(table, top) || !isNullTypeVar(table, third))
-            {
-                if (isNull(table, top) || isNull(table, third))
-                    errorExit("NULL operand in arithmetic operation.\n", CERR_INTERNAL);
 
-                return intOrFloat(table, top, third);
+            if (isNull(table, top) && isNull(table, third))
+            {
+                convertNullToInt(table, top);
+                convertNullToInt(table, third);
             }
-            else 
+            else if (isNull(table, top))
             {
-                if (isNull(table, top) || isNull(table, third))
-                {
-                    // Todo udelat aritmeticke operace pro null
-                    if (intOrFloat(table, top, third) == tTypeInt)
-                        return tNullTypeInt;
-                    else if (intOrFloat(table, top, third) == tTypeFloat)
-                        return tTypeFloat;
-                    else 
-                        errorExit("Should never get here, function getResType.\n", CERR_INTERNAL);
-                }
+                if (isInt(table, third))
+                    convertNullToInt(table, top);
                 else
-                    return intOrFloat(table, top, third);
-            }     
-        case tConcat:
-            if (!isNullTypeVar(table, third) && !isNullTypeVar(table, top))\
-                retType = tTypeString;
-            else
-                retType = tNullTypeString;
+                    convertNullToFloat(table, top);
+            }
+            else if (isNull(table, third))
+            {
+                if (isInt(table, top))
+                    convertNullToInt(table, third);
+                else 
+                    convertNullToFloat(table, third);
+            }
 
+            return intOrFloat(table, top, third);
+    
+        case tConcat:
+            retType = tTypeString;           
             break;
         case tLess:
         case tLessEq:
@@ -360,29 +369,62 @@ int getIntValue(tExpression *exp)
 
 void convertFloatToInt(tSymTable *table, tExpression *exp)
 {
-    char intValue[MAX_TOKEN_LEN];
-    for (int i = 0; exp->data[i] != '.'; i++)
+    if (!isVar(table, exp))
     {
-        if (exp->data[i] == '\0')
-            errorExit("Removing numbers after decimal point.\n", CERR_INTERNAL);
-        intValue[i] = exp->data[i];
+        char intValue[MAX_TOKEN_LEN];
+        for (int i = 0; exp->data[i] != '.'; i++)
+        {
+            if (exp->data[i] == '\0')
+                errorExit("Removing numbers after decimal point.\n", CERR_INTERNAL);
+            intValue[i] = exp->data[i];
+        }
+        exp->data = "";
+        strcpy(intValue, exp->data);
+
+        if (isNullTypeVar(table, exp))
+            exp->type = tNullTypeFloat;
+        else 
+            exp->type = tTypeFloat;
     }
-    exp->data = "";
-    strcpy(intValue, exp->data);
-    if (isNullTypeVar(table, exp))
-        exp->type = tNullTypeFloat;
-    else 
-        exp->type = tTypeFloat;
 }
 
 void convertIntToFloat(tSymTable *table, tExpression *exp)
 {
-    char afterDPoint[] = ".0";
-    strcat(exp->data, afterDPoint);
-    if (isNullTypeVar(table, exp))
-        exp->type = tNullTypeFloat;
-    else 
+    if (!isVar(table, exp))
+    {
+        if (strcmp(exp->data, "NT") == 1)
+        {
+            char afterDPoint[] = ".0";
+            strcat(exp->data, afterDPoint);
+        }
         exp->type = tTypeFloat;
+    }
+}
+
+void convertNullToInt(tSymTable *table, tExpression *exp)
+{
+    if (!isVar(table, exp))
+    {
+        if (exp->data != NULL)
+        {
+            exp->data = "";
+            strcpy(exp->data, "0");
+        }
+        exp->type = tTypeInt;
+    }
+}
+
+void convertNullToFloat(tSymTable *table, tExpression *exp)
+{
+    if (!isVar(table, exp))
+    {
+        if (exp->data != NULL)
+        {
+            exp->data = "";
+            strcpy(exp->data, "0.0");
+        }
+        exp->type = tTypeInt;
+    }
 }
 
 int typeToIndex(tTokenType tokenType)

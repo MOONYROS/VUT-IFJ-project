@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
-$a = 5.5 + 1;
+$a = 5.5 + 1 / -2 * 3;
+write($a);
 
 ?>
