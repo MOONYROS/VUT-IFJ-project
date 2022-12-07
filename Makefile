@@ -1,5 +1,5 @@
 EXEC := gigachad_compiler
-RUN_FILE := testy/exptests/exp2
+RUN_FILE := vzor_01.php
 
 #Zde pridavejte zdrojaky chlapi
 SRCS := main.c lex.c parser.c support.c expression.c tstack.c symtable.c token.c generator.c expStack.c

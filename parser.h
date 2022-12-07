@@ -39,4 +39,6 @@ void parse_minusTerm(tStack* stack);
 void parse_const(tStack* stack);
 void parse_type(tStack* stack);
 
+extern int prgPass;
+
 #endif /* parser_h */

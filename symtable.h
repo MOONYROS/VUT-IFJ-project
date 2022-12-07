@@ -61,4 +61,6 @@ void st_delete_all(tSymTable* table);
 void st_delete_scope(tSymTable* table, int scope);
 void st_print(tSymTable* table);
 
+extern tSymTable gst;
+
 #endif /* symtable_h */

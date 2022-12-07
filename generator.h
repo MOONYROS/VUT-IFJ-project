@@ -36,4 +36,6 @@ void generateCode(FILE* f);
 void generateFuncCode(FILE* f);
 void generateEmbeddedFunctions(FILE* f);
 
+extern const char funcPrefixName[];
+
 #endif /* generator_h */

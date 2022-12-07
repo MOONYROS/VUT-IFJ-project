@@ -15,13 +15,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "token.h"
 #include "expression.h"
 #include "support.h"
 #include "generator.h"
 #include "expStack.h"
-
-extern char* tokenName[tMaxToken];
 
 unsigned int lbl = 0;
 
@@ -270,16 +267,6 @@ void rearrangeStack(tSymTable *table, tStack *stack)
 {
     tStackItem *tmp = stack->top;
 
-    tExpression aux;
-    aux.isNonTerminal = false;
-    if (tmp->next != NULL)
-    {
-        aux.type = tmp->next->token.type;
-        aux.data = safe_malloc(MAX_TOKEN_LEN);
-        if (tmp->next->token.data != NULL)
-            strcpy(aux.data, tmp->next->token.data);
-    }
-
     tToken intZero = {tInt, NULL};
     intZero.data = safe_malloc(strlen("0")+1);
     strcpy(intZero.data, "0");
@@ -293,6 +280,16 @@ void rearrangeStack(tSymTable *table, tStack *stack)
     tToken rightPar = {tRPar, NULL};
     rightPar.data = safe_malloc(strlen(")")+1);
     strcpy(rightPar.data, ")");
+
+    tExpression aux;
+    aux.isNonTerminal = false;
+    if (tmp->next != NULL)
+    {
+        aux.type = tmp->next->token.type;
+        aux.data = safe_malloc(MAX_TOKEN_LEN);
+        if (tmp->next->token.data != NULL)
+            strcpy(aux.data, tmp->next->token.data);
+    }
 
     if (tmp->token.type == tMinus)
     {
@@ -309,6 +306,7 @@ void rearrangeStack(tSymTable *table, tStack *stack)
     tExpression numOp;
     numOp.isNonTerminal = false;
     numOp.data = safe_malloc(MAX_TOKEN_LEN);
+    
     while (tmp != NULL)
     {
         if (tmp->next != NULL)
@@ -329,27 +327,15 @@ void rearrangeStack(tSymTable *table, tStack *stack)
             {
                 tstack_insertAfter(stack, operator, leftPar);
                 operator = operator->next;
-                //leftPar.data = safe_malloc(strlen("("));
-                //strcpy(leftPar.data, "(");
 
                 if (isReal(table, &aux))   
-                { 
                     tstack_insertAfter(stack, operator, realZero);
-                    //realZero.data = safe_malloc(strlen("0.0"));
-                    //strcpy(realZero.data, "0.0");
-                }
                 else
-                {
                     tstack_insertAfter(stack, operator, intZero);
-                    //intZero.data = safe_malloc(strlen("0"));
-                    //strcpy(intZero.data, "0");
-                }   
+
                 for (int i = 0; i < 3; i++)
                     operator = operator->next;
-
                 tstack_insertAfter(stack, operator, rightPar);
-                //rightPar.data = safe_malloc(strlen(")"));
-                //strcpy(rightPar.data, ")");
             }
         }
         else
@@ -361,9 +347,7 @@ void rearrangeStack(tSymTable *table, tStack *stack)
     safe_free(rightPar.data);
     safe_free(numOp.data);
     if (stack->top->next != NULL)
-    {
         safe_free(aux.data);
-    }
 }
 
 double getFloatValue(tExpression *exp)

@@ -5,7 +5,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/gigachad_compiler",
-            "args": ["testy/exptests/exp1"],
+            "args": ["vzor_01.php"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

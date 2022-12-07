@@ -1,7 +1,8 @@
 <?php
 declare(strict_types=1);
+// Program 1: Vypocet faktorialu (iterativne)
 
-$a = (2+3) / 5;
-write($a);
-
-?>
+// Hlavni telo programu
+$a = null;
+$b = "kshf";
+write($a.$b);

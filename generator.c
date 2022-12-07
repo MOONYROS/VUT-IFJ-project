@@ -40,9 +40,9 @@ extern tSymTableItem* actFunc; // active function if processing function definit
 /**
  * @brief Function, that "translates" strings into processable form.
  * 
- * @param outStr output string
- * @param str input string
- * @return char*
+ * @param outStr Output string.
+ * @param str Input string.
+ * @return Pointer to output string.
  */
 char* ifjCodeStr(char *outStr, char* str)
 {
@@ -134,11 +134,11 @@ char* ifjCodeStr(char *outStr, char* str)
 }
 
 /**
- * @brief 
+ * @brief Writes int@val to output string.
  * 
- * @param outStr output string
- * @param val value
- * @return char*
+ * @param outStr Output string.
+ * @param val Value.
+ * @return Pointer to output string.
  */
 char* ifjCodeInt(char* outStr, int val)
 {
@@ -150,11 +150,11 @@ char* ifjCodeInt(char* outStr, int val)
 }
 
 /**
- * @brief
+ * @brief Writes float@val to output string.
  * 
- * @param outStr output string
- * @param val value
- * @return char*
+ * @param outStr Output string.
+ * @param val Value.
+ * @return Pointer to output string.
  */
 char* ifjCodeReal(char* outStr, double val)
 {
@@ -165,6 +165,12 @@ char* ifjCodeReal(char* outStr, double val)
     return outStr;
 }
 
+/**
+ * @brief Writes nil@nil to output string.
+ * 
+ * @param outStr Output string.
+ * @return Pointer to output string. 
+ */
 char* ifjCodeNil(char* outStr)
 {
     if (outStr == NULL)
