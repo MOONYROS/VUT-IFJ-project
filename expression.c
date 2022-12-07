@@ -195,7 +195,7 @@ bool isNonTerminal(tExpression *exp)
 }
 
 /**
- * @brief Function checks what type is input variable
+ * @brief Function checks what type is input variable.
  *
  * @param exp pointer to input item
  * @param table pointer to symbol table
@@ -205,17 +205,20 @@ tTokenType variableType(tSymTable *table, tExpression *exp)
 {
     tSymTableItem* item;
     char varName[MAX_TOKEN_LEN];
+
+    // This piece of code checks whether searched variable is a function name. 
+    // That's evaluated by comparing the beggining of name with "$func_".
     if (strncmp(exp->data, funcPrefixName, strlen(funcPrefixName)) == 0)
     {
-        char* zacatek = exp->data + strlen(funcPrefixName);
+        char* beginning = exp->data + strlen(funcPrefixName);
         if (strlen(exp->data) > strlen(funcPrefixName) + 5)
         {
-            int delka = (int)strlen(exp->data) - (int)strlen(funcPrefixName) - 5;
-            strncpy(varName, zacatek, delka);
-            varName[delka] = '\0';
+            int length = (int)strlen(exp->data) - (int)strlen(funcPrefixName) - 5;
+            strncpy(varName, beginning, length);
+            varName[length] = '\0';
         }
         else
-            errorExit("variable with function prefix, but incorrect lenght", CERR_INTERNAL);
+            errorExit("Variable with function prefix, but incorrect lenght.\n", CERR_INTERNAL);
         item = st_search(&gst, varName);
     }
     else
@@ -341,6 +344,7 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
     {
         case tDiv:
 
+            // Converts null constants to 0.0, if second operand is null, throws error.
             if (isNull(table, top))
                 errorExit("Division by zero.\n", CERR_SEM_OTHER);
             if (isNull(table, third))
@@ -357,6 +361,7 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
         case tMinus:
         case tMul:
 
+            // Converts null constants to 0 or 0.0 depending on type of the other operand. If both are null, int is returned.
             if (isNull(table, top) && isNull(table, third))
             {
                 convertNullToInt(table, top);
@@ -381,9 +386,11 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
             if (retType == tNone)
                 errorExit("Result type tNone, getResType.\n", CERR_INTERNAL);
             break;
+
         case tConcat:
             retType = tTypeString;           
             break;
+
         case tLess:
         case tLessEq:
         case tMore:
@@ -395,7 +402,7 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
             break;
 
         default:
-            // Semka bysme se asi nemeli nikdy dostat.
+            // Should never get here.
             retType = tNone;
     }
     return retType;
@@ -411,18 +418,19 @@ void rearrangeStack(tSymTable *table, tStack *stack)
 {
     tStackItem *tmp = stack->top;
 
+    // Int zero and real zero, left par and right par, those will be pushed onto the stack and their definition.
     tToken intZero = {tInt, NULL};
-    intZero.data = safe_malloc(strlen("0")+1);
+    intZero.data = safe_malloc(strlen("0") + 1);
     strcpy(intZero.data, "0");
     tToken realZero = {tReal, NULL};
-    realZero.data = safe_malloc(strlen("0.0")+1);
+    realZero.data = safe_malloc(strlen("0.0") + 1);
     strcpy(realZero.data, "0.0");
 
     tToken leftPar = {tLPar, NULL};
-    leftPar.data = safe_malloc(strlen("(")+1);
+    leftPar.data = safe_malloc(strlen("(") + 1);
     strcpy(leftPar.data, "(");
     tToken rightPar = {tRPar, NULL};
-    rightPar.data = safe_malloc(strlen(")")+1);
+    rightPar.data = safe_malloc(strlen(")") + 1);
     strcpy(rightPar.data, ")");
 
     tExpression aux;
@@ -435,6 +443,7 @@ void rearrangeStack(tSymTable *table, tStack *stack)
             strcpy(aux.data, tmp->next->token.data);
     }
 
+    // e.g. -5 --> (0-5)
     if (tmp->token.type == tMinus)
     {
         if (isReal(table, &aux))
@@ -446,6 +455,8 @@ void rearrangeStack(tSymTable *table, tStack *stack)
         tstack_insertAfter(stack, tmp, rightPar);
     }
 
+    // Unfortunately, we need both these structures, because different functions require
+    // different parameters. They both represent the same token. It makes the following code messy.
     tStackItem *operator;
     tExpression numOp;
     numOp.isNonTerminal = false;
@@ -530,6 +541,7 @@ void convertFloatToInt(tSymTable *table, tExpression *exp)
 {
     if (!isVar(table, exp))
     {
+        // Save char into intValue until you reach decimal point
         char intValue[MAX_TOKEN_LEN];
         for (int i = 0; exp->data[i] != '.'; i++)
         {
@@ -537,6 +549,7 @@ void convertFloatToInt(tSymTable *table, tExpression *exp)
                 errorExit("Removing numbers after decimal point.\n", CERR_INTERNAL);
             intValue[i] = exp->data[i];
         }
+        // Copy the integer part of number to the original expression
         exp->data = "";
         strcpy(intValue, exp->data);
 
@@ -649,7 +662,6 @@ int typeToIndex(tTokenType tokenType)
         case tNull:
             return 13;
         default:
-            // Sem bychom se nikdy nemeli dostat
             return 14;
     }
 }
@@ -688,7 +700,8 @@ tTokenType const2type(tTokenType ctype)
 }
 
 /**
- * @brief Function converts type to string for code generation
+ * @brief Function converts type to string that is being printed as assembler,
+ * e.g. 5 --> int@5. Also works with variables (and frames).
  *
  * @param exp pointer to input item
  * @param tmpStr pointer to return string
@@ -707,18 +720,19 @@ char *typeToString(char *tmpStr, tExpression *exp)
         case tLiteral:
             ifjCodeStr(tmpStr, exp->data);
             break;
-        case tInt: // aaa osetrit jestli jsou to spravne typu INT
+        case tInt: 
         case tInt2:
         case tTypeInt:
         case tNullTypeInt:
         {
+            // Scan exp->data and save it to tmpi. Same for floats a few lines below.
             int tmpi;
             if (sscanf(exp->data, "%d", &tmpi) != 1)
                 errorExit("wrong integer constant", CERR_INTERNAL);
             ifjCodeInt(tmpStr, tmpi);
         }
         break;
-        case tReal: // aaa osetrit spravne type real
+        case tReal: 
         case tReal2:
         case tTypeFloat:
         case tNullTypeFloat:
@@ -748,7 +762,7 @@ char *typeToString(char *tmpStr, tExpression *exp)
 tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
 {
     // ExpStack is an input stack, evalStack is a stack where expression evaluation will be done.
-    // The evalStack is necessary, because we're working with different struct. 
+    // The evalStack is necessary, because we're working with different structs. 
     tExpStack *evalStack = NULL;
     expStackInit(&evalStack);
 
@@ -796,6 +810,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     // There was only one item on input stack
     if (tstack_isEmpty(expStack))
     {
+        // Only variable -> gen code, free everything and return.
         if (isVar(table, &inputExp))
         {
             addCode("MOVE %s LF@%s", tgtVar, inputExp.data);
@@ -812,6 +827,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             safe_free(evalStack);
             return typ;
         }
+        // Only constant (whatever type) -> gen code, free everything and return.
         else
         {
             if (isString(table, &inputExp))
@@ -821,12 +837,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             else if (isInt(table, &inputExp))
                 addCode("MOVE %s %s", tgtVar, ifjCodeInt(tmpStr, getIntValue(&inputExp))); 
             else if (isNull(table, &inputExp))
-            {
-                if (!isNullTypeVar(table, &inputExp))
-                    errorExit("NULL in variable that isn't NULL type.\n", CERR_SEM_TYPE);
-                else
                     addCode("MOVE %s %s", tgtVar, "nil@nil");
-            }
             else
                 errorExit("Podminka u jen jedne veci na inputstacku neco chybne\n", CERR_INTERNAL);
 
@@ -854,7 +865,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
 
     while (!expIsEmpty(evalStack)) 
     {
-        // Definition of stackTop, second and third, which are variables storing data of first three items on stack. 
+        // Definition of stackTop, second and third, which are variables storing data of first three items on evaluation stack. 
         expStackTop(evalStack, &stackTop);
         tExpStackItem *tmp = evalStack->top->next; 
         if (tmp != NULL)
@@ -880,11 +891,14 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         // If inputExp.type is set to none, there's nothing left on input stack (aka expStack). Reduce everything.
         if (inputExp.type == tNone)
             precedence = '>';
+        // This condition means that we have to compare second item on evalStack (it's an operator).
         else if ((isNonTerminal(evalStack->top->exp) || isConst(&stackTop) || isVar(table, &stackTop) || isNull(table, &stackTop)) \
                 && isOperator(&inputExp))
             precedence = prdTable[typeToIndex(second.type)][typeToIndex(inputExp.type)];
+        // Always push constants.
         else if (isConst(&inputExp))
             precedence = '<';
+        // Input is right par - we want to check it with the second on evalStack (it's operator or left par).
         else if (isNonTerminal(evalStack->top->exp) && inputExp.type == tRPar)
             precedence = prdTable[typeToIndex(second.type)][typeToIndex(inputExp.type)];
         else
@@ -893,7 +907,6 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         switch (precedence)
         {
         case 'x':
-
             errorExit("Never should've got here (case 'x')", CERR_INTERNAL);
             break;
 
@@ -919,7 +932,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         
         case '<':
 
-            // String is on top of stack, next has to be string operator.
+            // String is on top of stack, next expression has to be string operator.
             if (isString(table, &stackTop) && !isStringOp(&inputExp))
                     errorExit("Expected string operator.\n", CERR_SEM_TYPE);
 
@@ -928,7 +941,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                     isStringOp(&stackTop) && !isString(table, &inputExp) && !isNull(table, &inputExp))
                 errorExit("Expected string variable or constant.\n", CERR_SEM_TYPE);
 
-            // Number on top of stack, next has to be arithmetic or relational operator.
+            // Number on top of stack, next expression has to be arithmetic or relational operator.
             else if (isNumber(table, &stackTop) && !(isNumberOp(&inputExp) || isRelationalOp(&inputExp)))
                     errorExit("The following token after number constant or variable containing number has to be number operator.\n", CERR_SEM_TYPE);
 
@@ -937,6 +950,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                     !(isNumber(table, &inputExp) || inputExp.type == tLPar || isNull(table, &inputExp)))
                     errorExit("Expected number variable or constant.", CERR_SEM_TYPE);
 
+            // Push and pop.
             expStackPush(evalStack, &inputExp);
 
             if (tstack_isEmpty(expStack))
@@ -974,7 +988,6 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             if (nonTerminal.type == tNone)
                 errorExit("Should never get here (nonterminal type tNone).\n", CERR_INTERNAL);
 
-    
             // (E) --> E
             if (third.type == tLPar && stackTop.type == tRPar)
             {
@@ -1005,14 +1018,15 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             
 
             // E operator E --> E
-            // It's not necessary to write any code, both results are on the stack.
+            // It's not necessary to write any code, both nonTerminals are on the stack.
 
-            // Code generation for operators.
-
+            // If one of the operands is int and second float, we need to convert the int to float.
             if (isInt(table, &stackTop) && isReal(table, &third))
                 addCode("INT2FLOATS");
             else if (isInt(table, &third) && isReal(table, &stackTop))
             {
+                // This will be common in code gen for operations. When we need to do any operation with the
+                // deeper operand, pop the top to var, do the operation for new top and push old top back.
                 addCode("POPS LF@%%otoc");
                 addCode("INT2FLOATS");
                 addCode("PUSHS LF@%%otoc");
@@ -1033,10 +1047,12 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 addCode("MULS");
                 break;
             case tDiv:
+                // 0/anything is 0 (except anything = 0).
                 if(isNull(table, &third))
                     addCode("PUSHS int@0");
                 else
                 {
+                    // Both are ints -> convert to floats.
                     if (isInt(table, &third) && isInt(table, &stackTop))
                     {
                         addCode("INT2FLOATS");
@@ -1048,6 +1064,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 }
                 break;
             case tConcat:
+                // Both null -> push empty string, one null -> generate label for converting nil@nil to string@
                 if (isNull(table, &stackTop) && isNull(table, &third))
                     addCode("PUSHS string@");
                 else if (isNull(table, &stackTop))
@@ -1064,6 +1081,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 addCode("PUSHS LF@%%tmp");
                 break;
             case tMore:
+                // There's a bit of workaround for all the relational operators, the algorithm can be read from instructions.
                 if (isNull(table, &third) || isNull(table, &stackTop))
                 {
                     addCode("PUSHS int@0");
@@ -1239,7 +1257,6 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     } 
     // Pop the result into desired variable.
     addCode("POPS %s", tgtVar);
-
 
     safe_free(stackTop.data);
     safe_free(second.data);

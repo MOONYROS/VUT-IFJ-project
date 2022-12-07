@@ -62,5 +62,6 @@ void st_delete_scope(tSymTable* table, int scope);
 void st_print(tSymTable* table);
 
 extern tSymTable gst;
+extern tSymTableItem* actFunc; // active function if processing function definition body
 
 #endif /* symtable_h */

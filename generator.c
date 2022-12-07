@@ -28,14 +28,8 @@ tCodeLine* codeLast = NULL;
 tCodeLine* funcCodeFirst = NULL;
 tCodeLine* funcCodeLast = NULL;
 
-const char tmpExpResultName[] = "tmpRes"; // tmpExpResultGigachad
-const char expResultName[] = "tmpRes"; // tmpExpResultGigachad
-//const char tmpFuncResultName[] = "tmpFnRes"; // tmpExpResultGigachad
 const char funcPrefixName[] = "$func_";
 const char funcRetValName[] = "%retval1";
-
-extern int prgPass;
-extern tSymTableItem* actFunc; // active function if processing function definition body
 
 /**
  * @brief Function, that "translates" strings into processable form.
@@ -181,10 +175,9 @@ char* ifjCodeNil(char* outStr)
 }
 
 /**
- * @brief
+ * @brief Adds fmt to the list of instructions, that is described in generator.h.
  * 
- * @param fmt
- * @param 
+ * @param fmt input string 
  * @return int
  */
 int addCode(const char* fmt, ...)
@@ -224,7 +217,7 @@ int addCode(const char* fmt, ...)
 }
 
 /**
- * @brief
+ * @brief Generates code for defining variables.
  * 
  * @param table symbol table
  */
@@ -267,9 +260,9 @@ void genCodeProlog(FILE* f)
 }
 
 /**
- * @brief 
+ * @brief Generates code - beggining of IFJCode22 file with label main and creates first frames.
  * 
- * @param f file
+ * @param f output file
  */
 void genCodeMain(FILE* f)
 {
@@ -285,9 +278,9 @@ void genCodeMain(FILE* f)
 }
 
 /**
- * @brief
+ * @brief Goes through tCodeLine list and generates code from all list items.
  * 
- * @param f
+ * @param f output file
  */
 void generateCode(FILE* f)
 {
@@ -362,7 +355,7 @@ void generateCheckNull(tSymTable *table, tExpression *top, tExpression *third)
 /**
  * @brief Function, that generates embedded functions.
  *
- * @param f file
+ * @param f output file
  */
 void generateEmbeddedFunctions(FILE* f)
 {

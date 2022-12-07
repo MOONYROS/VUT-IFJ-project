@@ -39,6 +39,7 @@ typedef struct{
 // vrati 0/1 (false/true) jestli se da do dst ulozit src
 int typeIsCompatible(tTokenType dst, tTokenType src);
 
+extern tToken token;
 extern char* tokenName[tMaxToken];
 
 #endif /* token_h */

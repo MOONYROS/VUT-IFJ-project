@@ -24,15 +24,6 @@
 #include "expression.h"
 #include "generator.h"
 
-
-extern char* tokenName[tMaxToken];
-extern const char tmpExpResultName[];
-extern const char funcPrefixName[];
-extern const char funcRetValName[];
-extern tToken token;
-extern FILE* inf;
-extern int srcLine;
-
 int prgPass = 1; // syntax/semantic pass number
 int level = 0; // nesting level of syntax/semantic analysis
 tSymTable gst; // global symbol table

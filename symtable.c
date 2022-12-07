@@ -82,7 +82,7 @@ unsigned int crc32(const unsigned char* buf, size_t len)
  */
 int get_hash(char *key) 
 {
-  return (crc32((const unsigned char *)key, strlen(key)) % ST_SIZE);
+    return (crc32((const unsigned char *)key, strlen(key)) % ST_SIZE);
 }
 
 /**

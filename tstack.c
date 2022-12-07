@@ -20,8 +20,6 @@
 #include "token.h"
 #include "tstack.h"
 
-extern char* tokenName[tMaxToken];
-
 /**
  * @brief Function for initialization of a stack.
  * 

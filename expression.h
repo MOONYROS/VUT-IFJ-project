@@ -21,15 +21,6 @@
 #include "symtable.h"
 #include "expStack.h"
 
-
-// function to evaluate expression
-// returns type of and exp expression
-// generates code to ??? tohle musime upresnit, jak budeme delat
-// in case of semantic failure calls errorExit(msg, errno)
-tTokenType const2type(tTokenType ctype);
-
-
-// Auxiliary functions for semantic controls etc.
 bool isOperator(tExpression *exp);
 bool isNumberOp(tExpression *exp);
 bool isRelationalOp(tExpression *exp);
@@ -44,30 +35,24 @@ bool isNonTerminal(tExpression *exp);
 bool isNullTypeVar(tSymTable *table, tExpression *exp);
 bool isNull(tSymTable *table, tExpression *exp);
 bool isDefined(tSymTable *table, tExpression *exp);
-bool checkOpDefinition(tSymTable *table, tExpression *top, tExpression *third);
+
 double getFloatValue(tExpression *exp);
 int getIntValue(tExpression *exp);
+
 void convertFloatToInt(tSymTable *table, tExpression *exp);
 void convertIntToFloat(tSymTable *table, tExpression *exp);
 void convertNullToInt(tSymTable *table, tExpression *exp);
-char *typeToString(char *tmpStr, tExpression *exp);
 void convertNullToFloat(tSymTable  *table, tExpression *Exp);
+
+char *typeToString(char *tmpStr, tExpression *exp);
+bool checkOpDefinition(tSymTable *table, tExpression *top, tExpression *third);
 tTokenType variableType(tSymTable *table, tExpression *exp);
 tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third, tTokenType operation);
-
-
-// Functions actually doing something
-void rearrangeStack(tSymTable *table, tStack *stack);
-tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table);
-
-/**
- * @brief 
- * 
- */
+tTokenType const2type(tTokenType ctype);
 int typeToIndex(tTokenType token);
 
+void rearrangeStack(tSymTable *table, tStack *stack);
 
-
-
+tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table);
 
 #endif /* expression_h */
