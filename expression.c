@@ -1053,13 +1053,10 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                     addCode("CALL $$chknullstring");
                     addCode("PUSHS LF@%%otoc");
                 }
-                else
-                {
-                    addCode("POPS LF@%%otoc");
-                    addCode("POPS LF@%%tmp");
-                    addCode("CONCAT LF@%%tmp LF@%%tmp LF@%%otoc");
-                    addCode("PUSHS LF@%%tmp");
-                }
+                addCode("POPS LF@%%otoc");
+                addCode("POPS LF@%%tmp");
+                addCode("CONCAT LF@%%tmp LF@%%tmp LF@%%otoc");
+                addCode("PUSHS LF@%%tmp");
                 break;
             case tMore:
                 if (isNull(table, &third) || isNull(table, &stackTop))
