@@ -380,7 +380,7 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
             retType = intOrFloat(table, top, third);
             if (retType == tNone)
                 errorExit("Result type tNone, getResType.\n", CERR_INTERNAL);
-    
+            break;
         case tConcat:
             retType = tTypeString;           
             break;
