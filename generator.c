@@ -321,6 +321,12 @@ void generateFuncCode(FILE* f)
     fprintf(f, "\n");
 }
 
+/**
+ * @brief Function checks if operands are null and generates code for them
+ *
+ * @param table pointer to symbol table
+ * @return
+ */
 void generateCheckNull(tSymTable *table, tExpression *top, tExpression *third)
 {
     if (top == NULL || third == NULL)

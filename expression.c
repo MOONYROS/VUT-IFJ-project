@@ -41,32 +41,69 @@ char prdTable[15][15] = {
     {'<','<','<','<','<','<','<','<','<','<','<','<','x','<','x'}   // $
 };
 
+/**
+ * @brief Function checks if input item is operator
+ *
+ * @param exp pointer to input item
+ * @return true if input item is operator, otherwise false
+ */
 bool isOperator(tExpression *exp)
 {
     return (exp->type == tMul || exp->type == tDiv || exp->type == tPlus || exp->type == tMinus || exp->type == tLess || exp->type == tMore ||
         exp->type == tLessEq || exp->type == tMoreEq || exp->type == tIdentical || exp->type == tNotIdentical || exp->type == tConcat);
 }
 
+/**
+ * @brief Function checks if input item is number operator
+ *
+ * @param exp pointer to input item
+ * @return true if input item is number operator, otherwise false
+ */
 bool isNumberOp(tExpression *exp)
 {
     return (exp->type == tMul || exp->type == tDiv || exp->type == tPlus || exp->type == tMinus);
 }
 
+/**
+ * @brief Function checks if input item is relational operator
+ *
+ * @param exp pointer to input item
+ * @return true if input item is relational operator, otherwise false
+ */
 bool isRelationalOp(tExpression *exp)
 {
     return (exp->type == tLess || exp->type == tMore || exp->type == tLessEq || exp->type == tMoreEq || exp->type == tIdentical || exp->type == tNotIdentical);
 }
 
+/**
+ * @brief Function checks if input item is string operator
+ *
+ * @param exp pointer to input item
+ * @return true if input item is string operator, otherwise false
+ */
 bool isStringOp(tExpression *exp)
 {
     return (exp->type == tIdentical || exp->type == tNotIdentical || exp->type == tConcat);
 }
 
+/**
+ * @brief Function checks if input item is constant
+ *
+ * @param exp pointer to input item
+ * @return true if input item is constant, otherwise false
+ */
 bool isConst(tExpression *exp)
 {
     return (exp->type == tInt || exp->type == tInt2 || exp->type == tReal || exp->type == tReal2 || exp->type == tLiteral);
 }
 
+/**
+ * @brief Function checks if input item is defined variable
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ * @return true if input item is defined variable, otherwise false
+ */
 bool isVar(tSymTable *table, tExpression *exp)
 {
     if (exp->type == tIdentifier)
@@ -81,6 +118,13 @@ bool isVar(tSymTable *table, tExpression *exp)
     return false;
 }
 
+/**
+ * @brief Function checks if input item is number or number in variable
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ * @return true if input item is number or number in variable, otherwise false
+ */
 bool isNumber(tSymTable *table, tExpression *exp)
 {
     if (isVar(table, exp))
@@ -92,6 +136,13 @@ bool isNumber(tSymTable *table, tExpression *exp)
         return (exp->type == tInt || exp->type == tInt2 || exp->type == tReal || exp->type == tReal2);
 }
 
+/**
+ * @brief Function checks if input item is string or string in variable
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ * @return true if input item is string or string in variable, otherwise false
+ */
 bool isString(tSymTable *table, tExpression *exp)
 {   
     if (isVar(table, exp))
@@ -100,6 +151,13 @@ bool isString(tSymTable *table, tExpression *exp)
         return exp->type == tLiteral;
 }
 
+/**
+ * @brief Function checks if input item is real number or real number in variable
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ * @return true if input item is real number or real number in variable, otherwise false
+ */
 bool isReal(tSymTable *table, tExpression *exp)
 {
     if (isVar(table, exp))
@@ -109,6 +167,13 @@ bool isReal(tSymTable *table, tExpression *exp)
         return (exp->type == tReal || exp->type == tReal2 || exp->type == tTypeFloat || exp->type == tNullTypeFloat);
 }
 
+/**
+ * @brief Function checks if input item is integer of integer in variable
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ * @return true if input item is integer or integer in variable, otherwise false
+ */
 bool isInt(tSymTable *table, tExpression *exp)
 {
     if (isVar(table, exp))
@@ -118,11 +183,24 @@ bool isInt(tSymTable *table, tExpression *exp)
         return (exp->type == tInt || exp->type == tInt2 || exp->type == tTypeInt || exp->type == tNullTypeInt);
 }
 
+/**
+ * @brief Function checks if input item is pseudo nonterminal
+ *
+ * @param exp pointer to input item
+ * @return true if input item is pseudo nonterminal, otherwise false
+ */
 bool isNonTerminal(tExpression *exp)
 {
     return exp->isNonTerminal;
 }
 
+/**
+ * @brief Function checks what type is input variable
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ * @return token type of input item
+ */
 tTokenType variableType(tSymTable *table, tExpression *exp)
 {
     tSymTableItem* item;
@@ -146,12 +224,26 @@ tTokenType variableType(tSymTable *table, tExpression *exp)
     return item->dataType;
 }
 
+/**
+ * @brief Function checks if input item is defined in symbol table
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ * @return true if input item is defined in symbol table, otherwise false
+ */
 bool isDefined(tSymTable *table, tExpression *exp)
 {
     tSymTableItem *item = st_search(table, exp->data);
     return item != NULL;
 }
 
+/**
+ * @brief Function checks if input item is nullable variable
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ * @return true if input item is nullable variable, otherwise false
+ */
 bool isNullTypeVar(tSymTable *table, tExpression *exp)
 {
     if (isVar(table, exp))
@@ -160,6 +252,13 @@ bool isNullTypeVar(tSymTable *table, tExpression *exp)
         return true;
 }
 
+/**
+ * @brief Function checks if input item is null
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ * @return true if input item is number or null, otherwise false
+ */
 bool isNull(tSymTable *table, tExpression *exp)
 {
     if (isVar(table, exp))
@@ -171,6 +270,14 @@ bool isNull(tSymTable *table, tExpression *exp)
         return exp->type == tNull;
 }
 
+/**
+ * @brief Function determines correct token return type when performing operations with int float and null
+ *
+ * @param top pointer to top item on expression stack
+ * @param third pointer to third item on expression stack
+ * @param table pointer to symbol table
+ * @return correct token type from operations with int float and null
+ */
 tTokenType intOrFloat(tSymTable *table, tExpression *top, tExpression *third)
 {
     if (!isNull(table, top) && !isNull(table, third))
@@ -215,6 +322,15 @@ tTokenType intOrFloat(tSymTable *table, tExpression *top, tExpression *third)
     }
 }
 
+/**
+ * @brief Function determines correct token return type when performing all operations
+ *
+ * @param top pointer to top item on expression stack
+ * @param third pointer to third item on expression stack
+ * @param operation token type of currrent operation
+ * @param table pointer to symbol table
+ * @return correct token type from all operations
+ */
 tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third, tTokenType operation)
 {
     tTokenType retType;
@@ -280,6 +396,12 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
     return retType;
 }
 
+/**
+ * @brief Function rearranges expression stack and replaces unary minus with (0-X)
+ *
+ * @param stack pointer to expression stack
+ * @param table pointer to symbol table
+ */
 void rearrangeStack(tSymTable *table, tStack *stack)
 {
     tStackItem *tmp = stack->top;
@@ -367,6 +489,12 @@ void rearrangeStack(tSymTable *table, tStack *stack)
         safe_free(aux.data);
 }
 
+/**
+ * @brief Function gets double value of input item
+ *
+ * @param exp pointer to input item
+ * @return double value of input item
+ */
 double getFloatValue(tExpression *exp)
 {
     double tmp;
@@ -374,6 +502,12 @@ double getFloatValue(tExpression *exp)
     return tmp;
 }
 
+/**
+ * @brief Function gets integer value of input item
+ *
+ * @param exp pointer to input item
+ * @return integer value of input item
+ */
 int getIntValue(tExpression *exp)
 {
     int tmp;
@@ -381,6 +515,12 @@ int getIntValue(tExpression *exp)
     return tmp;
 }
 
+/**
+ * @brief Function converts float type of input item to int type
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ */
 void convertFloatToInt(tSymTable *table, tExpression *exp)
 {
     if (!isVar(table, exp))
@@ -402,6 +542,12 @@ void convertFloatToInt(tSymTable *table, tExpression *exp)
     }
 }
 
+/**
+ * @brief Function converts integer type of input item to float type
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ */
 void convertIntToFloat(tSymTable *table, tExpression *exp)
 {
     if (!isVar(table, exp))
@@ -415,6 +561,12 @@ void convertIntToFloat(tSymTable *table, tExpression *exp)
     }
 }
 
+/**
+ * @brief Function converts null type of input item to int type
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ */
 void convertNullToInt(tSymTable *table, tExpression *exp)
 {
     if (!isVar(table, exp))
@@ -428,6 +580,12 @@ void convertNullToInt(tSymTable *table, tExpression *exp)
     }
 }
 
+/**
+ * @brief Function converts null type of input item to float type
+ *
+ * @param exp pointer to input item
+ * @param table pointer to symbol table
+ */
 void convertNullToFloat(tSymTable *table, tExpression *exp)
 {
     if (!isVar(table, exp))
@@ -441,6 +599,12 @@ void convertNullToFloat(tSymTable *table, tExpression *exp)
     }
 }
 
+/**
+ * @brief Function converts token types to integers of easier use of precedence table
+ *
+ * @param tokenType type of input token
+ * @return integer index of input token type
+ */
 int typeToIndex(tTokenType tokenType)
 {
     switch (tokenType)
@@ -485,6 +649,12 @@ int typeToIndex(tTokenType tokenType)
     }
 }
 
+/**
+ * @brief Function converts constant to type
+ *
+ * @param ctype type of input token
+ * @return type of input constant
+ */
 tTokenType const2type(tTokenType ctype)
 {
     tTokenType typ = tNone;
@@ -512,6 +682,13 @@ tTokenType const2type(tTokenType ctype)
     return typ;
 }
 
+/**
+ * @brief Function converts type to string for code generation
+ *
+ * @param exp pointer to input item
+ * @param tmpStr pointer to return string
+ * @return string type
+ */
 char *typeToString(char *tmpStr, tExpression *exp)
 {
     if (exp->type == tIdentifier)
@@ -555,6 +732,14 @@ char *typeToString(char *tmpStr, tExpression *exp)
     return tmpStr;
 }
 
+/**
+ * @brief Function to evaluate expression and generate code for expression
+ *
+ * @param expStack pointer to input expression stack
+ * @param tgtVar pointer to return string
+ * @param table pointer to symbol table
+ * @return return token type of operation
+ */
 tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
 {
     // ExpStack is an input stack, evalStack is a stack where expression evaluation will be done.
