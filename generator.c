@@ -277,9 +277,10 @@ void genCodeMain(FILE* f)
     fprintf(f, "CREATEFRAME\n");
     fprintf(f, "PUSHFRAME\n");
     fprintf(f, "CREATEFRAME\n");
-    fprintf(f, "DEFVAR LF@otoc\n");
-    fprintf(f, "DEFVAR LF@tmp\n");
-    
+    fprintf(f, "DEFVAR LF@%%otoc\n");
+    fprintf(f, "DEFVAR LF@%%tmp\n");
+    fprintf(f, "DEFVAR LF@%%chk\n");
+
     fprintf(f, "\n");
 }
 
@@ -439,4 +440,27 @@ void generateEmbeddedFunctions(FILE* f)
     fprintf(f, "POPFRAME\n");
     fprintf(f, "RETURN\n");
     fprintf(f, "\n");
+
+    fprintf(f, "LABEL $$chknullint\n");
+    fprintf(f, "POPS LF@%%chk\n");
+    fprintf(f, "JUMPIFNEQ $chknullint_ok LF@%%chk nil@nil\n");
+    fprintf(f, "PUSHS int@0\n");
+    fprintf(f, "JUMP $chknullint_end\n");
+    fprintf(f, "LABEL $chknullint_ok\n");
+    fprintf(f, "PUSHS LF@%%chk\n");
+    fprintf(f, "LABEL $chknullint_end\n");
+    fprintf(f, "RETURN\n");
+    fprintf(f, "\n");
+
+    fprintf(f, "LABEL $$chknullfloat\n");
+    fprintf(f, "POPS LF@%%chk\n");
+    fprintf(f, "JUMPIFNEQ $chknullfloat_ok LF@%%chk nil@nil\n");
+    fprintf(f, "PUSHS float@0x0p+0\n");
+    fprintf(f, "JUMP $chknullfloat_end\n");
+    fprintf(f, "LABEL $chknullfloat_ok\n");
+    fprintf(f, "PUSHS LF@%%chk\n");
+    fprintf(f, "LABEL $chknullfloat_end\n");
+    fprintf(f, "RETURN\n");
+    fprintf(f, "\n");
+
 }

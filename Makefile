@@ -1,5 +1,7 @@
 EXEC := gigachad_compiler
 RUN_FILE := vzor_01.php
+CODE_FILE := temp.ifjcode
+INTERPRETER := ic22int
 
 #Zde pridavejte zdrojaky chlapi
 SRCS := main.c lex.c parser.c support.c expression.c tstack.c symtable.c token.c generator.c expStack.c
@@ -17,7 +19,8 @@ $(EXEC): $(OBJS)
 	$(CC) $^ -o $@
 	
 run: $(EXEC)
-	./$(EXEC) $(RUN_FILE)
+	./$(EXEC) < $(RUN_FILE) > $(CODE_FILE)
+	./$(INTERPRETER) $(CODE_FILE)
 	
 clean:
 	rm -vf *.o

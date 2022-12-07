@@ -788,9 +788,9 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             // i operator E --> E
             else if (third.isNonTerminal == false && stackTop.isNonTerminal == true)
             {
-                addCode("POPS LF@otoc");
+                addCode("POPS LF@%%otoc");
                 addCode("PUSHS %s", typeToString(tmpStr, &third));
-                addCode("PUSHS LF@otoc");
+                addCode("PUSHS LF@%%otoc");
             }
             // E operator i --> E
             else if (third.isNonTerminal == true && stackTop.isNonTerminal == false)
@@ -806,9 +806,9 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 addCode("INT2FLOATS");
             else if (isInt(table, &third) && isReal(table, &stackTop))
             {
-                addCode("POPS LF@otoc");
+                addCode("POPS LF@%%otoc");
                 addCode("INT2FLOATS");
-                addCode("PUSHS LF@otoc");
+                addCode("PUSHS LF@%%otoc");
             }
 
             switch (second.type)
@@ -826,17 +826,17 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 if (isInt(table, &third) && isInt(table, &stackTop))
                 {
                     addCode("INT2FLOATS");
-                    addCode("POPS LF@otoc");
+                    addCode("POPS LF@%%otoc");
                     addCode("INT2FLOATS");
-                    addCode("PUSHS LF@otoc");
+                    addCode("PUSHS LF@%%otoc");
                 }
                 addCode("DIVS");
                 break;
             case tConcat:
-                addCode("POPS LF@otoc");
-                addCode("POPS LF@tmp");
-                addCode("CONCAT LF@tmp LF@tmp LF@otoc");
-                addCode("PUSHS LF@tmp");
+                addCode("POPS LF@%%otoc");
+                addCode("POPS LF@%%tmp");
+                addCode("CONCAT LF@%%tmp LF@%%tmp LF@%%otoc");
+                addCode("PUSHS LF@%%tmp");
                 break;
             case tMore:
                 if (isNull(table, &third) || isNull(table, &stackTop))
@@ -846,8 +846,8 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 else
                 {
                     addCode("GTS");
-                    addCode("POPS LF@tmp");
-                    addCode("JUMPIFEQ $vetsi%05d LF@tmp bool@true", lbl);
+                    addCode("POPS LF@%%tmp");
+                    addCode("JUMPIFEQ $vetsi%05d LF@%%tmp bool@true", lbl);
                     addCode("PUSHS int@0");
                     addCode("JUMP $done%05d", lbl);
                     addCode("LABEL $vetsi%05d", lbl);
@@ -863,8 +863,8 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 else
                 {
                     addCode("LTS");
-                    addCode("POPS LF@tmp");
-                    addCode("JUMPIFEQ $mensi%05d LF@tmp bool@true", lbl);
+                    addCode("POPS LF@%%tmp");
+                    addCode("JUMPIFEQ $mensi%05d LF@%%tmp bool@true", lbl);
                     addCode("PUSHS int@0");
                     addCode("JUMP $done%05d", lbl);
                     addCode("LABEL $mensi%05d", lbl);
@@ -886,11 +886,11 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 }
                 else
                 {
-                    addCode("POPS LF@otoc");
-                    addCode("POPS LF@tmp");
-                    addCode("JUMPIFEQ $rovno%05d LF@tmp LF@otoc", lbl);
-                    addCode("GT LF@tmp LF@tmp LF@otoc", lbl);
-                    addCode("JUMPIFEQ $rovno%05d LF@tmp bool@true", lbl);
+                    addCode("POPS LF@%%otoc");
+                    addCode("POPS LF@%%tmp");
+                    addCode("JUMPIFEQ $rovno%05d LF@%%tmp LF@%%otoc", lbl);
+                    addCode("GT LF@%%tmp LF@%%tmp LF@%%otoc", lbl);
+                    addCode("JUMPIFEQ $rovno%05d LF@%%tmp bool@true", lbl);
                     addCode("JUMP $mene%05d", lbl);
                     addCode("LABEL $rovno%05d", lbl);
                     addCode("PUSHS int@1");
@@ -914,11 +914,11 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 }
                 else
                 {
-                    addCode("POPS LF@otoc");
-                    addCode("POPS LF@tmp");
-                    addCode("JUMPIFEQ $rovno%05d LF@tmp LF@otoc", lbl);
-                    addCode("LT LF@tmp LF@tmp LF@otoc");
-                    addCode("JUMPIFEQ $rovno%05d LF@tmp bool@true", lbl);
+                    addCode("POPS LF@%%otoc");
+                    addCode("POPS LF@%%tmp");
+                    addCode("JUMPIFEQ $rovno%05d LF@%%tmp LF@%%otoc", lbl);
+                    addCode("LT LF@%%tmp LF@%%tmp LF@%%otoc");
+                    addCode("JUMPIFEQ $rovno%05d LF@%%tmp bool@true", lbl);
                     addCode("JUMP $vice%05d", lbl);
                     addCode("LABEL $rovno%05d", lbl);
                     addCode("PUSHS int@1");

@@ -1042,18 +1042,21 @@ void parse()
     safe_free(token.data);
     // execute generated code - for test purposes only
     dbgMsg("..... code execution .....\n");
-    FILE* outf = fopen("temp.ifjcode", "w");
+    FILE* outf = stdout; // fopen("temp.ifjcode", "w");
     genCodeProlog(outf);
     generateEmbeddedFunctions(outf);
     generateFuncCode(outf);
     genCodeMain(outf);
     generateCode(outf);
-    fclose(outf);
+    fflush(outf);
+    //fclose(outf);
+/*
 #if defined(_WIN32) || defined(WIN32)
     system("ic22int temp.ifjcode");
 #else
     system("./ic22int temp.ifjcode");
 #endif
+*/
     dbgMsg("\nTotal memory allocated % d in %d chunks.\n" , memAlloc, totAllocs);
     dbgMsg("Total memory deallocated % d in %d chunks.\n", memDeAlloc, totDeAllocs);
     dbgMsg("Delete rest: ");

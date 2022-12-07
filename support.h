@@ -16,7 +16,7 @@
 #ifndef support_h
 #define support_h
 
-#define DEBUG_MSG       1
+//#define DEBUG_MSG       1
 
 #define CERR_OK         0
 #define CERR_LEX        1
