@@ -42,6 +42,7 @@ bool isReal(tSymTable *table, tExpression *exp);
 bool isInt(tSymTable *table, tExpression *exp);
 bool isNonTerminal(tExpression *exp);
 bool isNullTypeVar(tSymTable *table, tExpression *exp);
+bool isNull(tSymTable *table, tExpression *exp);
 bool isDefined(tSymTable *table, tExpression *exp);
 bool checkOpDefinition(tSymTable *table, tExpression *top, tExpression *third);
 double getFloatValue(tExpression *exp);
