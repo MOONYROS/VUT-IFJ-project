@@ -281,17 +281,17 @@ void rearrangeStack(tSymTable *table, tStack *stack)
     }
 
     tToken intZero = {tInt, NULL};
-    intZero.data = safe_malloc(strlen("0"));
+    intZero.data = safe_malloc(strlen("0")+1);
     strcpy(intZero.data, "0");
     tToken realZero = {tReal, NULL};
-    realZero.data = safe_malloc(strlen("0.0"));
+    realZero.data = safe_malloc(strlen("0.0")+1);
     strcpy(realZero.data, "0.0");
 
     tToken leftPar = {tLPar, NULL};
-    leftPar.data = safe_malloc(strlen("("));
+    leftPar.data = safe_malloc(strlen("(")+1);
     strcpy(leftPar.data, "(");
     tToken rightPar = {tRPar, NULL};
-    rightPar.data = safe_malloc(strlen(")"));
+    rightPar.data = safe_malloc(strlen(")")+1);
     strcpy(rightPar.data, ")");
 
     if (tmp->token.type == tMinus)
@@ -354,6 +354,15 @@ void rearrangeStack(tSymTable *table, tStack *stack)
         }
         else
             tmp = tmp->next;
+    }
+    safe_free(intZero.data);
+    safe_free(realZero.data);
+    safe_free(leftPar.data);
+    safe_free(rightPar.data);
+    safe_free(numOp.data);
+    if (stack->top->next != NULL)
+    {
+        safe_free(aux.data);
     }
 }
 
