@@ -352,11 +352,10 @@ void generateCheckNull(tSymTable *table, tExpression *top, tExpression *third)
     }
     else if (isNull(table, top))
     {
-        if (isInt(table, &third))
+        if (isInt(table, third))
             addCode("CALL $$chknullint");
-        else if (isReal(table, &third))
+        else if (isReal(table, third))
             addCode("CALL $$chknullfloat");
-
     }
 }
 
