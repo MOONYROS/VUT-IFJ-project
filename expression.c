@@ -608,8 +608,18 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
         if (isVar(table, &inputExp))
         {
             addCode("MOVE %s LF@%s", tgtVar, inputExp.data);
-            dbgMsg("%s", tokenName[variableType(table, &inputExp)]);
-            return variableType(table, &inputExp);
+            tTokenType typ = variableType(table, &inputExp);
+            dbgMsg("%s", tokenName[typ]);
+            safe_free(stackTop.data);
+            safe_free(second.data);
+            safe_free(third.data);
+            safe_free(inputToken.data);
+            safe_free(inputExp.data);
+            safe_free(nonTerminal.data);
+            safe_free(uselessExp.data);
+            expStackDispose(evalStack);
+            safe_free(evalStack);
+            return typ;
         }
         else
         {
@@ -629,8 +639,18 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             else
                 errorExit("Podminka u jen jedne veci na inputstacku neco chybne\n", CERR_INTERNAL);
 
-            dbgMsg("%s", tokenName[const2type(inputExp.type)]);
-            return const2type(inputExp.type);
+            tTokenType typ = const2type(inputExp.type);
+            dbgMsg("%s", tokenName[typ]);
+            safe_free(stackTop.data);
+            safe_free(second.data);
+            safe_free(third.data);
+            safe_free(inputToken.data);
+            safe_free(inputExp.data);
+            safe_free(nonTerminal.data);
+            safe_free(uselessExp.data);
+            expStackDispose(evalStack);
+            safe_free(evalStack);
+            return typ;
         }
     }
 
@@ -959,6 +979,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     // Pop the result into desired variable.
     addCode("POPS %s", tgtVar);
 
+
     safe_free(stackTop.data);
     safe_free(second.data);
     safe_free(third.data);
@@ -966,5 +987,7 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
     safe_free(inputExp.data);
     safe_free(nonTerminal.data);
     safe_free(uselessExp.data);
+    expStackDispose(evalStack);
+    safe_free(evalStack);
     return nonTerminal.type;
 }
