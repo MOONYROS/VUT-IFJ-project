@@ -41,9 +41,9 @@ typedef enum{   // strings for Keywords
     sEsc, sOcta1, sOcta2, sHexa1, sHexa2, sPercent, sDollar
 } tState;
 
-#define KEYWORDS 10
-char *keyword[] = {"if", "else", "while", "function", "return", "null", "int", "float", "string", "void"}; // list of all keywords and types
-tTokenType keywordToken[] = {tIf, tElse, tWhile, tFunction, tReturn, tNull, tTypeInt, tTypeFloat, tTypeString, tVoid};
+#define KEYWORDS 11
+char *keyword[] = {"if", "else", "while", "function", "return", "null", "NULL", "int", "float", "string", "void"}; // list of all keywords and types
+tTokenType keywordToken[] = {tIf, tElse, tWhile, tFunction, tReturn, tNull, tNull, tTypeInt, tTypeFloat, tTypeString, tVoid};
 
 #define NULLTYPES 3
 char *nullType[] = {"int", "float", "string"};
