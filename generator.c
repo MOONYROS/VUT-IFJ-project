@@ -46,7 +46,7 @@ extern tSymTableItem* actFunc; // active function if processing function definit
  */
 char* ifjCodeStr(char *outStr, char* str)
 {
-    char tmpStr[5];
+    char tmpStr[10];
 
     if (outStr == NULL)
         return NULL;
