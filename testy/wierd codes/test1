@@ -1,8 +1,0 @@
-<?php
-declare(strict_types=1);
-
-$a=        1            ;
-$b=         1.1     ;
-$c      =   "Tento kod je opravdu odporny!"   ;
-
-write($a, "\n", $b, "\n", $c, "\n" );
