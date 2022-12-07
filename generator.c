@@ -296,7 +296,7 @@ void generateCode(FILE* f)
 }
 
 /**
- * @brief
+ * @brief Generates code for functions.
  * 
  * @param f file
  */
