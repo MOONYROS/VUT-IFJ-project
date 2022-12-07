@@ -321,6 +321,39 @@ void generateFuncCode(FILE* f)
     fprintf(f, "\n");
 }
 
+void generateCheckNull(tSymTable *table, tExpression *top, tExpression *third)
+{
+    if (top == NULL || third == NULL)
+        return;
+
+    if (isNull(table, top) && isNull(table, third))
+        addCode("PUSHS int@0");
+
+    if (isNull(table, third))
+    {
+        if (isInt(table, top))
+        {
+            addCode("POPS LF@%%otoc");
+            addCode("CALL $$chknullint");
+            addCode("PUSHS LF@%%otoc");
+        }
+        else if (isReal(table, top))
+        {
+            addCode("POPS LF@%%otoc");
+            addCode("CALL $$chknullfloat");
+            addCode("PUSHS LF@%%otoc");
+        }
+    }
+    else if (isNull(table, top))
+    {
+        if (isInt(table, &third))
+            addCode("CALL $$chknullint");
+        else if (isReal(table, &third))
+            addCode("CALL $$chknullfloat");
+
+    }
+}
+
 /**
  * @brief Function, that generates embedded functions.
  *
@@ -460,6 +493,17 @@ void generateEmbeddedFunctions(FILE* f)
     fprintf(f, "LABEL $chknullfloat_ok\n");
     fprintf(f, "PUSHS LF@%%chk\n");
     fprintf(f, "LABEL $chknullfloat_end\n");
+    fprintf(f, "RETURN\n");
+    fprintf(f, "\n");
+
+    fprintf(f, "LABEL $$chknullstring\n");
+    fprintf(f, "POPS LF@%%chk\n");
+    fprintf(f, "JUMPIFNEQ $chknullstring_ok LF@%%chk nil@nil\n");
+    fprintf(f, "PUSHS string@\n");
+    fprintf(f, "JUMP $chknullstring_end\n");
+    fprintf(f, "LABEL $chknullstring_ok\n");
+    fprintf(f, "PUSHS LF@%%chk\n");
+    fprintf(f, "LABEL $chknullstring_end\n");
     fprintf(f, "RETURN\n");
     fprintf(f, "\n");
 

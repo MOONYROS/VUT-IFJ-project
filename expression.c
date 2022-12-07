@@ -173,28 +173,45 @@ bool isNull(tSymTable *table, tExpression *exp)
 
 tTokenType intOrFloat(tSymTable *table, tExpression *top, tExpression *third)
 {
-    if (isReal(table, top) && isReal(table, third))
-        return tTypeFloat;
-    else if (isReal(table, top) && isInt(table, third))
+    if (!isNull(table, top) && !isNull(table, third))
     {
-        if (!isNonTerminal(third))
-            convertIntToFloat(table, third);
+        if (isReal(table, top) && isReal(table, third))
+            return tTypeFloat;
+        else if (isReal(table, top) && isInt(table, third))
+        {
+            if (!isNonTerminal(third))
+                convertIntToFloat(table, third);
 
-        return tTypeFloat;
+            return tTypeFloat;
+        }
+        else if (isInt(table, top) && isReal(table, third))
+        {
+            if (!isNonTerminal(top))
+                convertIntToFloat(table, top);
+                
+            return tTypeFloat;
+        }
+        else if (isInt(table, top) && isInt(table, third))
+            return tTypeInt;
+        else
+        {
+            errorExit("Should never get here, func intOrFloat.\n", CERR_INTERNAL);
+            return tNone;
+        }
     }
-    else if (isInt(table, top) && isReal(table, third))
+    if (isNull(table, top))
     {
-        if (!isNonTerminal(top))
-            convertIntToFloat(table, top);
-            
-        return tTypeFloat;
+        if (isVar(table, third))
+            return variableType(table, third);
+        else
+            return third->type;
     }
-    else if (isInt(table, top) && isInt(table, third))
-        return tTypeInt;
-    else
+    if (isNull(table, third))
     {
-        errorExit("Should never get here, func intOrFloat.\n", CERR_INTERNAL);
-        return tNone;
+        if (isVar(table, top))
+            return variableType(table, top);
+        else
+            return third->type;
     }
 }
 
@@ -814,12 +831,15 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             switch (second.type)
             {
             case tPlus:
+                generateCheckNull(table, &stackTop, &third);
                 addCode("ADDS");
                 break;
             case tMinus:
+                generateCheckNull(table, &stackTop, &third);
                 addCode("SUBS");
                 break;
             case tMul:
+                generateCheckNull(table, &stackTop, &third);
                 addCode("MULS");
                 break;
             case tDiv:
@@ -833,10 +853,23 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 addCode("DIVS");
                 break;
             case tConcat:
-                addCode("POPS LF@%%otoc");
-                addCode("POPS LF@%%tmp");
-                addCode("CONCAT LF@%%tmp LF@%%tmp LF@%%otoc");
-                addCode("PUSHS LF@%%tmp");
+                if (isNull(table, &stackTop) && isNull(table, &third))
+                    addCode("PUSHS string@");
+                else if (isNull(table, &stackTop))
+                    addCode("CALL $$chknullstring");
+                else if (isNull(table, &third))
+                {
+                    addCode("POPS LF@%%otoc");
+                    addCode("CALL $$chknullstring");
+                    addCode("PUSHS LF@%%otoc");
+                }
+                else
+                {
+                    addCode("POPS LF@%%otoc");
+                    addCode("POPS LF@%%tmp");
+                    addCode("CONCAT LF@%%tmp LF@%%tmp LF@%%otoc");
+                    addCode("PUSHS LF@%%tmp");
+                }
                 break;
             case tMore:
                 if (isNull(table, &third) || isNull(table, &stackTop))
@@ -875,8 +908,34 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             case tMoreEq:
                 if (isNull(table, &third) && isNull(table, &stackTop))
                     addCode("PUSHS int@1");
-                else if (isNull(table, &third) || isNull(table, &stackTop))
+                else if (isNull(table, &third))
                 {
+                    if (isInt(table, &stackTop))
+                    {
+                        addCode("POPS LF@%%otoc");
+                        addCode("CALL $$chknullint");
+                        addCode("PUSHS LF@%%otoc");
+                    }
+                    else if (isReal(table, &stackTop))
+                    {
+                        addCode("POPS LF@%%otoc");
+                        addCode("CALL $$chknullfloat");
+                        addCode("PUSHS LF@%%otoc");
+                    }
+                    addCode("JUMPIFEQS $eq%05d", lbl);
+                    addCode("PUSHS int@0");
+                    addCode("JUMP $noteq%05d", lbl);
+                    addCode("LABEL $eq%05d", lbl);
+                    addCode("PUSHS int@1");
+                    addCode("LABEL $noteq%05d", lbl++);
+                }
+                else if (isNull(table, &stackTop))
+                {
+                    if (isInt(table, &third))
+                        addCode("CALL $$chknullint");
+                    else if (isReal(table, &third))
+                        addCode("CALL $$chknullfloat");
+
                     addCode("JUMPIFEQS $eq%05d", lbl);
                     addCode("PUSHS int@0");
                     addCode("JUMP $noteq%05d", lbl);
@@ -903,8 +962,34 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
             case tLessEq:
                 if (isNull(table, &third) && isNull(table, &stackTop))
                     addCode("PUSHS int@1");
-                else if (isNull(table, &third) || isNull(table, &stackTop))
+                else if (isNull(table, &third))
                 {
+                    if (isInt(table, &stackTop))
+                    {
+                        addCode("POPS LF@%%otoc");
+                        addCode("CALL $$chknullint");
+                        addCode("PUSHS LF@%%otoc");
+                    }
+                    else if (isReal(table, &stackTop))
+                    {
+                        addCode("POPS LF@%%otoc");
+                        addCode("CALL $$chknullfloat");
+                        addCode("PUSHS LF@%%otoc");
+                    }
+                    addCode("JUMPIFEQS $eq%05d", lbl);
+                    addCode("PUSHS int@0");
+                    addCode("JUMP $noteq%05d", lbl);
+                    addCode("LABEL $eq%05d", lbl);
+                    addCode("PUSHS int@1");
+                    addCode("LABEL $noteq%05d", lbl++);
+                }
+                else if (isNull(table, &stackTop))
+                {
+                    if (isInt(table, &third))
+                        addCode("CALL $$chknullint");
+                    else if (isReal(table, &third))
+                        addCode("CALL $$chknullfloat");
+
                     addCode("JUMPIFEQS $eq%05d", lbl);
                     addCode("PUSHS int@0");
                     addCode("JUMP $noteq%05d", lbl);

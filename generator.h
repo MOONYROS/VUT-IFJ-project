@@ -34,6 +34,7 @@ void genCodeProlog(FILE* f);
 void genCodeMain(FILE* f);
 void generateCode(FILE* f);
 void generateFuncCode(FILE* f);
+void generateCheckNull(tSymTable *table, tExpression *top, tExpression *third);
 void generateEmbeddedFunctions(FILE* f);
 
 extern const char funcPrefixName[];
