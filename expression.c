@@ -1028,14 +1028,19 @@ tTokenType evalExp(char* tgtVar, tStack *expStack, tSymTable *table)
                 addCode("MULS");
                 break;
             case tDiv:
-                if (isInt(table, &third) && isInt(table, &stackTop))
+                if(isNull(table, &third))
+                    addCode("PUSHS int@0");
+                else
                 {
-                    addCode("INT2FLOATS");
-                    addCode("POPS LF@%%otoc");
-                    addCode("INT2FLOATS");
-                    addCode("PUSHS LF@%%otoc");
+                    if (isInt(table, &third) && isInt(table, &stackTop))
+                    {
+                        addCode("INT2FLOATS");
+                        addCode("POPS LF@%%otoc");
+                        addCode("INT2FLOATS");
+                        addCode("PUSHS LF@%%otoc");
+                    }
+                    addCode("DIVS");
                 }
-                addCode("DIVS");
                 break;
             case tConcat:
                 if (isNull(table, &stackTop) && isNull(table, &third))
