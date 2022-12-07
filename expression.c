@@ -320,6 +320,9 @@ tTokenType intOrFloat(tSymTable *table, tExpression *top, tExpression *third)
         else
             return third->type;
     }
+
+    // Should never happen
+    return tNone;
 }
 
 /**
@@ -374,7 +377,9 @@ tTokenType getResultType(tSymTable *table, tExpression *top, tExpression *third,
                     convertNullToFloat(table, third);
             }
 
-            return intOrFloat(table, top, third);
+            retType = intOrFloat(table, top, third);
+            if (retType == tNone)
+                errorExit("Result type tNone, getResType.\n", CERR_INTERNAL);
     
         case tConcat:
             retType = tTypeString;           
