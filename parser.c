@@ -283,8 +283,9 @@ void processFunctionDefinition()
         }
     }
     on_stack_state_error(tmpStack, notEmpty, "stack should be empty after processsing arguments", CERR_INTERNAL);
-    addCode("DEFVAR LF@otoc\n");
-    addCode("DEFVAR LF@tmp\n");
+    addCode("DEFVAR LF@%%otoc\n");
+    addCode("DEFVAR LF@%%tmp\n");
+    addCode("DEFVAR LF@%%chk\n");
 
     matchTokenAndNext(tRPar);
     matchTokenAndNext(tColon);
