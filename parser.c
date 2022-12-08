@@ -320,7 +320,7 @@ void processFunctionDefinition()
     {
         fce->isDefined = 1;
         if ((fce->dataType != tVoid) && (fce->hasReturn == 0))
-            errorExit("missing return statement in non void function", CERR_SEM_RET);
+            errorExit("missing return statement in non void function", CERR_SEM_ARG);
         dbgMsg("} end function definition\n");
         addCode("POPFRAME");
         addCode("RETURN");

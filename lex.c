@@ -638,7 +638,7 @@ int ReadToken(FILE *f, tToken *token)
                     int octNum = (token->data[len - 3] - '0') * 64;
                     octNum += (token->data[len - 2] - '0') * 8;
                     octNum += (token->data[len - 1] - '0') * 1;
-                    if (octNum < 0 || octNum > 255)
+                    if (octNum < 1 || octNum > 255)
                     {
                         state = sFinish;
                         token->type = tInvalid;
@@ -678,6 +678,12 @@ int ReadToken(FILE *f, tToken *token)
                     int len = (int)strlen(token->data);
                     int hexNum = hexToDec(token->data[len - 2]) * 16;
                     hexNum += hexToDec(token->data[len - 1]) * 1;
+                     if (hexNum < 1 || hexNum > 255)
+                    {
+                        state = sFinish;
+                        token->type = tInvalid;
+                        break;
+                    }
                     char tmp[10];
                     sprintf(tmp, "%03d", hexNum);
                     token->data[len - 3] = tmp[0];
