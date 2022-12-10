@@ -1,8 +1,0 @@
-//
-// Created by jonys on 22.11.2022.
-//
-
-#ifndef IFJCODE22_EXPRESSION_H
-#define IFJCODE22_EXPRESSION_H
-
-#endif //IFJCODE22_EXPRESSION_H
