@@ -57,3 +57,5 @@ ic22int
 
 # Generated pseudoassembler
 *.ifjcode
+.idea
+.vscode
