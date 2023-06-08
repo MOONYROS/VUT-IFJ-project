@@ -1,6 +1,6 @@
 # VUT IFJ project (2022/2023)
 
-Goal of this project was to build a compiler for a sort of subset language of PHP 8 using techniques learned on lectures.
+Goal of this project was to build a compiler for a sort of subset language of PHP 8 (working name IFJCode22) using techniques learned on lectures.
 We worked in teams of four.
 More detailed information can be found in the documentation in `Dokumentace/dokumentace.pdf`. Please note that the documentation is in Czech language only.
 
