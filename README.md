@@ -11,6 +11,17 @@ More detailed information can be found in the documentation in `Dokumentace/doku
 - [Jonas Morkus](https://github.com/jonys124)
 - [Milan Menc](https://github.com/MeRohel)
 
+## Compilation
+
+To compile the project, please use the included `Makefile` (command `make`) with which the project was tested using `gcc compiler`.
+
+This project was tested on:
+
+- Windows 11
+- Windows 10
+- Ubuntu 22.04
+- Fedora 37
+
 ## Autotesting results
 
 - Lexical analysis: 89%
